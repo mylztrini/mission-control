@@ -86,7 +86,7 @@ td{padding:8px;border-bottom:1px solid var(--bd2);vertical-align:top}
     <h1 id="greet">Miles, here's who needs you.</h1>
     <p class="summary" id="summary">Loading…</p>
     <div class="xbar">
-      <a class="pill" id="duLink" href="https://dailyupdate.simplyintense.com/" target="_blank" rel="noopener noreferrer">◆ Daily Update ↗</a>
+      <a class="pill" id="duLink" href="https://dailyupdate.simplyintense.com/" rel="noreferrer">◆ Daily Update</a>
       <button class="pill" id="aBtn" type="button">🎧 Play the latest JARVIS brief</button>
       <span class="ab-lab" id="aLab"></span>
       <audio id="aPlayer" controls preload="none" hidden></audio>
@@ -410,6 +410,18 @@ $("aBtn").addEventListener("click", async () => {
     $("aBtn").textContent = "🎧 Latest JARVIS brief";
   } catch (e) { $("aBtn").textContent = "🎧 Play the latest JARVIS brief"; $("aLab").textContent = `Couldn't load the audio (${e.message}).`; }
   finally { A.loading = false; $("aBtn").disabled = false; }
+});
+// Daily Update button: only on click, ask the function (MC key in a header) for the daily-update link with its own
+// #k= key and open it in this tab. Never stored in the page; falls back to the bare link.
+$("duLink").addEventListener("click", async (e) => {
+  if (!MCKEY) return;
+  e.preventDefault();
+  const el = $("duLink"); el.textContent = "◆ Opening…";
+  try {
+    const r = await api("link/daily");
+    const j = r.ok ? await r.json() : {};
+    location.assign(j.url && j.url.startsWith("https://dailyupdate.simplyintense.com/") ? j.url : el.href);
+  } catch (_e) { location.assign(el.href); }
 });
 if (!MCKEY) $("summary").textContent = "Missing key: open Mission Control from your private bookmarked link (it ends in #k=…).";
 else { audioMeta(); load(true).catch((e) => { $("summary").textContent = "Couldn't load data from the server" + (e && e.message ? ` (${e.message})` : "") + "."; }); }
