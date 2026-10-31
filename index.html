@@ -159,6 +159,29 @@ td{padding:8px;border-bottom:1px solid var(--bd2);vertical-align:top}
 .rule{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:10px 12px;font-size:13px}
 .rule b{display:block;font:700 10.5px var(--font-mono);letter-spacing:.12em;text-transform:uppercase;color:var(--accent-ink);margin-bottom:4px}
 .retired span{display:inline-block;margin:0 6px 6px 0;font-size:12px;color:var(--muted);border:1px solid var(--line);border-radius:6px;padding:3px 8px;text-decoration:line-through}
+/* Org tab: legibility (Miles, Oct 31) */
+#tabOrg{--muted:color-mix(in oklab,var(--text) 90%,transparent);--faint:color-mix(in oklab,var(--text) 80%,transparent);font-size:16px;line-height:1.55;color:var(--text)}
+.tabs button{font-size:14px;padding:12px 16px}.tabs .tcount{font-size:12px}
+#tabOrg .og-stat .s{font-size:13px}#tabOrg .og-stat .b{font-size:32px}
+#tabOrg .og-cap{font-size:14.5px;line-height:1.5}
+#tabOrg .og-h{font-size:15px;margin:32px 0 12px}
+#tabOrg .kbars{grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:14px}
+#tabOrg .kbar{padding:14px 16px}#tabOrg .kbar .kt{font-size:17px}#tabOrg .kbar .kl{font-size:15.5px;margin:4px 0 8px}
+#tabOrg .kbar .kv{font-size:15px}#tabOrg .kbar .kc{font-size:13.5px}
+#tabOrg .prop{font-size:12px;padding:2px 6px}
+#tabOrg .divs{grid-template-columns:repeat(auto-fit,minmax(330px,1fr));gap:18px}
+#tabOrg .div{padding:16px;gap:12px}#tabOrg .div .dh{font-size:21px}#tabOrg .div .dh .ic{font-size:24px}#tabOrg .div .ds{font-size:16px;line-height:1.55}
+#tabOrg .team{padding-left:12px;gap:10px}#tabOrg .team .tn{font-size:13.5px;letter-spacing:.1em}
+#tabOrg .seat{font-size:16px;line-height:1.55;padding:12px 14px;border-radius:12px}
+#tabOrg .seat .sn{font-size:18px;gap:8px;line-height:1.3}#tabOrg .seat .job{font-size:16.5px;color:var(--text);margin-top:2px}
+#tabOrg .seat .num{font-size:15px;margin-top:6px}#tabOrg .seat .meta2{font-size:13.5px;margin-top:6px;gap:4px 12px}
+#tabOrg .seat .tag{font-size:12px;padding:1px 5px}#tabOrg .seat .more{font-size:15px}
+#tabOrg .seat .needs{margin-top:8px;padding:8px 10px;border-radius:8px;background:color-mix(in oklab,var(--pink) 14%,transparent);border:1px solid color-mix(in oklab,var(--pink) 55%,transparent);font-size:15.5px;line-height:1.5}
+#tabOrg .seat .needs b{color:var(--pink);font:700 12.5px var(--font-mono);letter-spacing:.1em;display:block;margin-bottom:2px}
+#tabOrg .seat .needs li{margin:0 0 3px 18px}
+#tabOrg .gaps,#tabOrg .rules{grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:14px;font-size:16px}
+#tabOrg .gap h4{font-size:17px}#tabOrg .retired span{font-size:15px;padding:4px 10px}
+@media (max-width:640px){#tabOrg .divs,#tabOrg .kbars,#tabOrg .gaps,#tabOrg .rules{grid-template-columns:1fr}#tabOrg .og-stats{grid-template-columns:repeat(2,1fr)}#tabOrg .div{padding:14px}#tabOrg .seat .sn{font-size:18px}.tabs button{font-size:14px;padding:12px 12px}}
 </style></head><body><main>
 <div class="ribbon">◆ Mission control live&nbsp;·&nbsp;<b>Bot chats · Asana · Staff · JARVIS</b>&nbsp;·&nbsp;asks · presses · routines — one deck</div>
 <div class="bridge">
@@ -536,6 +559,7 @@ function seat(d, R, id, color, opts = {}) {
     <div class="job">${esc(b.job)}</div>
     <div class="num">${esc(b.num || "unknown")}</div>
     <div class="meta2"><span class="stl ${st === "waiting" ? "waiting" : ""}">${st === "waiting" ? "WAITING ON MILES" : esc(st.toUpperCase())}</span><span>Last active: ${esc(b.last || "unknown")}${/AM|PM/.test(b.last || "") ? " AST" : ""}</span></div>
+    ${st === "waiting" && (b.asks || []).some((a) => !a.done) ? `<div class="needs"><b>NEEDS FROM MILES · answer in Today › Waiting on me</b><ul>${b.asks.filter((a) => !a.done).map((a) => `<li>${esc(a.text)}</li>`).join("")}</ul></div>` : ""}
     <div class="more">Reports to: <b>${esc(R.reports(id))}</b> · Manages: <b>${m}</b>${b.flag ? `<div class="flag">⚑ ${esc(b.flag)}</div>` : ""}</div>
   </button>`;
 }
