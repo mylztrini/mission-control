@@ -1,0 +1,346 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="robots" content="noindex, nofollow, noarchive">
+<meta name="googlebot" content="noindex, nofollow, noarchive">
+<meta name="referrer" content="no-referrer"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Mission Control</title>
+<style>
+:root{color-scheme:light dark;--bg:#fafafa;--card:#fff;--sub:#f2f2f4;--fg:#121214;--fg2:#4a4a52;--mut:#7a7a84;--bd:#e3e3e8;--bd2:#ececf0;
+--pri:#121214;--onpri:#fff;--c0:#3b82f6;--c1:#10b981;--c2:#f59e0b;--c3:#a855f7;--c4:#ef4444;--idle:#9ca3af;--heat:59,130,246}
+@media (prefers-color-scheme:dark){:root{--bg:#0b0b0d;--card:#141417;--sub:#1b1b1f;--fg:#ececf0;--fg2:#b9b9c2;--mut:#8a8a94;--bd:#2a2a30;--bd2:#222227;
+--pri:#ececf0;--onpri:#111;--idle:#6b7280;--heat:96,165,250}}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--fg);font:15px/1.45 system-ui,-apple-system,"Segoe UI",sans-serif}
+main{padding:20px clamp(12px,3vw,32px) 60px;max-width:1800px;margin:0 auto}
+h1{font-size:26px;margin:0}.summary{color:var(--fg2);margin:4px 0 20px}
+.cols{display:flex;flex-wrap:wrap;gap:28px;align-items:flex-start}
+.left{flex:1 1 340px;min-width:0}.right{flex:2 1 620px;min-width:0;display:flex;flex-direction:column;gap:28px}
+section{background:var(--card);border:1px solid var(--bd);border-radius:16px;padding:16px 18px}
+.sh{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap}
+h2{font-size:17px;margin:0}.cap{color:var(--mut);font-size:12.5px;margin:4px 0 10px}
+.tog{display:inline-flex;align-items:center;gap:6px;font-size:13px;color:var(--fg2);cursor:pointer;user-select:none}
+.tog input{accent-color:var(--c0)}
+.item{border-top:1px solid var(--bd2);padding:12px 0}.item:first-child{border-top:none}
+.meta{color:var(--mut);font-size:12px}.txt{margin-top:2px}.stale .txt{color:var(--fg2)}
+.blur .meta,.blur .txt{filter:blur(6px);user-select:none}.ign{opacity:.5}.sent{opacity:.55}.item.gone{opacity:0;transform:translateY(-8px);max-height:0!important;padding-top:0;padding-bottom:0;border-top-color:transparent;overflow:hidden}.item.fading{transition:opacity .35s ease,transform .35s ease,max-height .4s ease .3s,padding .4s ease .3s;overflow:hidden}
+.nrow{display:flex;gap:12px;align-items:flex-start}.nbody{flex:1 1 auto;min-width:0}
+.num{flex:0 0 auto;min-width:40px;font-size:20px;font-weight:700;line-height:1.2;font-variant-numeric:tabular-nums;color:var(--fg)}.num:empty{display:none}
+.badge{display:inline-block;margin-left:6px;padding:0 8px;border-radius:999px;font-size:11.5px;background:var(--sub);border:1px solid var(--c0);color:var(--fg)}.badge:empty{display:none}
+.row{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px;align-items:center}
+.btn{border:1px solid var(--bd);background:var(--card);color:var(--fg);border-radius:8px;padding:4px 10px;font-size:12.5px;cursor:pointer;text-decoration:none;font-family:inherit;display:inline-flex;align-items:center}
+.btn.p{background:var(--pri);color:var(--onpri);border-color:transparent}.btn.l{border:none;background:none;color:var(--fg2);padding:4px 2px}
+.chip{border:1px solid var(--bd);background:var(--sub);color:var(--fg);border-radius:999px;padding:3px 10px;font-size:12.5px;cursor:pointer;font-family:inherit}
+.chip:disabled,.btn:disabled{opacity:.5;cursor:default}
+input.reply{flex:1 1 200px;min-width:0;border:1px solid var(--bd);background:var(--card);color:var(--fg);border-radius:8px;padding:5px 9px;font:inherit;font-size:13.5px}
+.st{font-size:12px;color:var(--fg2)}
+.warn{border:1px solid var(--c2);border-radius:10px;padding:8px 12px;font-size:13px;margin-bottom:8px}
+.cards{display:flex;flex-wrap:wrap;gap:16px}.kpi{flex:1 1 220px;border:1px solid var(--bd);border-radius:14px;padding:14px 18px;background:var(--sub);color:inherit;text-decoration:none}
+.kpi .s{font-size:12px;color:var(--mut)}.kpi .b{font-size:34px;font-weight:650;font-variant-numeric:tabular-nums;line-height:1.2}
+svg text{font-family:system-ui,-apple-system,"Segoe UI",sans-serif}
+.hm{display:grid;grid-template-columns:76px repeat(24,minmax(14px,1fr));gap:2px;font-size:10.5px;color:var(--mut);overflow-x:auto}
+.hm .c{aspect-ratio:1;border-radius:3px;background:var(--sub)}.hm .rl{white-space:nowrap;align-self:center}.hm .hl{text-align:center}
+ol{margin:0;padding-left:22px}ol li{margin:4px 0}
+.links{display:flex;flex-wrap:wrap;gap:10px;margin-top:12px}.lk{flex:1 1 220px;border:1px solid var(--bd);border-radius:12px;padding:10px 14px;text-decoration:none;color:inherit;background:var(--sub)}
+.lk .t{font-weight:600}.lk .m{font-size:12px;color:var(--mut)}
+.tl{display:flex;gap:12px;padding:10px 0;border-top:1px solid var(--bd2)}.tl:first-child{border-top:none}
+.av{flex:0 0 32px;height:32px;border-radius:50%;display:grid;place-items:center;color:#fff;font-size:12px;font-weight:650}
+table{width:100%;border-collapse:collapse;font-size:13.5px}th{text-align:left;color:var(--mut);font-weight:600;font-size:12px;padding:6px 8px;border-bottom:1px solid var(--bd)}
+td{padding:8px;border-bottom:1px solid var(--bd2);vertical-align:top}
+.two{display:flex;flex-wrap:wrap;gap:28px}.two>section{flex:1 1 320px;min-width:0}
+</style></head><body><main>
+<h1>Mission Control</h1>
+<p class="summary" id="summary">Loading…</p>
+<div class="cols">
+  <div class="left"><section>
+    <div class="sh"><h2>Waiting on me</h2>
+      <div style="display:flex;gap:14px;flex-wrap:wrap">
+        <label class="tog"><input type="checkbox" id="showIgn"><span id="showIgnLbl">Show ignored (0)</span></label>
+        <label class="tog"><input type="checkbox" id="blurAll">Blur all</label>
+      </div></div>
+    <p class="cap" id="wcap"></p>
+    <div class="warn" id="warn" hidden></div>
+    <div id="wlist"></div>
+  </section></div>
+  <div class="left"><section>
+    <div class="sh"><h2>Staff waiting on me</h2></div>
+    <p class="cap" id="scap"></p>
+    <div id="slist"></div>
+  </section></div>
+  <div class="right">
+    <section><h2 style="margin-bottom:10px">Right now</h2><div class="cards">
+      <div class="kpi"><div class="s">Time in Tobago (AST)</div><div class="b" id="clock">--</div><div class="s" id="date"></div></div>
+      <a class="kpi" id="stat" target="_blank" rel="noreferrer"><div class="s">Waiting on Miles · deduped</div><div class="b" id="statN">--</div><div class="s" id="statS"></div></a>
+    </div></section>
+    <section><h2>The office</h2><p class="cap">Desks: bots that worked in the last 4 hours. Lounge: idle bots (hover for last seen).</p><div id="office"></div></section>
+    <section><h2>Bot activity by hour, last 7 days</h2><p class="cap" id="hcap"></p><div class="hm" id="heat"></div></section>
+    <section><h2>Today's brief</h2><p class="cap" id="bcap"></p><ol id="brief"></ol><div class="links" id="blinks"></div></section>
+    <div class="two">
+      <section><h2>Activity timeline</h2><p class="cap" id="tcap"></p><div id="timeline"></div></section>
+      <section><h2>Upcoming routines</h2><p class="cap" id="rcap"></p><table><thead><tr><th>Routine</th><th>Next run (AST)</th><th>Owner</th></tr></thead><tbody id="routines"></tbody></table></section>
+    </div>
+  </div>
+</div>
+</main>
+<script>
+// Always-on Mission Control. This page holds NO data: it reads the view key from the #k= fragment (never sent to
+// this host, never put in a link) and calls the private Supabase function with it in a request header.
+const FN = "https://ufwckditozswfzosymwu.supabase.co/functions/v1/mission-control";
+const MCKEY = new URLSearchParams(location.hash.slice(1)).get("k") || "";
+function api(op, opt = {}) {
+  return fetch(`${FN}/${op}`, { cache: "no-store", referrerPolicy: "no-referrer", credentials: "omit", ...opt,
+    headers: { ...(opt.headers || {}), "X-MC-Key": MCKEY } });
+}
+</script>
+<script>
+const $ = (id) => document.getElementById(id);
+const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+const CHAT = (id) => `grokbot://app/v1/agent?id=${encodeURIComponent(id)}`;
+const PALETTE = ["--c0", "--c1", "--c2", "--c3", "--c4"];
+const css = (v) => getComputedStyle(document.documentElement).getPropertyValue(v).trim();
+const colorFor = (name) => { let h = 0; for (const ch of name) h = (h * 31 + ch.charCodeAt(0)) >>> 0; return `var(${PALETTE[h % PALETTE.length]})`; };
+const initials = (n) => n.replace(/[^A-Za-z0-9 &.]/g, " ").split(/[\s.&]+/).filter(Boolean).slice(0, 2).map((w) => w[0].toUpperCase()).join("");
+let D = null;
+const ignored = new Set(), hidden = new Set(), sent = new Map();
+
+// Clock
+function tick() {
+  const now = new Date();
+  $("clock").textContent = now.toLocaleTimeString("en-US", { timeZone: "America/Port_of_Spain", hour: "numeric", minute: "2-digit", second: "2-digit" });
+  $("date").textContent = now.toLocaleDateString("en-US", { timeZone: "America/Port_of_Spain", weekday: "long", month: "short", day: "numeric" });
+}
+setInterval(tick, 1000); tick();
+
+// Waiting on me
+async function post(body) {
+  const r = await api("command", { method: "POST", headers: { "Content-Type": "application/json", "X-Mission-Control": "1" }, body: JSON.stringify(body) });
+  let j = {}; try { j = await r.json(); } catch (_e) {}
+  return j;
+}
+function renderWaitingHead() {
+  const w = D.waiting, chats = w.filter((i) => !i.stale).length, also = w.filter((i) => !i.stale && i.card).length;
+  $("wcap").textContent = `From the bots' own chats, cross-checked with Asana. ${chats} open asks from chats come first (${also} also on Asana), then ${w.length - chats} cards only Asana lists. Answer buttons send straight to JARVIS. Ignore hides for this view; tell JARVIS to remove an item for good.`;
+  $("warn").hidden = !!D.configured;
+  $("warn").textContent = "Not connected to JARVIS: presses are saved to the outbox only.";
+  $("showIgnLbl").textContent = `Show ignored (${w.filter((i) => ignored.has(i.key)).length})`;
+}
+function renderWaiting() {
+  renderWaitingHead();
+  const w = D.waiting, showIgn = $("showIgn").checked, blurAll = $("blurAll").checked;
+  const items = w.filter((i) => (showIgn || !ignored.has(i.key)) && !(sent.get(i.key) || {}).ok);
+  $("wlist").innerHTML = items.length ? items.map((it) => {
+    const k = esc(it.key), ig = ignored.has(it.key), bl = blurAll || hidden.has(it.key), s = sent.get(it.key);
+    return `<div class="item ${it.stale ? "stale" : ""} ${ig ? "ign" : ""} ${bl ? "blur" : ""} ${s && s.ok ? "sent" : ""}" data-k="${k}"><div class="nrow"><div class="num">${it.number ? "#" + it.number : ""}</div><div class="nbody">
+      <div class="meta">${esc(it.bot)} · ${esc(it.when)}${it.stale ? " · <i>Asana only, may be stale</i>" : ""}<span class="badge">${esc(it.status || "")}</span></div>
+      <div class="txt">${esc(it.text)}</div>
+      <div class="row">
+        <a class="btn p" href="${CHAT(it.botId)}">Open</a>
+        <button class="btn" data-eye title="${bl ? "Show" : "Blur for privacy"}" aria-label="${bl ? "Show item" : "Blur item"}">${bl ? "🙈" : "👁"}</button>
+        <button class="btn" data-ign>${ig ? "Restore" : "Ignore"}</button>
+        ${it.card ? `<a class="btn l" target="_blank" rel="noreferrer" href="${esc(D.card_base + it.card)}">Asana card</a>` : ""}
+      </div>
+      <div class="row">${it.actions.map((a) => `<button class="chip" data-a="${esc(a)}">${esc(a)}</button>`).join("")}</div>
+      <div class="row"><input class="reply" placeholder="Or type a reply for JARVIS…" maxlength="1000"><button class="btn p" data-a="Reply">Send</button><span class="st">${s ? esc(s.msg) : ""}</span></div>
+    </div></div></div>`;
+  }).join("") : `<p class="cap">Everything is ignored for this view. Tick "Show ignored" to bring items back.</p>`;
+}
+$("wlist").addEventListener("click", async (e) => {
+  const b = e.target.closest("button"); if (!b) return;
+  const el = b.closest(".item"), key = el.dataset.k, it = D.waiting.find((i) => i.key === key); if (!it) return;
+  if (b.hasAttribute("data-eye")) { hidden.has(key) ? hidden.delete(key) : hidden.add(key); return renderWaiting(); }
+  if (b.hasAttribute("data-ign")) { ignored.has(key) ? ignored.delete(key) : ignored.add(key); return renderWaiting(); }
+  const action = b.dataset.a; if (!action) return;
+  const note = el.querySelector("input.reply").value.trim(), st = el.querySelector(".st");
+  if (action === "Reply" && !note) { st.textContent = "Type a reply first."; return; }
+  el.querySelectorAll("button.chip,button[data-a]").forEach((x) => (x.disabled = true));
+  st.textContent = "Sending…";
+  try {
+    const keep_open = !!e.shiftKey; // Shift-click answers without removing the card
+    const r = await post({ key, action, note, keep_open });
+    if (keep_open && r.ok) { st.textContent = `Sent "${action}" to JARVIS (kept open).`; el.querySelectorAll("button.chip,button[data-a]").forEach((x) => (x.disabled = false)); return; }
+    sent.set(key, { ok: !!r.ok, msg: r.ok ? `Sent "${action}" to JARVIS.` : (r.reason || r.error || "Didn't send.") });
+  } catch (_e) { sent.set(key, { ok: false, msg: "Couldn't reach the server." }); }
+  if ((sent.get(key) || {}).ok) {
+    st.textContent = sent.get(key).msg;
+    D.waiting = D.waiting.filter((i) => i.key !== key);
+    fadeOut(el);
+    return;
+  }
+  renderWaiting();
+});
+// Staff waiting on me: Asana tasks where Rae, Jackie, Ameeta or Shelby's latest comment waits on Miles.
+// Reply = JARVIS posts it as an Asana comment @mentioning them; the card leaves and comes back (same #) only when they write again.
+function renderStaffHead() {
+  const s = D.staff || [], who = {};
+  for (const i of s) who[i.who] = (who[i.who] || 0) + 1;
+  $("scap").textContent = `${s.length} Asana task${s.length === 1 ? "" : "s"} where a staff member's latest comment is waiting on you${s.length ? " (" + Object.entries(who).map(([k, v]) => `${k} ${v}`).join(", ") + ")" : ""}. FYIs are hidden. Send posts your reply to the task as a comment that @mentions them.`;
+}
+function renderStaff() {
+  renderStaffHead();
+  const items = (D.staff || []).filter((i) => !(sent.get(i.key) || {}).ok), blurAll = $("blurAll").checked;
+  $("slist").innerHTML = items.length ? items.map((it) => {
+    const k = esc(it.key), bl = blurAll || hidden.has(it.key), s = sent.get(it.key);
+    return `<div class="item ${bl ? "blur" : ""}" data-k="${k}"><div class="nrow"><div class="num">${it.number ? "#" + it.number : ""}</div><div class="nbody">
+      <div class="meta">${esc(it.who)} · ${esc(it.age)} ago · ${esc(it.project)}<span class="badge">${esc(it.status || "")}</span></div>
+      <div class="txt"><b>${esc(it.task_name)}</b></div>
+      <div class="txt">${esc(it.text.length > 260 ? it.text.slice(0, 260) + "…" : it.text)}${it.earlier ? ` <span class="meta">(+${it.earlier} earlier)</span>` : ""}</div>
+      <div class="row">
+        <a class="btn p" target="_blank" rel="noreferrer" href="${esc(it.url)}">Open in Asana</a>
+        <button class="btn" data-eye title="${bl ? "Show" : "Blur for privacy"}" aria-label="${bl ? "Show item" : "Blur item"}">${bl ? "🙈" : "👁"}</button>
+        ${it.actions.map((a) => `<button class="chip" data-a="${esc(a)}">${esc(a)}</button>`).join("")}
+      </div>
+      <div class="row"><input class="reply" placeholder="Reply to ${esc(it.who)} (posted on the Asana task)…" maxlength="1000"><button class="btn p" data-a="Reply">Send</button><span class="st">${s ? esc(s.msg) : ""}</span></div>
+    </div></div></div>`;
+  }).join("") : `<p class="cap">Nobody on staff is waiting on you right now.</p>`;
+}
+$("slist").addEventListener("click", async (e) => {
+  const b = e.target.closest("button"); if (!b) return;
+  const el = b.closest(".item"), key = el.dataset.k, it = (D.staff || []).find((i) => i.key === key); if (!it) return;
+  if (b.hasAttribute("data-eye")) { hidden.has(key) ? hidden.delete(key) : hidden.add(key); return renderStaff(); }
+  const action = b.dataset.a; if (!action) return;
+  const note = el.querySelector("input.reply").value.trim(), st = el.querySelector(".st");
+  if (action === "Reply" && !note) { st.textContent = "Type a reply first."; return; }
+  el.querySelectorAll("button.chip,button[data-a]").forEach((x) => (x.disabled = true));
+  st.textContent = "Sending…";
+  try {
+    const r = await post({ key, action, note, keep_open: false });
+    sent.set(key, { ok: !!r.ok, msg: r.ok ? `Sent to JARVIS: ${action === "Reply" ? "posting your reply on Asana" : action}.` : (r.reason || r.error || "Didn't send.") });
+  } catch (_e) { sent.set(key, { ok: false, msg: "Couldn't reach the server." }); }
+  if ((sent.get(key) || {}).ok) { st.textContent = sent.get(key).msg; D.staff = D.staff.filter((i) => i.key !== key); fadeOut(el); return; }
+  renderStaff();
+});
+$("showIgn").addEventListener("change", renderWaiting);
+$("blurAll").addEventListener("change", () => { renderWaiting(); renderStaff(); });
+
+// Office
+const NS = "http://www.w3.org/2000/svg";
+let wander = [];
+function renderOffice() {
+  const working = D.bots.filter((b) => b.working), idle = D.bots.filter((b) => !b.working);
+  const cols = ["var(--c0)", "var(--c1)", "var(--c2)"];
+  let s = `<svg viewBox="0 0 1280 380" width="100%" role="img" aria-label="Office: working bots at desks, idle bots in the lounge">
+    <rect x="4" y="4" width="1272" height="372" rx="16" fill="var(--sub)" stroke="var(--bd)"/>
+    <line x1="660" y1="20" x2="660" y2="360" stroke="var(--bd)" stroke-dasharray="6 6"/>
+    <text x="24" y="34" font-size="12" fill="var(--mut)">DESKS · working in the last 4 hours</text>
+    <text x="684" y="34" font-size="12" fill="var(--mut)">LOUNGE · idle, hover for last seen</text>
+    <rect x="760" y="120" width="300" height="170" rx="60" fill="var(--card)" stroke="var(--bd2)"/>
+    <rect x="860" y="180" width="100" height="50" rx="10" fill="var(--sub)" stroke="var(--bd)"/>
+    <circle cx="1220" cy="70" r="18" fill="var(--c1)" opacity=".35"/><circle cx="700" cy="330" r="16" fill="var(--c1)" opacity=".35"/>
+    <rect x="1150" y="300" width="90" height="40" rx="8" fill="var(--card)" stroke="var(--bd)"/><text x="1195" y="325" text-anchor="middle" font-size="12" fill="var(--mut)">coffee</text>`;
+  working.forEach((b, i) => {
+    const cx = 120 + (i % 3) * 205, cy = 150 + Math.floor(i / 3) * 160, c = cols[i % 3];
+    const bw = Math.max(120, Math.min(200, b.doing.length * 6.6 + 20));
+    s += `<g><title>${esc(b.name)}: ${esc(b.doing)} (last active ${esc(b.last)})</title>
+      <rect x="${cx - bw / 2}" y="${cy - 92}" width="${bw}" height="30" rx="10" fill="var(--card)" stroke="var(--bd)"/>
+      <path d="M ${cx - 6} ${cy - 62} L ${cx} ${cy - 54} L ${cx + 6} ${cy - 62}" fill="var(--card)" stroke="var(--bd)"/>
+      <text x="${cx}" y="${cy - 72}" text-anchor="middle" font-size="11.5" fill="var(--fg)" ${b.doing.length * 6.6 > 180 ? 'textLength="180" lengthAdjust="spacingAndGlyphs"' : ""}>${esc(b.doing)}</text>
+      <circle cx="${cx}" cy="${cy - 24}" r="20" fill="${c}"/><text x="${cx}" y="${cy - 19}" text-anchor="middle" font-size="13" font-weight="650" fill="#fff">${esc(b.short)}</text>
+      <rect x="${cx - 70}" y="${cy}" width="140" height="44" rx="6" fill="var(--card)" stroke="var(--fg2)"/>
+      <rect x="${cx - 24}" y="${cy + 6}" width="48" height="22" rx="3" fill="var(--sub)" stroke="var(--bd)"/>
+      <circle cx="${cx - 12}" cy="${cy - 2}" r="5" fill="${c}"><animate attributeName="cy" values="${cy - 2};${cy + 2};${cy - 2}" dur="0.35s" repeatCount="indefinite"/></circle>
+      <circle cx="${cx + 12}" cy="${cy + 2}" r="5" fill="${c}"><animate attributeName="cy" values="${cy + 2};${cy - 2};${cy + 2}" dur="0.35s" repeatCount="indefinite"/></circle>
+      <text x="${cx}" y="${cy + 62}" text-anchor="middle" font-size="12" fill="var(--mut)">${esc(b.name)}</text></g>`;
+  });
+  s += `<g id="lounge"></g></svg>`;
+  $("office").innerHTML = s;
+  const g = $("office").querySelector("#lounge");
+  wander = idle.map((b, i) => {
+    const x = 720 + ((i * 97) % 500), y = 90 + ((i * 61) % 230);
+    const el = document.createElementNS(NS, "g");
+    el.innerHTML = `<title>${esc(b.name)}: idle, last active ${esc(b.last)}</title><circle r="15" fill="var(--idle)" opacity=".9"/><text y="4" text-anchor="middle" font-size="11" font-weight="650" fill="#fff">${esc(b.short)}</text>`;
+    g.appendChild(el);
+    return { el, x, y, tx: x, ty: y };
+  });
+}
+let last = 0;
+function step(t) {
+  if (t - last > 40) {
+    last = t;
+    for (const p of wander) {
+      const dx = p.tx - p.x, dy = p.ty - p.y, d = Math.hypot(dx, dy);
+      if (d < 2) { if (Math.random() < 0.03) { p.tx = 720 + Math.random() * 510; p.ty = 85 + Math.random() * 240; } }
+      else { p.x += (dx / d) * 1.4; p.y += (dy / d) * 1.4; }
+      p.el.setAttribute("transform", `translate(${p.x.toFixed(1)} ${p.y.toFixed(1)})`);
+    }
+  }
+  requestAnimationFrame(step);
+}
+requestAnimationFrame(step);
+
+// Heatmap, brief, timeline, routines
+function renderRest() {
+  const h = D.heatmap, max = Math.max(1, ...h.values.flat());
+  $("hcap").textContent = h.caption;
+  let s = `<div></div>` + h.hours.map((x, i) => `<div class="hl">${i % 3 === 0 ? esc(x) : ""}</div>`).join("");
+  h.days.forEach((day, r) => {
+    s += `<div class="rl">${esc(day)}</div>` + h.values[r].map((v, c) =>
+      `<div class="c" title="${esc(day)}, ${esc(h.hours[c])}: ${v} event${v === 1 ? "" : "s"}" style="${v ? `background:rgba(var(--heat),${(0.15 + 0.85 * v / max).toFixed(2)})` : ""}"></div>`).join("");
+  });
+  $("heat").innerHTML = s;
+  $("bcap").textContent = D.brief.caption;
+  $("brief").innerHTML = D.brief.items.map((x) => `<li>${esc(x)}</li>`).join("");
+  $("blinks").innerHTML = D.brief.links.map((l) => `<a class="lk" target="_blank" rel="noreferrer" href="${esc(l.href)}"><div class="t">${esc(l.title)}</div><div class="m">${esc([l.site, l.date].filter(Boolean).join(" · "))}</div></a>`).join("");
+  $("tcap").textContent = D.captions.timeline;
+  $("timeline").innerHTML = D.done.map((d) => `<div class="tl"><div class="av" style="background:${colorFor(d.bot)}">${esc(initials(d.bot))}</div><div style="min-width:0"><div class="meta">${esc(d.bot)} · ${esc(d.when)}</div><div>${esc(d.text)}</div></div></div>`).join("");
+  $("rcap").textContent = D.captions.routines;
+  $("routines").innerHTML = D.routines.map((r) => `<tr>${r.map((c) => `<td>${esc(c)}</td>`).join("")}</tr>`).join("");
+  const w = D.waiting, chats = w.filter((i) => !i.stale).length;
+  $("stat").href = D.board; $("statN").textContent = w.length;
+  $("statS").textContent = `${chats} from bot chats, ${w.length - chats} Asana only · ${D.as_of}`;
+  $("summary").textContent = `What every bot is doing, what they need from you, and what runs next. Data as of ${D.as_of}.`;
+}
+
+// Fade a card out, let the next one slide up, then drop it from the DOM (other cards keep their typed replies).
+function fadeOut(el) {
+  if (!el || el.classList.contains("fading")) return;
+  el.style.maxHeight = el.scrollHeight + "px"; el.classList.add("fading");
+  void el.offsetHeight; el.classList.add("gone");
+  setTimeout(() => { el.remove(); renderWaitingHead(); renderStaffHead(); renderRest(); if (!$("wlist").querySelector(".item")) renderWaiting(); if (!$("slist").querySelector(".item")) renderStaff(); }, 750);
+}
+const focusedItemKey = () => { const f = document.querySelector("input.reply:focus"); return f ? f.closest(".item").dataset.k : null; };
+let version = null;
+async function load(force) {
+  const resp = await api("data");
+  if (resp.status === 401 || resp.status === 429) throw new Error(resp.status === 401 ? "bad key" : "locked out, try again in 10 min");
+  const d = await resp.json();
+  const first = !D, regen = first || D.generated_at !== d.generated_at;
+  const oldKeys = first ? [] : D.waiting.map((i) => i.key), newKeys = new Set(d.waiting.map((i) => i.key));
+  const gone = oldKeys.filter((k) => !newKeys.has(k)), added = d.waiting.some((i) => !oldKeys.includes(i.key));
+  d.staff = d.staff || [];
+  const oldS = first ? [] : (D.staff || []).map((i) => i.key), newS = new Set(d.staff.map((i) => i.key));
+  const goneS = oldS.filter((k) => !newS.has(k)), addedS = d.staff.some((i) => !oldS.includes(i.key));
+  const fk = focusedItemKey();
+  // Don't disrupt a reply Miles is typing: wait if this update would rebuild a list or remove his card.
+  if (!first && !force && fk && (regen || added || addedS || gone.includes(fk) || goneS.includes(fk))) return false;
+  D = d; version = d.version;
+  if (regen || added || addedS) { renderWaiting(); renderStaff(); renderOffice(); renderRest(); return true; }
+  for (const el of $("slist").querySelectorAll(".item")) {
+    const it = D.staff.find((i) => i.key === el.dataset.k), b = el.querySelector(".badge"), n = el.querySelector(".num");
+    if (it && b && b.textContent !== (it.status || "")) b.textContent = it.status || "";
+    if (it && n && n.textContent !== (it.number ? "#" + it.number : "")) n.textContent = it.number ? "#" + it.number : "";
+  }
+  for (const k of goneS) fadeOut([...$("slist").querySelectorAll(".item")].find((x) => x.dataset.k === k));
+  renderStaffHead();
+  // Status badges change in place (no rebuild, so typed replies survive).
+  for (const el of $("wlist").querySelectorAll(".item")) {
+    const it = D.waiting.find((i) => i.key === el.dataset.k), b = el.querySelector(".badge");
+    if (it && b && b.textContent !== (it.status || "")) b.textContent = it.status || "";
+    const n = el.querySelector(".num"), nt = it && it.number ? "#" + it.number : "";
+    if (it && n && n.textContent !== nt) n.textContent = nt;
+  }
+  $("warn").hidden = !!D.configured;
+  for (const k of gone) fadeOut([...$("wlist").querySelectorAll(".item")].find((x) => x.dataset.k === k));
+  renderWaitingHead(); renderRest();
+  return true;
+}
+if (!MCKEY) $("summary").textContent = "Missing key: open this page with its private #k= link.";
+else load(true).catch((e) => { $("summary").textContent = "Couldn't load data from the server" + (e && e.message ? ` (${e.message})` : "") + "."; });
+// Live updates: a cheap version check every 6 s while the tab is visible; re-fetch only when something changed.
+setInterval(async () => {
+  if (!MCKEY || document.hidden) return;
+  try {
+    const v = (await (await api("version")).json()).version;
+    if (D && v && v !== version) await load();
+  } catch (_e) {}
+}, 6000);
+document.addEventListener("visibilitychange", () => { if (!document.hidden && MCKEY && D) load().catch(() => {}); });
+setInterval(() => { if (!document.querySelector("input.reply:focus")) load().catch(() => {}); }, 5 * 60 * 1000);
+</script></body></html>
