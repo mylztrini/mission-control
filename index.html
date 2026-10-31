@@ -9,7 +9,7 @@
    hairline grid + aurora ground, mono eyebrows/ribbon. Avenir headers, Arial body. */
 :root{color-scheme:light dark;
 --ground:#e8eded;--surface:#fff;--surface-2:#f1f5f5;--glass:rgba(255,255,255,.72);--line:#c9d6d6;--line-soft:#dde6e6;--edge:rgba(255,255,255,.9);--grid:rgba(10,70,76,.055);
---text:#08191b;--muted:#4d6366;--faint:#7d9295;--accent:#0b8f9c;--accent-ink:#06636e;--accent-2:#12a888;--good:#12996a;--warn:#b4700c;--crit:#cf3b22;--accent-bg:#d8eff1;
+--text:#08191b;--muted:#3f5558;--faint:#5f7578;--accent:#0b8f9c;--accent-ink:#06636e;--accent-2:#12a888;--good:#12996a;--warn:#b4700c;--crit:#cf3b22;--accent-bg:#d8eff1;
 --btn-ink:#fff;--bloom:none;--shadow:0 1px 2px rgba(8,40,44,.07),0 10px 30px rgba(8,40,44,.06);
 --bg:var(--ground);--card:var(--surface);--sub:var(--surface-2);--fg:var(--text);--fg2:var(--muted);--mut:var(--faint);--bd:var(--line);--bd2:var(--line-soft);
 --pri:var(--accent);--onpri:var(--btn-ink);--c0:var(--accent);--c1:var(--accent-2);--c2:var(--warn);--c3:#6a5acd;--c4:var(--crit);--idle:#9fb2b4;--heat:11,143,156;
@@ -17,7 +17,7 @@
 --font-ui:Arial,"Helvetica Neue",Helvetica,sans-serif;
 --font-mono:"SF Mono",ui-monospace,"JetBrains Mono","Roboto Mono",Menlo,monospace}
 @media (prefers-color-scheme:dark){:root{--ground:#05100f;--surface:#0b1a1d;--surface-2:#0f2327;--glass:rgba(14,34,38,.66);--line:#1d3b40;--line-soft:#162e32;--edge:rgba(120,230,240,.10);--grid:rgba(63,224,232,.05);
---text:#e6f3f2;--muted:#8fa9a9;--faint:#5c7679;--accent:#3fe0e8;--accent-ink:#8bf2f8;--accent-2:#6ef0c8;--good:#35d99a;--warn:#ffb340;--crit:#ff5f45;--accent-bg:#08313a;
+--text:#e6f3f2;--muted:#a9c2c2;--faint:#7f9b9e;--accent:#3fe0e8;--accent-ink:#8bf2f8;--accent-2:#6ef0c8;--good:#35d99a;--warn:#ffb340;--crit:#ff5f45;--accent-bg:#08313a;
 --btn-ink:#04191c;--bloom:0 0 28px rgba(63,224,232,.30);--shadow:0 1px 2px rgba(0,0,0,.5),0 12px 34px rgba(0,0,0,.45);--idle:#4f6b6e;--heat:63,224,232}}
 *{box-sizing:border-box}
 body{margin:0;background:var(--ground);color:var(--text);font:15px/1.5 var(--font-ui);-webkit-font-smoothing:antialiased;isolation:isolate}
@@ -41,15 +41,16 @@ h1{font-weight:700;font-size:clamp(30px,4.6vw,50px);line-height:1.03;margin:0;le
 .clock{text-align:right;font-family:var(--font-mono);color:var(--muted);font-size:12px;white-space:nowrap;font-variant-numeric:tabular-nums}
 .clock .day{color:var(--text);font-size:14px;font-weight:600}
 .cols{display:flex;flex-wrap:wrap;gap:28px;align-items:flex-start}
-.left{flex:1 1 340px;min-width:0}.right{flex:2 1 620px;min-width:0;display:flex;flex-direction:column;gap:28px}
+.left{flex:1 1 340px;min-width:0}.right{flex:1.3 1 420px;min-width:0;display:flex;flex-direction:column;gap:28px}
+.stack{display:flex;flex-direction:column;gap:28px;margin-top:28px}
 section{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:16px 18px;box-shadow:var(--shadow),inset 0 1px 0 var(--edge)}
 @supports (backdrop-filter:blur(4px)){section{background:var(--glass);backdrop-filter:blur(22px) saturate(150%);-webkit-backdrop-filter:blur(22px) saturate(150%)}}
 .sh{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap}
-h2{font-size:19px;margin:0;font-weight:700;letter-spacing:-.02em}.cap{color:var(--muted);font-size:12.5px;margin:4px 0 10px}
+h2{font-size:19px;margin:0;font-weight:700;letter-spacing:-.02em}.cap{color:var(--muted);font-size:14px;margin:4px 0 10px}
 .tog{display:inline-flex;align-items:center;gap:6px;font-size:13px;color:var(--fg2);cursor:pointer;user-select:none}
 .tog input{accent-color:var(--accent)}
 .item{border-top:1px solid var(--bd2);padding:12px 0}.item:first-child{border-top:none}
-.meta{color:var(--mut);font-size:12px;font-family:var(--font-mono);letter-spacing:.02em}.txt{margin-top:2px}.stale .txt{color:var(--fg2)}
+.meta{color:var(--muted);font-size:13px;font-family:var(--font-mono);letter-spacing:.02em}.txt{margin-top:2px}.stale .txt{color:var(--fg2)}
 .blur .meta,.blur .txt{filter:blur(6px);user-select:none}.ign{opacity:.5}.sent{opacity:.55}.item.gone{opacity:0;transform:translateY(-8px);max-height:0!important;padding-top:0;padding-bottom:0;border-top-color:transparent;overflow:hidden}.item.fading{transition:opacity .35s ease,transform .35s ease,max-height .4s ease .3s,padding .4s ease .3s;overflow:hidden}
 .nrow{display:flex;gap:12px;align-items:flex-start}.nbody{flex:1 1 auto;min-width:0}
 .num{flex:0 0 auto;min-width:40px;font-size:20px;font-weight:700;line-height:1.2;font-variant-numeric:tabular-nums;color:var(--accent-ink)}.num:empty{display:none}
@@ -64,20 +65,37 @@ input.reply:focus{outline:2px solid var(--accent);outline-offset:1px}
 .st{font-size:12px;color:var(--fg2)}
 .warn{border:1px solid var(--warn);border-radius:10px;padding:8px 12px;font-size:13px;margin-bottom:8px}
 .cards{display:flex;flex-wrap:wrap;gap:16px}.kpi{flex:1 1 220px;border:1px solid var(--bd);border-radius:14px;padding:14px 18px;background:var(--surface-2);color:inherit;text-decoration:none}
-.kpi .s{font-size:10.5px;color:var(--mut);font-family:var(--font-mono);letter-spacing:.12em;text-transform:uppercase}.kpi .b{font-size:36px;font-weight:700;font-variant-numeric:tabular-nums;line-height:1.2;letter-spacing:-.02em}
+.kpi .s{font-size:12px;color:var(--muted);font-family:var(--font-mono);letter-spacing:.12em;text-transform:uppercase}.kpi .b{font-size:36px;font-weight:700;font-variant-numeric:tabular-nums;line-height:1.2;letter-spacing:-.02em}
 svg text{font-family:var(--font-ui)}
-.hm{display:grid;grid-template-columns:76px repeat(24,minmax(14px,1fr));gap:2px;font-size:10.5px;color:var(--mut);overflow-x:auto;font-family:var(--font-mono)}
-.hm .c{aspect-ratio:1;border-radius:3px;background:var(--surface-2)}.hm .rl{white-space:nowrap;align-self:center}.hm .hl{text-align:center}
+.hm{display:grid;grid-template-columns:92px repeat(24,minmax(14px,1fr));gap:2px;font-size:12px;color:var(--muted);overflow-x:auto;font-family:var(--font-mono)}
+.hm{max-width:1100px}.hm .c{aspect-ratio:1;border-radius:3px;background:var(--surface-2)}.hm .rl{white-space:nowrap;align-self:center}.hm .hl{text-align:center}
 ol{margin:0;padding-left:22px}ol li{margin:4px 0}
 .links{display:flex;flex-wrap:wrap;gap:10px;margin-top:12px}.lk{flex:1 1 220px;border:1px solid var(--bd);border-radius:12px;padding:10px 14px;text-decoration:none;color:inherit;background:var(--surface-2)}
-.lk .t{font-weight:600}.lk .m{font-size:12px;color:var(--mut)}
+.lk .t{font-weight:600}.lk .m{font-size:13px;color:var(--muted)}
 .tl{display:flex;gap:12px;padding:10px 0;border-top:1px solid var(--bd2)}.tl:first-child{border-top:none}
-.av{flex:0 0 32px;height:32px;border-radius:50%;display:grid;place-items:center;color:#fff;font-size:12px;font-weight:650}
-table{width:100%;border-collapse:collapse;font-size:13.5px}th{text-align:left;color:var(--mut);font-weight:600;font-size:10.5px;font-family:var(--font-mono);letter-spacing:.1em;text-transform:uppercase;padding:6px 8px;border-bottom:1px solid var(--bd)}
+.av{flex:0 0 34px;height:34px;border-radius:50%;display:grid;place-items:center;color:var(--text);font-size:13px;font-weight:700}
+table{width:100%;border-collapse:collapse;font-size:14.5px}th{text-align:left;color:var(--muted);font-weight:600;font-size:12px;font-family:var(--font-mono);letter-spacing:.1em;text-transform:uppercase;padding:6px 8px;border-bottom:1px solid var(--bd)}
 td{padding:8px;border-bottom:1px solid var(--bd2);vertical-align:top}
 .two{display:flex;flex-wrap:wrap;gap:28px}.two>section{flex:1 1 320px;min-width:0}
 @media (max-width:720px){.bridge{grid-template-columns:1fr}.clock{text-align:left}}
 .btn:focus-visible,.chip:focus-visible,.pill:focus-visible{outline:2px solid var(--accent);outline-offset:3px}
+
+/* The office (readable HTML layout) */
+.osub{font:700 14px var(--font-mono);letter-spacing:.12em;text-transform:uppercase;color:var(--accent-ink);margin:14px 0 10px;display:flex;align-items:center;gap:8px}
+.ocount{font:700 14px var(--font-ui);letter-spacing:0;color:var(--text);background:var(--accent-bg);border:1px solid color-mix(in oklab,var(--accent) 45%,transparent);border-radius:999px;padding:1px 9px}
+.owork{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:12px}
+.obot{display:flex;gap:14px;align-items:flex-start;padding:14px 16px;border-radius:14px;border:1px solid color-mix(in oklab,var(--accent) 40%,var(--line));background:var(--surface-2);color:var(--text);text-decoration:none}
+.obot:hover{border-color:var(--accent);box-shadow:var(--bloom)}
+.oav{flex:0 0 44px;height:44px;border-radius:50%;display:grid;place-items:center;color:var(--text);font:700 15px var(--font-ui)}
+.oav.idle{flex-basis:36px;height:36px;font-size:14px;background:var(--surface);color:var(--text);border:1px solid var(--line)}
+.obody{min-width:0}.oname{font:700 16px/1.3 var(--font-display);color:var(--text);display:flex;align-items:center;gap:7px}
+.olive{width:9px;height:9px;border-radius:50%;background:var(--good);box-shadow:0 0 0 3px color-mix(in oklab,var(--good) 25%,transparent);flex:0 0 auto}
+.odoing{font-size:15px;line-height:1.4;color:var(--text);margin-top:4px}
+.olast{font-size:14px;color:var(--muted);margin-top:4px}
+.oidle{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:8px}
+.oidle a{display:grid;grid-template-columns:36px 1fr;grid-template-rows:auto auto;column-gap:10px;align-items:center;padding:8px 12px;border-radius:12px;border:1px solid var(--line);background:var(--surface-2);color:var(--text);text-decoration:none}
+.oidle a:hover{border-color:var(--accent)}.oidle .oav{grid-row:1/3}.oidle .oname{font-size:15px}.oidle .olast{margin-top:0}
+.obot:focus-visible,.oidle a:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 </style></head><body><main>
 <div class="ribbon">◆ Mission control live&nbsp;·&nbsp;<b>Bot chats · Asana · Staff · JARVIS</b>&nbsp;·&nbsp;asks · presses · routines — one deck</div>
 <div class="bridge">
@@ -92,7 +110,7 @@ td{padding:8px;border-bottom:1px solid var(--bd2);vertical-align:top}
       <audio id="aPlayer" controls preload="none" hidden></audio>
     </div>
   </div>
-  <div class="clock"><div class="day" id="hdrDay"></div><div id="hdrTime"></div><div style="font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--faint)">Trinidad time (AST)</div></div>
+  <div class="clock"><div class="day" id="hdrDay"></div><div id="hdrTime"></div><div style="font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)">Trinidad time (AST)</div></div>
 </div>
 <div class="cols">
   <div class="left"><section>
@@ -110,19 +128,21 @@ td{padding:8px;border-bottom:1px solid var(--bd2);vertical-align:top}
     <p class="cap" id="scap"></p>
     <div id="slist"></div>
   </section></div>
-  <div class="right">
+  <div class="right top">
     <section><h2 style="margin-bottom:10px">Right now</h2><div class="cards">
       <div class="kpi"><div class="s">Time in Tobago (AST)</div><div class="b" id="clock">--</div><div class="s" id="date"></div></div>
       <a class="kpi" id="stat" target="_blank" rel="noreferrer"><div class="s">Waiting on Miles · deduped</div><div class="b" id="statN">--</div><div class="s" id="statS"></div></a>
     </div></section>
-    <section><h2>The office</h2><p class="cap">Desks: bots that worked in the last 4 hours. Lounge: idle bots (hover for last seen).</p><div id="office"></div></section>
+  </div>
+</div>
+<div class="stack">
+    <section><h2>The office</h2><p class="cap" id="ocap">Who is working right now and who is idle.</p><div id="office"></div></section>
     <section><h2>Bot activity by hour, last 7 days</h2><p class="cap" id="hcap"></p><div class="hm" id="heat"></div></section>
     <section><h2>Today's brief</h2><p class="cap" id="bcap"></p><ol id="brief"></ol><div class="links" id="blinks"></div></section>
     <div class="two">
       <section><h2>Activity timeline</h2><p class="cap" id="tcap"></p><div id="timeline"></div></section>
       <section><h2>Upcoming routines</h2><p class="cap" id="rcap"></p><table><thead><tr><th>Routine</th><th>Next run (AST)</th><th>Owner</th></tr></thead><tbody id="routines"></tbody></table></section>
     </div>
-  </div>
 </div>
 </main>
 <script>
@@ -259,60 +279,23 @@ $("slist").addEventListener("click", async (e) => {
 $("showIgn").addEventListener("change", renderWaiting);
 $("blurAll").addEventListener("change", () => { renderWaiting(); renderStaff(); });
 
-// Office
-const NS = "http://www.w3.org/2000/svg";
-let wander = [];
+// Office: plain HTML (no scaled-down SVG) so names, tasks and times stay readable at any width.
+const withZone = (t) => (!t || /^now$/i.test(t) || /AST/.test(t)) ? (t || "") : `${t} AST`;
 function renderOffice() {
   const working = D.bots.filter((b) => b.working), idle = D.bots.filter((b) => !b.working);
-  const cols = ["var(--c0)", "var(--c1)", "var(--c2)"];
-  let s = `<svg viewBox="0 0 1280 380" width="100%" role="img" aria-label="Office: working bots at desks, idle bots in the lounge">
-    <rect x="4" y="4" width="1272" height="372" rx="16" fill="var(--sub)" stroke="var(--bd)"/>
-    <line x1="660" y1="20" x2="660" y2="360" stroke="var(--bd)" stroke-dasharray="6 6"/>
-    <text x="24" y="34" font-size="12" fill="var(--mut)">DESKS · working in the last 4 hours</text>
-    <text x="684" y="34" font-size="12" fill="var(--mut)">LOUNGE · idle, hover for last seen</text>
-    <rect x="760" y="120" width="300" height="170" rx="60" fill="var(--card)" stroke="var(--bd2)"/>
-    <rect x="860" y="180" width="100" height="50" rx="10" fill="var(--sub)" stroke="var(--bd)"/>
-    <circle cx="1220" cy="70" r="18" fill="var(--c1)" opacity=".35"/><circle cx="700" cy="330" r="16" fill="var(--c1)" opacity=".35"/>
-    <rect x="1150" y="300" width="90" height="40" rx="8" fill="var(--card)" stroke="var(--bd)"/><text x="1195" y="325" text-anchor="middle" font-size="12" fill="var(--mut)">coffee</text>`;
-  working.forEach((b, i) => {
-    const cx = 120 + (i % 3) * 205, cy = 150 + Math.floor(i / 3) * 160, c = cols[i % 3];
-    const bw = Math.max(120, Math.min(200, b.doing.length * 6.6 + 20));
-    s += `<g><title>${esc(b.name)}: ${esc(b.doing)} (last active ${esc(b.last)})</title>
-      <rect x="${cx - bw / 2}" y="${cy - 92}" width="${bw}" height="30" rx="10" fill="var(--card)" stroke="var(--bd)"/>
-      <path d="M ${cx - 6} ${cy - 62} L ${cx} ${cy - 54} L ${cx + 6} ${cy - 62}" fill="var(--card)" stroke="var(--bd)"/>
-      <text x="${cx}" y="${cy - 72}" text-anchor="middle" font-size="11.5" fill="var(--fg)" ${b.doing.length * 6.6 > 180 ? 'textLength="180" lengthAdjust="spacingAndGlyphs"' : ""}>${esc(b.doing)}</text>
-      <circle cx="${cx}" cy="${cy - 24}" r="20" fill="${c}"/><text x="${cx}" y="${cy - 19}" text-anchor="middle" font-size="13" font-weight="650" fill="#fff">${esc(b.short)}</text>
-      <rect x="${cx - 70}" y="${cy}" width="140" height="44" rx="6" fill="var(--card)" stroke="var(--fg2)"/>
-      <rect x="${cx - 24}" y="${cy + 6}" width="48" height="22" rx="3" fill="var(--sub)" stroke="var(--bd)"/>
-      <circle cx="${cx - 12}" cy="${cy - 2}" r="5" fill="${c}"><animate attributeName="cy" values="${cy - 2};${cy + 2};${cy - 2}" dur="0.35s" repeatCount="indefinite"/></circle>
-      <circle cx="${cx + 12}" cy="${cy + 2}" r="5" fill="${c}"><animate attributeName="cy" values="${cy + 2};${cy - 2};${cy + 2}" dur="0.35s" repeatCount="indefinite"/></circle>
-      <text x="${cx}" y="${cy + 62}" text-anchor="middle" font-size="12" fill="var(--mut)">${esc(b.name)}</text></g>`;
-  });
-  s += `<g id="lounge"></g></svg>`;
-  $("office").innerHTML = s;
-  const g = $("office").querySelector("#lounge");
-  wander = idle.map((b, i) => {
-    const x = 720 + ((i * 97) % 500), y = 90 + ((i * 61) % 230);
-    const el = document.createElementNS(NS, "g");
-    el.innerHTML = `<title>${esc(b.name)}: idle, last active ${esc(b.last)}</title><circle r="15" fill="var(--idle)" opacity=".9"/><text y="4" text-anchor="middle" font-size="11" font-weight="650" fill="#fff">${esc(b.short)}</text>`;
-    g.appendChild(el);
-    return { el, x, y, tx: x, ty: y };
-  });
+  const av = (b, cls) => `<div class="oav ${cls || ""}" style="${cls ? "" : `background:color-mix(in oklab,${colorFor(b.name)} 30%,var(--surface));border:2px solid ${colorFor(b.name)}`}" aria-hidden="true">${esc(b.short || initials(b.name))}</div>`;
+  $("ocap").textContent = `${working.length} working now (active in the last 4 hours), ${idle.length} idle. Tap a bot to open its chat. Times are Trinidad time (AST).`;
+  $("office").innerHTML = `
+    <h3 class="osub">Working now <span class="ocount">${working.length}</span></h3>
+    ${working.length ? `<div class="owork">${working.map((b) => `<a class="obot" href="${CHAT(b.id)}" title="Open ${esc(b.name)}">
+      ${av(b)}<div class="obody"><div class="oname"><span class="olive" aria-hidden="true"></span>${esc(b.name)}</div>
+      <div class="odoing">${esc(b.doing || "Working")}</div>
+      <div class="olast">Last active: ${esc(withZone(b.last))}</div></div></a>`).join("")}</div>`
+      : `<p class="cap">No bot has worked in the last 4 hours.</p>`}
+    <h3 class="osub">Idle <span class="ocount">${idle.length}</span></h3>
+    ${idle.length ? `<ul class="oidle">${idle.map((b) => `<li><a href="${CHAT(b.id)}" title="Open ${esc(b.name)}">${av(b, "idle")}<span class="oname">${esc(b.name)}</span><span class="olast">Last seen ${esc(withZone(b.last))}</span></a></li>`).join("")}</ul>`
+      : `<p class="cap">Every bot is busy.</p>`}`;
 }
-let last = 0;
-function step(t) {
-  if (t - last > 40) {
-    last = t;
-    for (const p of wander) {
-      const dx = p.tx - p.x, dy = p.ty - p.y, d = Math.hypot(dx, dy);
-      if (d < 2) { if (Math.random() < 0.03) { p.tx = 720 + Math.random() * 510; p.ty = 85 + Math.random() * 240; } }
-      else { p.x += (dx / d) * 1.4; p.y += (dy / d) * 1.4; }
-      p.el.setAttribute("transform", `translate(${p.x.toFixed(1)} ${p.y.toFixed(1)})`);
-    }
-  }
-  requestAnimationFrame(step);
-}
-requestAnimationFrame(step);
 
 // Heatmap, brief, timeline, routines
 function renderRest() {
@@ -328,7 +311,7 @@ function renderRest() {
   $("brief").innerHTML = D.brief.items.map((x) => `<li>${esc(x)}</li>`).join("");
   $("blinks").innerHTML = D.brief.links.map((l) => `<a class="lk" target="_blank" rel="noreferrer" href="${esc(l.href)}"><div class="t">${esc(l.title)}</div><div class="m">${esc([l.site, l.date].filter(Boolean).join(" · "))}</div></a>`).join("");
   $("tcap").textContent = D.captions.timeline;
-  $("timeline").innerHTML = D.done.map((d) => `<div class="tl"><div class="av" style="background:${colorFor(d.bot)}">${esc(initials(d.bot))}</div><div style="min-width:0"><div class="meta">${esc(d.bot)} · ${esc(d.when)}</div><div>${esc(d.text)}</div></div></div>`).join("");
+  $("timeline").innerHTML = D.done.map((d) => `<div class="tl"><div class="av" style="background:color-mix(in oklab,${colorFor(d.bot)} 30%,var(--surface));border:2px solid ${colorFor(d.bot)}">${esc(initials(d.bot))}</div><div style="min-width:0"><div class="meta">${esc(d.bot)} · ${esc(d.when)}</div><div>${esc(d.text)}</div></div></div>`).join("");
   $("rcap").textContent = D.captions.routines;
   $("routines").innerHTML = D.routines.map((r) => `<tr>${r.map((c) => `<td>${esc(c)}</td>`).join("")}</tr>`).join("");
   const w = D.waiting, chats = w.filter((i) => !i.stale).length;
