@@ -96,6 +96,69 @@ td{padding:8px;border-bottom:1px solid var(--bd2);vertical-align:top}
 .oidle a{display:grid;grid-template-columns:36px 1fr;grid-template-rows:auto auto;column-gap:10px;align-items:center;padding:8px 12px;border-radius:12px;border:1px solid var(--line);background:var(--surface-2);color:var(--text);text-decoration:none}
 .oidle a:hover{border-color:var(--accent)}.oidle .oav{grid-row:1/3}.oidle .oname{font-size:15px}.oidle .olast{margin-top:0}
 .obot:focus-visible,.oidle a:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+/* ---- Org tab (added Oct 31 2026): JARVIS HQ org chart, data = org.json via GET /org ---- */
+.tabs{display:flex;gap:6px;margin:-6px 0 22px;border-bottom:1px solid var(--line);flex-wrap:wrap}
+.tabs button{font:600 12px var(--font-mono);letter-spacing:.14em;text-transform:uppercase;color:var(--muted);background:none;border:0;border-bottom:2px solid transparent;padding:10px 14px;cursor:pointer;margin-bottom:-1px}
+.tabs button[aria-selected=true]{color:var(--accent-ink);border-bottom-color:var(--accent)}
+.tabs .tcount{display:inline-block;min-width:18px;margin-left:6px;padding:0 6px;border-radius:9px;background:var(--pink);color:#fff;font-size:10.5px;letter-spacing:0}
+:root{--pink:#ff4fa3;--gold:#ff9f1c}
+.og-top{display:flex;flex-wrap:wrap;gap:10px 18px;align-items:center;justify-content:space-between;margin-bottom:16px}
+.og-stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;flex:1 1 560px}
+.og-stat{background:var(--glass);border:1px solid var(--line);border-radius:12px;padding:10px 14px;box-shadow:var(--shadow)}
+.og-stat .s{font:600 10.5px var(--font-mono);letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
+.og-stat .b{font:700 28px/1.15 var(--font-display);font-variant-numeric:tabular-nums}
+.og-stat.pink .b{color:var(--pink)}
+.og-ctl{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:999px;overflow:hidden}
+.seg button{font:600 11.5px var(--font-mono);letter-spacing:.1em;text-transform:uppercase;padding:7px 12px;border:0;background:var(--surface);color:var(--muted);cursor:pointer}
+.seg button[aria-pressed=true]{background:var(--accent);color:var(--btn-ink)}
+.og-cap{font:12px var(--font-mono);color:var(--muted);margin:0 0 14px}
+.og-h{font:600 11px var(--font-mono);letter-spacing:.18em;text-transform:uppercase;color:var(--accent);margin:26px 0 10px}
+.kbars{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:10px}
+.kbar{background:var(--surface);border:1px solid var(--line);border-left:4px solid var(--dc);border-radius:10px;padding:10px 12px}
+.kbar .kt{display:flex;justify-content:space-between;gap:8px;font-size:13px;font-weight:600}
+.kbar .kl{font-size:12.5px;color:var(--muted);margin:2px 0 6px}
+.track{height:8px;border-radius:6px;background:var(--surface-2);border:1px solid var(--line-soft);overflow:hidden}
+.track i{display:block;height:100%;background:var(--dc);border-radius:6px}
+.kbar .kv{font:12px var(--font-mono);margin-top:6px;font-variant-numeric:tabular-nums}
+.kbar .kc{font:11px var(--font-mono);color:var(--faint)}
+.prop{font:700 9.5px var(--font-mono);letter-spacing:.12em;color:var(--gold);border:1px solid var(--gold);border-radius:4px;padding:1px 5px;white-space:nowrap}
+.prop.set{color:var(--good);border-color:var(--good)}
+.tree{display:flex;flex-direction:column;align-items:center}
+.vline{width:2px;height:18px;background:var(--accent);opacity:.6}
+.top-seat{max-width:420px;width:100%}
+.divs{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:12px;width:100%;border-top:2px solid color-mix(in oklab,var(--accent) 60%,transparent);padding-top:16px}
+.div{background:color-mix(in oklab,var(--dc) 7%,var(--surface));border:1px solid color-mix(in oklab,var(--dc) 45%,var(--line));border-top:4px solid var(--dc);border-radius:12px;padding:10px;display:flex;flex-direction:column;gap:8px;min-width:0}
+.div .dh{display:flex;align-items:center;gap:8px;font:700 15px/1.2 var(--font-display)}
+.div .dh .ic{font-size:20px}
+.div .ds{font-size:12.5px;color:var(--muted)}
+.team{border-left:2px solid color-mix(in oklab,var(--dc) 55%,transparent);padding-left:8px;display:flex;flex-direction:column;gap:6px}
+.team .tn{font:600 10.5px var(--font-mono);letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+.seat{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:8px 10px;font-size:12.5px;line-height:1.4;cursor:pointer;text-align:left;color:var(--text);font-family:inherit;width:100%}
+.seat:hover{border-color:var(--accent)}
+.seat.waiting{border:1.5px solid var(--pink);box-shadow:0 0 0 3px color-mix(in oklab,var(--pink) 18%,transparent)}
+.seat.vacant{border:1.5px dashed var(--gold);background:color-mix(in oklab,var(--gold) 8%,var(--surface));cursor:default}
+.seat .sn{display:flex;align-items:center;gap:6px;font-weight:700;font-size:13.5px}
+.seat .tag{font:700 9.5px var(--font-mono);letter-spacing:.1em;color:var(--dc,var(--accent));border:1px solid currentColor;border-radius:4px;padding:0 4px}
+.seat .job{color:var(--muted)}
+.seat .num{font:12px var(--font-mono);margin-top:3px;font-variant-numeric:tabular-nums}
+.seat .meta2{display:flex;flex-wrap:wrap;gap:4px 10px;font:11px var(--font-mono);color:var(--faint);margin-top:4px}
+.dot{width:8px;height:8px;border-radius:50%;flex:0 0 auto;display:inline-block}
+.st-working{background:var(--good)}.st-waiting{background:var(--pink)}.st-idle{background:var(--idle)}.st-unknown{background:transparent;border:1px solid var(--faint)}
+.stl{font:600 10.5px var(--font-mono);letter-spacing:.06em}.stl.waiting{color:var(--pink)}
+.seat .more{display:none;margin-top:6px;padding-top:6px;border-top:1px dashed var(--line);font-size:12px}
+.seat.open .more{display:block}
+.flag{color:var(--warn)}
+.heads-only .team .seat.worker{display:none}
+.heads-only .team .seat.lead .meta2,.heads-only .team .seat.lead .job{display:none}
+.gaps{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:10px}
+.gap{background:var(--surface);border:1px solid color-mix(in oklab,var(--gold) 45%,var(--line));border-radius:10px;padding:10px 12px;font-size:13px}
+.gap h4{margin:0 0 6px;font:700 10.5px var(--font-mono);letter-spacing:.14em;text-transform:uppercase;color:var(--gold)}
+.gap ul{margin:0;padding-left:16px}.gap li{margin-bottom:3px}
+.rules{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px}
+.rule{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:10px 12px;font-size:13px}
+.rule b{display:block;font:700 10.5px var(--font-mono);letter-spacing:.12em;text-transform:uppercase;color:var(--accent-ink);margin-bottom:4px}
+.retired span{display:inline-block;margin:0 6px 6px 0;font-size:12px;color:var(--muted);border:1px solid var(--line);border-radius:6px;padding:3px 8px;text-decoration:line-through}
 </style></head><body><main>
 <div class="ribbon">◆ Mission control live&nbsp;·&nbsp;<b>Bot chats · Asana · Staff · JARVIS</b>&nbsp;·&nbsp;asks · presses · routines — one deck</div>
 <div class="bridge">
@@ -112,6 +175,8 @@ td{padding:8px;border-bottom:1px solid var(--bd2);vertical-align:top}
   </div>
   <div class="clock"><div class="day" id="hdrDay"></div><div id="hdrTime"></div><div style="font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)">Trinidad time (AST)</div></div>
 </div>
+<nav class="tabs" role="tablist"><button type="button" role="tab" data-tab="today" aria-selected="true">◆ Today</button><button type="button" role="tab" data-tab="org" aria-selected="false">⚑ Org<span class="tcount" id="orgTabCount" hidden></span></button></nav>
+<div id="tabToday">
 <div class="cols">
   <div class="left"><section>
     <div class="sh"><h2>Waiting on me</h2>
@@ -143,6 +208,12 @@ td{padding:8px;border-bottom:1px solid var(--bd2);vertical-align:top}
       <section><h2>Activity timeline</h2><p class="cap" id="tcap"></p><div id="timeline"></div></section>
       <section><h2>Upcoming routines</h2><p class="cap" id="rcap"></p><table><thead><tr><th>Routine</th><th>Next run (AST)</th><th>Owner</th></tr></thead><tbody id="routines"></tbody></table></section>
     </div>
+</div>
+</div>
+<div id="tabOrg" hidden>
+<div class="og-top"><div class="og-stats" id="orgStats"></div><div class="og-ctl"><div class="seg" id="orgView" role="group" aria-label="Seats shown"><button type="button" data-v="heads" aria-pressed="false">Heads only</button><button type="button" data-v="all" aria-pressed="true">Show all</button></div><button type="button" class="pill" id="orgRefresh">↻ Refresh</button></div></div>
+<p class="og-cap" id="orgCap">Loading the org chart…</p>
+<div id="orgBody"></div>
 </div>
 </main>
 <script>
@@ -418,4 +489,113 @@ setInterval(async () => {
 }, 6000);
 document.addEventListener("visibilitychange", () => { if (!document.hidden && MCKEY && D) load().catch(() => {}); });
 setInterval(() => { if (!document.querySelector("input.reply:focus")) load().catch(() => {}); audioMeta(); }, 5 * 60 * 1000);
-</script></body></html>
+</script><script>
+// ---- Org tab (Oct 31 2026). Data: GET /org (doc "org" = box file mission-control-ui/org.json, pushed by
+// org-refresh.js / the mc-sync daemon). Tab chosen by #...&tab=org (fragment only, never sent anywhere).
+const O = { d: null, view: localStorage.getItem("mcOrgView") || "all", loading: false };
+const hashP = () => new URLSearchParams(location.hash.slice(1));
+function setTab(t, push) {
+  const org = t === "org";
+  $("tabToday").hidden = org; $("tabOrg").hidden = !org;
+  for (const b of document.querySelectorAll(".tabs button")) b.setAttribute("aria-selected", String(b.dataset.tab === t));
+  if (push) { const p = hashP(); if (org) p.set("tab", "org"); else p.delete("tab"); history.replaceState(null, "", "#" + p.toString()); }
+  if (org && !O.d) loadOrg();
+}
+const fmtK = (k, n) => n === null || n === undefined ? "unknown" : k.fmt === "tt" ? "TT$" + Number(n).toLocaleString("en-US")
+  : k.fmt === "usd" ? "US$" + Number(n).toLocaleString("en-US") : k.fmt === "pct" ? n + "%" : Number(n).toLocaleString("en-US");
+function kpiPct(k) {
+  if (k.now === null || k.now === undefined) return 0;
+  if (k.lower) return k.now <= k.target ? 100 : k.target === 0 ? 0 : Math.max(0, Math.min(100, Math.round(k.target / k.now * 100)));
+  return Math.max(0, Math.min(100, Math.round(k.now / k.target * 100)));
+}
+const kpiLine = (k) => k.lower ? `${fmtK(k, k.now)} now · target ${fmtK(k, k.target)} or less by ${k.deadline}` : `${fmtK(k, k.now)} of ${fmtK(k, k.target)} by ${k.deadline}`;
+function orgRel(d) {
+  const P = d.pillars, pil = (id) => P.find((p) => p.head === id || p.teams.some((t) => t.lead === id || t.ids.includes(id)));
+  const level = (id) => id === d.chief_of_staff ? "cos" : P.some((p) => p.head === id) ? "head" : P.some((p) => p.teams.some((t) => t.lead === id)) ? "lead" : "worker";
+  const reports = (id) => {
+    if (id === d.chief_of_staff) return "Miles (CEO)";
+    const p = pil(id); if (!p) return "unknown"; if (p.head === id) return "JARVIS";
+    const t = p.teams.find((x) => x.lead === id || x.ids.includes(id));
+    if (t && t.lead && t.lead !== id) return d.bots[t.lead].name;
+    return p.head ? d.bots[p.head].name : "JARVIS (division has no head)";
+  };
+  const manages = (id) => {
+    if (id === d.chief_of_staff) return Object.keys(d.bots).length - 1;
+    const p = pil(id); if (!p) return 0;
+    if (p.head === id) { const s = new Set(); p.teams.forEach((t) => { if (t.lead) s.add(t.lead); t.ids.forEach((i) => s.add(i)); }); s.delete(id); return s.size; }
+    return p.teams.filter((t) => t.lead === id).reduce((n, t) => n + t.ids.length, 0);
+  };
+  return { level, reports, manages };
+}
+function seat(d, R, id, color, opts = {}) {
+  const b = d.bots[id]; if (!b) return "";
+  const lv = opts.level || R.level(id), st = b.state || "unknown", m = R.manages(id);
+  const icon = lv === "cos" ? "🐱" : lv === "head" ? "📡" : "";
+  return `<button type="button" class="seat ${lv} ${st === "waiting" ? "waiting" : ""}" style="--dc:${esc(color)}" aria-expanded="false">
+    <div class="sn"><span class="dot st-${esc(st)}" aria-hidden="true"></span>${icon ? `<span aria-hidden="true">${icon}</span>` : ""}${esc(b.name)}${b.tag ? ` <span class="tag">${esc(b.tag)}</span>` : ""}</div>
+    <div class="job">${esc(b.job)}</div>
+    <div class="num">${esc(b.num || "unknown")}</div>
+    <div class="meta2"><span class="stl ${st === "waiting" ? "waiting" : ""}">${st === "waiting" ? "WAITING ON MILES" : esc(st.toUpperCase())}</span><span>Last active: ${esc(b.last || "unknown")}${/AM|PM/.test(b.last || "") ? " AST" : ""}</span></div>
+    <div class="more">Reports to: <b>${esc(R.reports(id))}</b> · Manages: <b>${m}</b>${b.flag ? `<div class="flag">⚑ ${esc(b.flag)}</div>` : ""}</div>
+  </button>`;
+}
+function renderOrg() {
+  const d = O.d; if (!d || !d.pillars) return;
+  if (!d.pillars.length) { $("orgBody").innerHTML = `<p class="cap">No org data yet. JARVIS pushes it with node org-refresh.js on the box.</p>`; return; }
+  const R = orgRel(d), ids = Object.keys(d.bots), waiting = ids.filter((i) => d.bots[i].state === "waiting");
+  $("orgTabCount").textContent = waiting.length || ""; $("orgTabCount").hidden = !waiting.length;
+  $("orgCap").textContent = `As of ${d.as_of || "unknown"} · data updated ${d.updated_at ? new Date(d.updated_at).toLocaleString("en-US", { timeZone: "America/Port_of_Spain", weekday: "short", month: "short", day: "numeric", hour: "numeric", minute: "2-digit" }) + " AST" : "unknown"} · money visible to ${d.money_visible_to || "Miles and every bot"} · tap a seat for details`;
+  const stat = (s, b, cls = "") => `<div class="og-stat ${cls}"><div class="s">${s}</div><div class="b">${b}</div></div>`;
+  $("orgStats").innerHTML = stat("Seats", ids.length) + stat("Divisions", d.pillars.length) + stat("Levels", 4) + stat("Bots that talk to me", 1) + stat("Waiting on Miles", waiting.length, waiting.length ? "pink" : "");
+  const kbars = d.pillars.map((p) => { const k = p.kpi, pc = kpiPct(k);
+    return `<div class="kbar" style="--dc:${esc(p.color)}"><div class="kt"><span>${esc(p.icon)} ${esc(p.name)}</span><span class="prop ${p.proposed ? "" : "set"}">${p.proposed ? "PROPOSED" : "SET"}</span></div>
+      <div class="kl">${esc(k.label)}</div><div class="track" role="img" aria-label="${pc}% of target"><i style="width:${pc}%"></i></div>
+      <div class="kv">${esc(kpiLine(k))}</div><div class="kc">Checked ${esc(k.checked || "unknown")} · ${esc(k.source || "unknown")} · Goal: ${esc(p.goal)}</div></div>`; }).join("");
+  const cos = d.chief_of_staff;
+  const divs = d.pillars.map((p) => {
+    const head = p.head && p.head !== cos ? seat(d, R, p.head, p.color, { level: "head" })
+      : p.head === cos ? `<div class="ds">Head: <b>JARVIS</b> (Chief of Staff)</div>`
+      : `<div class="seat vacant"><div class="sn">🪑 Head: vacant</div><div class="job">${esc(p.vacantNote || "No head yet")}</div></div>`;
+    const teams = p.teams.map((t) => `<div class="team"><div class="tn">${esc(t.name)}${t.lead ? "" : " · no lead"}</div>
+      ${t.lead && t.lead !== p.head ? seat(d, R, t.lead, p.color, { level: "lead" }) : ""}
+      ${t.ids.map((i) => seat(d, R, i, p.color, { level: "worker" })).join("")}</div>`).join("");
+    return `<div class="div" style="--dc:${esc(p.color)}"><div class="dh"><span class="ic" aria-hidden="true">${esc(p.icon)}</span>${esc(p.name)}</div>
+      <div class="ds">${esc(p.summary)}</div>${head}${teams}${p.rooms && p.rooms.length ? `<div class="ds">Rooms: ${p.rooms.map(esc).join(", ")}</div>` : ""}</div>`;
+  }).join("");
+  const gaps = (d.gaps || []).map((g) => `<div class="gap"><h4>${esc(g.title)}</h4><ul>${g.items.map((i) => `<li>${esc(i)}</li>`).join("")}</ul></div>`).join("");
+  const rules = (d.rules || []).map((r, i) => `<div class="rule"><b>${i + 1}. ${esc(r[0])}</b>${esc(r[1])}</div>`).join("");
+  $("orgBody").innerHTML = `
+    <div class="og-h">Daily KPIs · one per division</div><div class="kbars">${kbars}</div>
+    <div class="og-h">Org chart</div>
+    <div class="tree ${O.view === "heads" ? "heads-only" : ""}" id="orgTree">
+      <div class="seat top-seat" style="cursor:default;text-align:center"><div class="sn" style="justify-content:center">👑 ${esc(d.ceo?.name || "Miles")} <span class="tag">CEO</span></div><div class="job">Talks only to JARVIS</div></div>
+      <div class="vline"></div>
+      <div class="top-seat">${seat(d, R, cos, "#22e5ff", { level: "cos" })}</div>
+      <div class="vline"></div>
+      <div class="divs">${divs}</div>
+    </div>
+    ${gaps ? `<div class="og-h" style="color:var(--gold)">Gaps &amp; suggestions</div><div class="gaps">${gaps}</div>` : ""}
+    ${rules ? `<div class="og-h">The rules</div><div class="rules">${rules}${d.approvals ? `<div class="rule" style="border-color:var(--pink)"><b style="color:var(--pink)">Miles approves</b>${esc(d.approvals.miles)}</div><div class="rule"><b>Heads may approve</b>${esc(d.approvals.heads)}</div>` : ""}</div>` : ""}
+    ${(d.retired || []).length ? `<div class="og-h" style="color:var(--muted)">Retired</div><div class="retired">${d.retired.map((r) => `<span>${esc(r)}</span>`).join("")}</div>` : ""}`;
+  for (const b of document.querySelectorAll("#orgView button")) b.setAttribute("aria-pressed", String(b.dataset.v === O.view));
+}
+async function loadOrg() {
+  if (!MCKEY || O.loading) return;
+  O.loading = true; $("orgRefresh").disabled = true; $("orgRefresh").textContent = "↻ Refreshing…";
+  try {
+    const r = await api("org");
+    if (!r.ok) throw new Error(r.status === 401 ? "bad key" : "HTTP " + r.status);
+    O.d = await r.json(); renderOrg();
+  } catch (e) { $("orgCap").textContent = "Couldn't load the org chart (" + e.message + ")."; }
+  finally { O.loading = false; $("orgRefresh").disabled = false; $("orgRefresh").textContent = "↻ Refresh"; }
+}
+document.querySelector(".tabs").addEventListener("click", (e) => { const b = e.target.closest("button[data-tab]"); if (b) setTab(b.dataset.tab, true); });
+$("orgView").addEventListener("click", (e) => { const b = e.target.closest("button[data-v]"); if (!b) return; O.view = b.dataset.v; localStorage.setItem("mcOrgView", O.view); renderOrg(); });
+$("orgRefresh").addEventListener("click", () => { loadOrg(); load(true).catch(() => {}); });
+$("orgBody").addEventListener("click", (e) => { const s = e.target.closest("button.seat"); if (!s) return; s.classList.toggle("open"); s.setAttribute("aria-expanded", String(s.classList.contains("open"))); });
+window.addEventListener("hashchange", () => setTab(hashP().get("tab") === "org" ? "org" : "today"));
+setTab(hashP().get("tab") === "org" ? "org" : "today");
+if (MCKEY) loadOrg();   // also fills the tab's waiting badge
+setInterval(() => { if (!document.hidden && !$("tabOrg").hidden) loadOrg(); }, 5 * 60 * 1000);
+</script>
+</body></html>
