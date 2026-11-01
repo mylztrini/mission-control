@@ -39,8 +39,18 @@ h1{font-weight:700;font-size:clamp(30px,4.6vw,50px);line-height:1.03;margin:0;le
 .pill:hover{background:color-mix(in oklab,var(--accent) 34%,var(--surface))}.pill:disabled{opacity:.6;cursor:default}
 .ab-lab{font-size:12px;color:var(--muted)}
 #aPlayer{width:100%;max-width:420px;height:36px}
-.clock{text-align:right;font-family:var(--font-mono);color:var(--muted);font-size:12px;white-space:nowrap;font-variant-numeric:tabular-nums}
-.clock .day{color:var(--text);font-size:14px;font-weight:600}
+.topbar{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:flex-start;gap:12px 20px;margin-bottom:18px}.topbar .ribbon{margin-bottom:0}
+.nowbox{display:flex;align-items:stretch;gap:12px;margin-left:auto}
+.clock{text-align:right;font-variant-numeric:tabular-nums;border:1px solid var(--bd);border-radius:14px;padding:10px 16px;background:var(--surface-2)}
+.clock #hdrTime{font-family:var(--font-display);font-size:34px;font-weight:700;line-height:1.1;color:var(--text);letter-spacing:-.02em}
+.clock .day{color:var(--text);font-size:15px;font-weight:600;margin-top:2px}
+.clock .tz{font:11px var(--font-mono);letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-top:2px}
+.wstat{all:unset;box-sizing:border-box;cursor:pointer;text-align:right;border:2px solid var(--pink);border-radius:14px;padding:10px 16px;background:color-mix(in oklab,var(--pink) 10%,var(--surface-2))}
+.wstat .s{font:700 12px var(--font-mono);letter-spacing:.12em;text-transform:uppercase;color:var(--pink)}
+.wstat .b{font-family:var(--font-display);font-size:40px;font-weight:700;line-height:1.05}
+.wstat .s2{font-size:14px;color:var(--text)}
+.lead3{display:grid;grid-template-columns:2fr 1fr;grid-template-areas:"move board" "vitals vitals";gap:18px;align-items:start;margin-bottom:24px}
+.lead3 #oneMove{grid-area:move;margin:0}.lead3 #boardSec{grid-area:board;margin:0}.lead3 .vitals{grid-area:vitals;margin:0}
 .cols{display:flex;flex-wrap:wrap;gap:28px;align-items:flex-start}
 .left{flex:1 1 340px;min-width:0}.right{flex:1.3 1 420px;min-width:0;display:flex;flex-direction:column;gap:28px}
 .stack{display:flex;flex-direction:column;gap:28px;margin-top:28px}
@@ -78,7 +88,9 @@ ol{margin:0;padding-left:22px}ol li{margin:4px 0}
 table{width:100%;border-collapse:collapse;font-size:14.5px}th{text-align:left;color:var(--muted);font-weight:600;font-size:12px;font-family:var(--font-mono);letter-spacing:.1em;text-transform:uppercase;padding:6px 8px;border-bottom:1px solid var(--bd)}
 td{padding:8px;border-bottom:1px solid var(--bd2);vertical-align:top}
 .two{display:flex;flex-wrap:wrap;gap:28px}.two>section{flex:1 1 320px;min-width:0}
-@media (max-width:720px){.bridge{grid-template-columns:1fr}.clock{text-align:left}}
+@media (max-width:720px){.bridge{grid-template-columns:1fr}
+.lead3{grid-template-columns:1fr;grid-template-areas:"move" "vitals" "board"}
+.nowbox{width:100%;margin-left:0}.nowbox>*{flex:1 1 0}.clock{text-align:left;padding:10px 14px}.clock #hdrTime{font-size:30px}.wstat{padding:10px 14px}.wstat .b{font-size:34px}}
 .btn:focus-visible,.chip:focus-visible,.pill:focus-visible{outline:2px solid var(--accent);outline-offset:3px}
 
 /* The office (readable HTML layout) */
@@ -235,7 +247,13 @@ details.more2{margin-top:12px}details.more2 summary{cursor:pointer;font:700 13px
 .tabpane{display:flex;flex-direction:column;gap:24px}.tabpane[hidden]{display:none}
 @media (max-width:640px){.vital .b{font-size:26px}.onemove{padding:14px}.big{font-size:16.5px}.big table{font-size:15.5px}.ob{grid-template-columns:70px 1fr 48px}.big td,.big th{padding:8px 5px}.tblwrap{overflow-x:auto}}
 </style></head><body><main>
+<div class="topbar">
 <div class="ribbon">◆ Mission control live&nbsp;·&nbsp;<b>Bots · Villas · Money · Growth · JARVIS</b>&nbsp;·&nbsp;one page, one engine</div>
+<div class="nowbox">
+  <div class="clock"><div id="hdrTime">--</div><div class="day" id="hdrDay"></div><div class="tz">Trinidad time (AST)</div></div>
+  <button type="button" class="wstat" id="stat" title="Jump to Waiting on me"><div class="s">Waiting on Miles</div><div class="b need" id="statN">--</div><div class="s2" id="statS"></div></button>
+</div>
+</div>
 <div class="bridge">
   <div class="greet">
     <div class="logo"><svg width="22" height="22" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10.5" fill="none" stroke="var(--accent)" stroke-width="1.5"/><circle cx="12" cy="12" r="5.5" fill="none" stroke="var(--accent-2)" stroke-width="1.5"/><circle cx="12" cy="12" r="1.8" fill="var(--accent)"/><path d="M12 1.5v4M12 18.5v4M1.5 12h4M18.5 12h4" stroke="var(--accent)" stroke-width="1.5" stroke-linecap="round"/></svg><p class="eyebrow">Mission Control</p></div>
@@ -248,11 +266,10 @@ details.more2{margin-top:12px}details.more2 summary{cursor:pointer;font:700 13px
       <audio id="aPlayer" controls preload="none" hidden></audio>
     </div>
   </div>
-  <div class="clock"><div class="day" id="hdrDay"></div><div id="hdrTime"></div><div style="font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)">Trinidad time (AST)</div></div>
 </div>
 <nav class="tabs" role="tablist"><button type="button" role="tab" data-tab="today" aria-selected="true">◆ Today<span class="tcount red" id="todayTabCount" hidden></span></button><button type="button" role="tab" data-tab="villas" aria-selected="false">🏝 Villas</button><button type="button" role="tab" data-tab="money" aria-selected="false">$ Money</button><button type="button" role="tab" data-tab="growth" aria-selected="false">↗ Growth</button><button type="button" role="tab" data-tab="org" aria-selected="false">⚑ Org &amp; Systems<span class="tcount" id="orgTabCount" hidden></span></button></nav>
 <div id="tabToday">
-<div class="big"><div class="onemove" id="oneMove" hidden></div><div class="vitals" id="vitals"></div></div>
+<div class="big lead3"><div class="onemove" id="oneMove" hidden></div><section class="big brd" id="boardSec" hidden><h2>The Board Room</h2><p class="cap" id="boardCap"></p><div id="board"></div></section><div class="vitals" id="vitals"></div></div>
 <div class="cols">
   <div class="left"><section>
     <div class="sh"><h2>Waiting on me<span class="h2n" id="wN" hidden></span></h2>
@@ -270,11 +287,6 @@ details.more2{margin-top:12px}details.more2 summary{cursor:pointer;font:700 13px
     <div id="slist"></div>
   </section></div>
   <div class="right top">
-    <section><h2 style="margin-bottom:10px">Right now</h2><div class="cards">
-      <div class="kpi"><div class="s">Time in Tobago (AST)</div><div class="b" id="clock">--</div><div class="s" id="date"></div></div>
-      <a class="kpi" id="stat" target="_blank" rel="noreferrer"><div class="s">Waiting on Miles · deduped</div><div class="b need" id="statN">--</div><div class="s" id="statS"></div></a>
-    </div></section>
-    <section class="big brd" id="boardSec" hidden><h2>The Board Room</h2><p class="cap" id="boardCap"></p><div id="board"></div></section>
     <section class="big"><h2>Today</h2><p class="cap" id="calCap"></p><ul class="lst" id="cal"></ul><div class="osub" style="margin-top:14px">Team today</div><div class="team2" id="team"></div></section>
     <section class="big" id="asanaSec" hidden><h2>Overdue in Asana · important</h2><p class="cap" id="asanaCap"></p><ul class="lst" id="asana"></ul></section>
   </div>
@@ -324,8 +336,6 @@ const ignored = new Set(), hidden = new Set(), sent = new Map();
 // Clock
 function tick() {
   const now = new Date();
-  $("clock").textContent = now.toLocaleTimeString("en-US", { timeZone: "America/Port_of_Spain", hour: "numeric", minute: "2-digit", second: "2-digit" });
-  $("date").textContent = now.toLocaleDateString("en-US", { timeZone: "America/Port_of_Spain", weekday: "long", month: "short", day: "numeric" });
   $("hdrDay").textContent = now.toLocaleDateString("en-GB", { timeZone: "America/Port_of_Spain", weekday: "long", day: "numeric", month: "long", year: "numeric" });
   $("hdrTime").textContent = now.toLocaleTimeString("en-US", { timeZone: "America/Port_of_Spain", hour: "numeric", minute: "2-digit" });
   const hr = +now.toLocaleString("en-US", { timeZone: "America/Port_of_Spain", hour: "numeric", hour12: false }) % 24;
@@ -471,9 +481,9 @@ function renderRest() {
   $("rcap").textContent = D.captions.routines;
   $("routines").innerHTML = D.routines.map((r) => `<tr>${r.map((c) => `<td>${esc(c)}</td>`).join("")}</tr>`).join("");
   const w = D.waiting, chats = w.filter((i) => !i.stale).length;
-  $("stat").href = D.board; $("statN").textContent = w.length;
-  $("statS").textContent = `${chats} from bot chats, ${w.length - chats} Asana only · ${D.as_of}`;
-  $("summary").textContent = `What needs you, what the villas and the money are doing, and what every bot is up to. Bots as of ${D.as_of}${D.brain && D.brain.as_of ? ` · engine run ${fmtRun(D.brain.as_of)}` : ""}.`;
+  $("statN").textContent = w.length;
+  $("statS").textContent = w.length === 1 ? "item needs you" : "items need you";
+  $("summary").textContent = ""; $("summary").hidden = true;
   $("wN").textContent = w.length; $("wN").hidden = !w.length;
   $("todayTabCount").textContent = w.length || ""; $("todayTabCount").hidden = !w.length;
   try { renderBrain(); } catch (e) { console.error(e); }
@@ -515,11 +525,22 @@ function renderBrain(force) {
   $("asana").innerHTML = (AS.items || []).map((t) => `<li>${t.url ? `<a href="${esc(t.url)}" target="_blank" rel="noreferrer" style="color:inherit">${esc(t.text)}</a>` : esc(t.text)}${t.tag ? `<span class="tag2 ${t.overdue ? "hot" : "warn"}">${esc(t.tag)}</span>` : ""}${t.meta ? `<div class="us">${esc(t.meta)}</div>` : ""}</li>`).join("");
   // Villas
   const V = B.villas || {}, rev = V.revenue || [], m0 = rev[0];
-  const goalPct = m0 && m0.total_tt != null ? Math.round(m0.total_tt / 120000 * 100) : null;
+  const PN = V.pnl || {}, PH = PN.headline, pf = V.profit;
+  const tt = (n) => n == null ? "?" : (n < 0 ? "−" : "") + "TT$" + Math.abs(Math.round(n)).toLocaleString("en-US");
+  const bas = (b) => b ? `<span class="tag2 ${b === "actual" ? "ok" : "warn"}">${esc(b)}</span>` : "";
+  const fxl = PN.rate ? `US$1 = TT$${PN.rate.usd_ttd.toFixed(4)} (${esc(PN.rate.source)}, ${esc(new Date(PN.rate.date).toLocaleString("en-US", { timeZone: "America/Port_of_Spain", month: "short", day: "numeric", year: "numeric", hour: "numeric", minute: "2-digit" }))} AST)${PN.rate.stale ? " · last good rate" : ""}` : "No exchange rate";
+  const pnlRows = (PN.months || []).map((m) => { const o = m.overheads || {};
+    const brk = o.lines ? `<details><summary>${tt(o.tt)}</summary><div class="us">Mortgages ${tt(o.mortgages)} · Capex ${tt(o.capex)} · Other operating ${tt(o.opex)}${o.excluded_tt ? ` · excluded (Helen, contractor) ${tt(o.excluded_tt)}` : ""}</div>${o.lines.map((l) => `<div class="us">${esc(l.group)} · ${esc(l.label)}: ${tt(l.tt)}</div>`).join("")}</details>` : `${tt(o.tt)}<div class="us">${esc(o.note || "")}</div>`;
+    return `<tr><td><b>${esc(m.label)}</b>${m.partial ? ` <span class="tag2 warn" title="${esc(m.flags.join("; "))}">partial</span><div class="us">${esc(m.flags.join("; "))}</div>` : ""}</td><td>${m.revenue ? `${tt(m.revenue.tt)} ${bas(m.revenue.basis)}<div class="us">US$${Math.round(m.revenue.usd).toLocaleString("en-US")}</div>` : "–"}</td><td>${brk} ${bas(o.basis)}</td><td><b>${m.profit ? tt(m.profit.tt) : "–"}</b> ${m.profit ? bas(m.profit.basis) : ""}</td></tr>`; });
+  const ppct = pf ? Math.round(pf.tt / 120000 * 100) : null;
   $("tabVillas").innerHTML =
-    sec("Villa revenue by check-in month", V.revenue_caption,
-      (m0 ? `<div class="goal"><div class="kt" style="display:flex;justify-content:space-between;font-weight:700"><span>${esc(m0.month)}: ${esc(m0.total_tt_lbl)}</span><span>${goalPct}% of the TT$120,000 monthly goal</span></div><div class="track"><i style="width:${Math.min(100, goalPct || 0)}%"></i></div></div>` : "")
-      + ttab(["Month", "Total", "Airbnb", "Direct"], rev.map((r) => `<tr><td><b>${esc(r.month)}</b><div class="us">${esc(r.when || "")}</div></td><td><div class="tt">${esc(r.total_tt_lbl || "?")}</div><div class="us">${esc(r.total_usd_lbl || "")}</div></td><td>${esc(r.airbnb_usd)}<div class="us">US$ · ${esc(r.airbnb_n || "")}</div></td><td>${esc(r.direct_tt)}<div class="us">${esc(r.direct_n || "")}</div></td></tr>`))
+    sec("Villa profit vs the TT$120,000 monthly goal", PN.rules || "",
+      (pf ? `<div class="goal"><div class="kt" style="display:flex;justify-content:space-between;font-weight:700;flex-wrap:wrap;gap:6px"><span>${esc(pf.month)} profit: ${tt(pf.tt)} ${bas(pf.basis)}${pf.partial ? ` <span class="tag2 warn">partial</span>` : ""}</span><span>${ppct}% of the TT$120,000 monthly profit goal</span></div><div class="track"><i style="width:${Math.max(0, Math.min(100, ppct || 0))}%"></i></div><div class="us" style="margin-top:6px">Revenue ${tt(PH.revenue_tt)} (${esc(PH.revenue_basis)}) − overheads ${tt(PH.overheads_tt)} (${esc(PH.overheads_basis)})</div></div>` : none(PN.error || "Profit not available."))
+      + (PN.months ? ttab(["Month", "Revenue (Hospitable)", "Overheads (cash flow sheet)", "Profit"], pnlRows) : "")
+      + (PN.ytd ? `<p class="cap">${esc(PN.ytd.months)} (actual): revenue ${tt(PN.ytd.revenue_tt)} − overheads ${tt(PN.ytd.overheads_tt)} = profit ${tt(PN.ytd.profit_tt)}. Estimated month overheads = ${tt(PN.base.overheads_total_tt)} ÷ 10 = ${tt(PN.base.est_month_tt)}.</p>` : "")
+      + `<p class="cap">Rate: ${fxl}.${PN.sources ? ` Overheads: <a href="${esc(PN.sources.overheads.url)}" target="_blank" rel="noreferrer" style="color:var(--accent-ink)">${esc(PN.sources.overheads.title)} · ${esc(PN.sources.overheads.tab)}</a> (read ${esc(PN.sources.overheads.fetched_at)}). Revenue: ${esc(PN.sources.revenue.title)}.` : ""}</p>`)
+    + sec("Villa revenue by check-in month", V.revenue_caption,
+      ttab(["Month", "Total", "Airbnb", "Direct"], rev.map((r) => `<tr><td><b>${esc(r.month)}</b><div class="us">${esc(r.when || "")}</div></td><td><div class="tt">${esc(r.total_tt_lbl || "?")}</div><div class="us">${esc(r.total_usd_lbl || "")}</div></td><td>${esc(r.airbnb_usd)}<div class="us">US$ · ${esc(r.airbnb_n || "")}</div></td><td>${esc(r.direct_tt)}<div class="us">${esc(r.direct_n || "")}</div></td></tr>`))
       + (V.top_villa ? `<p class="cap">Top villa: ${esc(V.top_villa)}</p>` : "") + `<p class="cap">The 4 owned villas only (Nest, Heart, Fairway, Casa). TT$ = US$ × 6.8.</p>`)
     + `<div class="grid2">`
     + sec("Booked, next 30 days", V.occ_caption, (V.occupancy || []).map((o) => `<div class="ob"><b>${esc(o.villa)}</b><div class="bar"><i class="${o.warn ? "lo" : ""}" style="width:${o.pct}%"></i></div><b>${o.pct}%</b><div class="mo">${(o.months || []).map((m) => `${esc(m.m)} ${m.pct}%`).join(" · ")}${o.open_nts_90 != null ? ` · ${o.open_nts_90} open nights (90d)` : ""}</div></div>`).join("") + (V.next_move ? `<p class="cap" style="margin-top:12px">${esc(V.next_move)}</p>` : ""))
@@ -554,6 +575,7 @@ function renderBrain(force) {
 }
 document.addEventListener("click", (e) => {
   const g = e.target.closest("[data-go]"); if (g) { e.preventDefault(); setTab(g.dataset.go, true); return; }
+  if (e.target.closest("#stat")) { setTab("today", true); const wl = $("wlist"); if (wl) wl.closest("section").scrollIntoView({ behavior: "smooth", block: "start" }); return; }
   if (e.target.closest("#nwTog")) { NW.show = !NW.show; renderBrain(true); }
 });
 
