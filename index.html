@@ -2,8 +2,15 @@
 <html lang="en"><head><meta charset="utf-8">
 <meta name="robots" content="noindex, nofollow, noarchive">
 <meta name="googlebot" content="noindex, nofollow, noarchive">
-<meta name="referrer" content="no-referrer"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="referrer" content="no-referrer"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>Mission Control</title>
+<link rel="manifest" href="/manifest.webmanifest">
+<link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Mission Ctrl"><meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#0b8f9c" media="(prefers-color-scheme: light)"><meta name="theme-color" content="#05100f" media="(prefers-color-scheme: dark)">
+<meta name="format-detection" content="telephone=no">
 <style>
 /* Mission Control — branded to match the Operational Brain (daily update): teal "glass flight deck",
    hairline grid + aurora ground, mono eyebrows/ribbon. Avenir headers, Arial body. */
@@ -292,6 +299,13 @@ details.more2{margin-top:12px}details.more2 summary{cursor:pointer;font:700 13px
 #rtTip .warn{color:var(--crit);font-weight:700;margin:0 0 6px}#rtTip .sum{margin:0}#rtTip .sum.none{color:var(--muted);font-style:italic}
 @media (max-width:640px){#tabRoutines{font-size:18px}.rt-bar{font-size:18px}.rt-grid col.c-bot{width:132px}.rt-grid .bot{font-size:15.5px}.rt-grid{font-size:16px}}
 @media (max-width:640px){.vital .b{font-size:26px}.onemove{padding:14px}.big{font-size:16.5px}.big table{font-size:15.5px}.ob{grid-template-columns:70px 1fr 48px}.big td,.big th{padding:8px 5px}.tblwrap{overflow-x:auto}}
+#keyGate{max-width:520px;margin:14px 0 4px;padding:16px;border:1px solid var(--line);border-radius:14px;background:var(--glass);box-shadow:var(--shadow)}
+#keyGate h2{margin:0 0 6px;font:700 17px var(--font-display)}#keyGate p{margin:0 0 10px;color:var(--muted);font-size:14px}
+#keyGate input[type=password]{width:100%;font:16px var(--font-mono);padding:12px;border:1px solid var(--line);border-radius:10px;background:var(--surface);color:var(--text)}
+#keyGate .row{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:10px}#keyGate label.rm{font-size:14px;color:var(--muted);display:flex;gap:6px;align-items:center}
+#keyGate button{font:600 15px var(--font-ui);padding:11px 18px;border-radius:10px;border:0;background:var(--accent);color:var(--btn-ink);cursor:pointer}
+#keyGate .err{color:var(--crit);font-size:14px}
+@supports(padding:env(safe-area-inset-top)){main{padding-top:max(env(safe-area-inset-top),clamp(16px,3vw,32px))}}
 </style></head><body class="t-today"><main>
 <div class="shell">
 <div class="sh-left">
@@ -299,9 +313,18 @@ details.more2{margin-top:12px}details.more2 summary{cursor:pointer;font:700 13px
     <div class="logo"><svg width="22" height="22" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10.5" fill="none" stroke="var(--accent)" stroke-width="1.5"/><circle cx="12" cy="12" r="5.5" fill="none" stroke="var(--accent-2)" stroke-width="1.5"/><circle cx="12" cy="12" r="1.8" fill="var(--accent)"/><path d="M12 1.5v4M12 18.5v4M1.5 12h4M18.5 12h4" stroke="var(--accent)" stroke-width="1.5" stroke-linecap="round"/></svg><p class="eyebrow">Mission Control</p></div>
     <h1 id="greet">Miles, here's who needs you.</h1>
     <p class="summary" id="summary">Loading…</p>
+    <form id="keyGate" hidden autocomplete="on">
+      <h2>Unlock Mission Control on this device</h2>
+      <p id="kgWhy">Paste your Mission Control view key once. This device remembers it, so plain links and the home-screen icon open straight in.</p>
+      <input type="text" name="username" value="Mission Control" autocomplete="username" hidden readonly>
+      <input type="password" id="kgKey" name="password" autocomplete="current-password" placeholder="View key" autocapitalize="off" autocorrect="off" spellcheck="false" required>
+      <div class="row"><button type="submit" id="kgGo">Open</button><label class="rm"><input type="checkbox" id="kgRemember" checked> Remember on this device</label></div>
+      <p class="err" id="kgErr" hidden></p>
+    </form>
     <div class="xbar">
       <a class="pill" id="duLink" href="https://dailyupdate.simplyintense.com/" rel="noreferrer">◆ Daily Update</a>
       <button class="pill" id="aBtn" type="button">🎧 Play the latest JARVIS brief</button>
+      <button class="pill" id="phoneSetup" type="button" hidden title="Copies the view key to this device's clipboard, for the home-screen app's first launch">📱 Copy key for phone app</button>
       <span class="ab-lab" id="aLab"></span>
       <audio id="aPlayer" controls preload="none" hidden></audio>
     </div>
@@ -366,7 +389,15 @@ details.more2{margin-top:12px}details.more2 summary{cursor:pointer;font:700 13px
 // Always-on Mission Control. This page holds NO data: it reads the view key from the #k= fragment (never sent to
 // this host, never put in a link) and calls the private Supabase function with it in a request header.
 const FN = "https://ufwckditozswfzosymwu.supabase.co/functions/v1/mission-control";
-const MCKEY = (() => { const k = new URLSearchParams(location.hash.slice(1)).get("k") || ""; try { if (k) localStorage.setItem("mcKey", k); return k || localStorage.getItem("mcKey") || ""; } catch { return k; } })();
+// Safe storage: some in-app browsers (Slack/WhatsApp/Instagram webviews, blocked-cookie or private modes) throw on
+// localStorage; fall back to memory so the page still runs instead of dying on "Loading…".
+const ST = (() => { const m = {}; let ok = false; try { const t = "__mc"; localStorage.setItem(t, "1"); localStorage.removeItem(t); ok = true; } catch {}
+  return { ok, get: (k) => { try { return ok ? localStorage.getItem(k) : (m[k] ?? null); } catch { return m[k] ?? null; } },
+    set: (k, v) => { m[k] = String(v); try { if (ok) localStorage.setItem(k, v); } catch {} },
+    del: (k) => { delete m[k]; try { if (ok) localStorage.removeItem(k); } catch {} } }; })();
+const MCKEY = (() => { const p = new URLSearchParams(location.hash.slice(1)), k = (p.get("k") || "").trim();
+  if (k) { ST.set("mcKey", k); if (ST.ok) { p.delete("k"); try { history.replaceState(null, "", location.pathname + (p.toString() ? "#" + p : "")); } catch {} } } // key out of the address bar once saved
+  return k || ST.get("mcKey") || ""; })();
 function api(op, opt = {}) {
   return fetch(`${FN}/${op}`, { cache: "no-store", referrerPolicy: "no-referrer", credentials: "omit", ...opt,
     headers: { ...(opt.headers || {}), "X-MC-Key": MCKEY } });
@@ -543,7 +574,7 @@ function renderRest() {
 // ---- Routines tab (Nov 1 2026, week grid). Data: D.routines_all, built on the box by export-routines.js from
 // routines-snapshot.json (read from every bot's chat history), pushed with data.json each hourly refresh.
 // Rows = bots, columns = today + 6 days (AST) with a per-day total, last column = routines with no set day (paused, on demand, unknown).
-const RT = { list: [], f: ["all", "enabled", "paused", "unknown"].includes(localStorage.getItem("mcRtFilter")) ? localStorage.getItem("mcRtFilter") : "all" };
+const RT = { list: [], f: ["all", "enabled", "paused", "unknown"].includes(ST.get("mcRtFilter")) ? ST.get("mcRtFilter") : "all" };
 const RT_DAY = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
 const RT_LBL = { enabled: "On", paused: "Paused", done: "Done", unknown: "Status unknown" };
 function renderRoutines(force) {
@@ -597,7 +628,7 @@ document.addEventListener("mouseout", (e) => { const b = e.target.closest && e.t
 document.addEventListener("focusin", (e) => { const b = e.target.closest && e.target.closest("#tabRoutines .rt-chip"); if (b) rtTip(b); });
 document.addEventListener("click", (e) => {
   const f = e.target.closest("#tabRoutines .rt-f[data-f]");
-  if (f) { RT.f = f.dataset.f; try { localStorage.setItem("mcRtFilter", RT.f); } catch {} rtTip(null); renderRoutines(true); return; }
+  if (f) { RT.f = f.dataset.f; ST.set("mcRtFilter", RT.f); rtTip(null); renderRoutines(true); return; }
   const td = e.target.closest("#tabRoutines td.e[data-day]");
   if (td) { // empty cell: copy an add-routine request for that day, then open the bot's chat
     const w = (D.routines_all.week || [])[+td.dataset.day]; if (!w) return;
@@ -791,8 +822,28 @@ $("duLink").addEventListener("click", async (e) => {
     location.assign(j.url && j.url.startsWith("https://dailyupdate.simplyintense.com/") ? j.url : el.href);
   } catch (_e) { location.assign(el.href); }
 });
-if (!MCKEY) $("summary").textContent = "Missing key: open Mission Control from your private bookmarked link (it ends in #k=…).";
-else { audioMeta(); load(true).catch((e) => { $("summary").textContent = "Couldn't load data from the server" + (e && e.message ? ` (${e.message})` : "") + "."; }); }
+// Key gate: shown when this browser has no key (plain link, Slack/WhatsApp in-app browser, new home-screen app) or the key is wrong.
+function showGate(why) {
+  $("summary").textContent = why === "bad" ? "That key didn't work (it may have been changed)." : "This browser hasn't been unlocked yet.";
+  if (why === "bad") { ST.del("mcKey"); $("kgWhy").textContent = "The saved key was rejected. Paste the current view key."; }
+  $("keyGate").hidden = false; $("phoneSetup").hidden = true;
+}
+$("keyGate").addEventListener("submit", (e) => {
+  e.preventDefault();
+  const k = $("kgKey").value.trim().replace(/^.*#k=/, "").replace(/&.*$/, ""); // accepts the key or a whole private link
+  if (k.length < 16) { $("kgErr").textContent = "That doesn't look like a view key."; $("kgErr").hidden = false; return; }
+  if ($("kgRemember").checked) ST.set("mcKey", k);
+  if ($("kgRemember").checked && ST.ok) location.reload(); // key now in storage
+  else { location.replace(location.pathname + "#k=" + encodeURIComponent(k)); location.reload(); } // storage blocked: this tab only
+});
+if (!MCKEY) showGate("missing");
+else { $("phoneSetup").hidden = false; audioMeta(); load(true).catch((e) => { if (e && e.message === "bad key") return showGate("bad"); $("summary").textContent = "Couldn't load data from the server" + (e && e.message ? ` (${e.message})` : "") + ". Pull down to retry."; }); }
+// Phone setup: copies this device's key so it can be pasted into the home-screen app's first launch (stays on the device).
+$("phoneSetup").addEventListener("click", async () => {
+  const b = $("phoneSetup"), t = b.textContent;
+  try { await navigator.clipboard.writeText(MCKEY); b.textContent = "✓ Key copied, paste it on first launch"; } catch { b.textContent = "Couldn't copy here"; }
+  setTimeout(() => (b.textContent = t), 4000);
+});
 // Live updates: a cheap version check every 6 s while the tab is visible; re-fetch only when something changed.
 setInterval(async () => {
   if (!MCKEY || document.hidden) return;
@@ -806,7 +857,7 @@ setInterval(() => { if (!document.querySelector("input.reply:focus")) load().cat
 </script><script>
 // ---- Org tab (Oct 31 2026). Data: GET /org (doc "org" = box file mission-control-ui/org.json, pushed by
 // org-refresh.js / the mc-sync daemon). Tab chosen by #...&tab=org (fragment only, never sent anywhere).
-const O = { d: null, view: localStorage.getItem("mcOrgView") || "all", loading: false };
+const O = { d: null, view: ST.get("mcOrgView") || "all", loading: false };
 const hashP = () => new URLSearchParams(location.hash.slice(1));
 const TABS = { today: "tabToday", villas: "tabVillas", money: "tabMoney", growth: "tabGrowth", org: "tabOrg", routines: "tabRoutines" };
 const tabFromHash = () => { const t = hashP().get("tab"); return TABS[t] ? t : "today"; };
@@ -909,7 +960,7 @@ async function loadOrg() {
   finally { O.loading = false; $("orgRefresh").disabled = false; $("orgRefresh").textContent = "↻ Refresh"; }
 }
 document.querySelector(".tabs").addEventListener("click", (e) => { const b = e.target.closest("button[data-tab]"); if (b) setTab(b.dataset.tab, true); });
-$("orgView").addEventListener("click", (e) => { const b = e.target.closest("button[data-v]"); if (!b) return; O.view = b.dataset.v; localStorage.setItem("mcOrgView", O.view); renderOrg(); });
+$("orgView").addEventListener("click", (e) => { const b = e.target.closest("button[data-v]"); if (!b) return; O.view = b.dataset.v; ST.set("mcOrgView", O.view); renderOrg(); });
 $("orgRefresh").addEventListener("click", () => { loadOrg(); load(true).catch(() => {}); });
 $("orgBody").addEventListener("click", (e) => { const s = e.target.closest("button.seat"); if (!s) return; s.classList.toggle("open"); s.setAttribute("aria-expanded", String(s.classList.contains("open"))); });
 window.addEventListener("hashchange", () => setTab(tabFromHash()));
