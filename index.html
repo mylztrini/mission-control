@@ -396,9 +396,11 @@ const ST = (() => { const m = {}; let ok = false; try { const t = "__mc"; localS
     set: (k, v) => { m[k] = String(v); try { if (ok) localStorage.setItem(k, v); } catch {} },
     del: (k) => { delete m[k]; try { if (ok) localStorage.removeItem(k); } catch {} } }; })();
 const MCKEY = (() => { const p = new URLSearchParams(location.hash.slice(1)), k = (p.get("k") || "").trim();
-  if (k) { ST.set("mcKey", k); if (ST.ok) { p.delete("k"); try { history.replaceState(null, "", location.pathname + (p.toString() ? "#" + p : "")); } catch {} } } // key out of the address bar once saved
+  if (k) { ST.set("mcKey", k); if (ST.ok) { p.delete("k"); try { history.replaceState(null, "", location.pathname + location.search + (p.toString() ? "#" + p : "")); } catch {} } } // key out of the address bar once saved
   return k || ST.get("mcKey") || ""; })();
+let MC_OFF = false; // set after a rejected key: stop all calls so polling can't trip the bad-key lockout
 function api(op, opt = {}) {
+  if (MC_OFF) return Promise.reject(new Error("bad key"));
   return fetch(`${FN}/${op}`, { cache: "no-store", referrerPolicy: "no-referrer", credentials: "omit", ...opt,
     headers: { ...(opt.headers || {}), "X-MC-Key": MCKEY } });
 }
@@ -825,7 +827,7 @@ $("duLink").addEventListener("click", async (e) => {
 // Key gate: shown when this browser has no key (plain link, Slack/WhatsApp in-app browser, new home-screen app) or the key is wrong.
 function showGate(why) {
   $("summary").textContent = why === "bad" ? "That key didn't work (it may have been changed)." : "This browser hasn't been unlocked yet.";
-  if (why === "bad") { ST.del("mcKey"); $("kgWhy").textContent = "The saved key was rejected. Paste the current view key."; }
+  if (why === "bad") { MC_OFF = true; ST.del("mcKey"); $("kgWhy").textContent = "The saved key was rejected. Paste the current view key."; }
   $("keyGate").hidden = false; $("phoneSetup").hidden = true;
 }
 $("keyGate").addEventListener("submit", (e) => {
@@ -834,7 +836,7 @@ $("keyGate").addEventListener("submit", (e) => {
   if (k.length < 16) { $("kgErr").textContent = "That doesn't look like a view key."; $("kgErr").hidden = false; return; }
   if ($("kgRemember").checked) ST.set("mcKey", k);
   if ($("kgRemember").checked && ST.ok) location.reload(); // key now in storage
-  else { location.replace(location.pathname + "#k=" + encodeURIComponent(k)); location.reload(); } // storage blocked: this tab only
+  else { location.hash = "k=" + encodeURIComponent(k); location.reload(); } // storage blocked: this tab only
 });
 if (!MCKEY) showGate("missing");
 else { $("phoneSetup").hidden = false; audioMeta(); load(true).catch((e) => { if (e && e.message === "bad key") return showGate("bad"); $("summary").textContent = "Couldn't load data from the server" + (e && e.message ? ` (${e.message})` : "") + ". Pull down to retry."; }); }
