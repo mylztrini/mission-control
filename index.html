@@ -182,8 +182,59 @@ td{padding:8px;border-bottom:1px solid var(--bd2);vertical-align:top}
 #tabOrg .gaps,#tabOrg .rules{grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:14px;font-size:16px}
 #tabOrg .gap h4{font-size:17px}#tabOrg .retired span{font-size:15px;padding:4px 10px}
 @media (max-width:640px){#tabOrg .divs,#tabOrg .kbars,#tabOrg .gaps,#tabOrg .rules{grid-template-columns:1fr}#tabOrg .og-stats{grid-template-columns:repeat(2,1fr)}#tabOrg .div{padding:14px}#tabOrg .seat .sn{font-size:18px}.tabs button{font-size:14px;padding:12px 12px}}
+/* ---- Merge with the Operational Brain (Oct 31 2026): Today additions + Villas / Money / Growth tabs ---- */
+.big{font-size:17px;line-height:1.55;--muted:color-mix(in oklab,var(--text) 82%,transparent)}
+.big h2{font-size:22px}.big .cap{font-size:15.5px;color:var(--muted)}
+.big table{font-size:16.5px}.big th{font-size:13px}.big td{padding:10px 8px}
+.need{color:var(--pink)!important}
+.onemove{border:2px solid var(--pink);border-left-width:8px;border-radius:16px;padding:16px 20px;margin:0 0 20px;background:color-mix(in oklab,var(--pink) 7%,var(--surface));box-shadow:var(--shadow)}
+.onemove .lab{font:700 13px var(--font-mono);letter-spacing:.16em;text-transform:uppercase;color:var(--pink)}
+.onemove .hd{font:700 clamp(22px,2.6vw,30px)/1.25 var(--font-display);margin:6px 0 6px;letter-spacing:-.01em}
+.onemove .dt{font-size:17px;line-height:1.55}.onemove .why{font-size:16px;color:var(--muted);margin-top:6px}
+.onemove .adv{font-size:16px;margin-top:10px;padding-top:10px;border-top:1px dashed color-mix(in oklab,var(--pink) 40%,var(--line))}
+.vitals{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:12px;margin:0 0 26px}
+.vital{display:block;text-align:left;font:inherit;color:inherit;cursor:pointer;border:1px solid var(--line);border-radius:14px;padding:12px 16px;background:var(--glass);box-shadow:var(--shadow)}
+.vital:hover{border-color:var(--accent)}
+.vital .s{font:700 12.5px var(--font-mono);letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+.vital .b{font:700 30px/1.2 var(--font-display);font-variant-numeric:tabular-nums;margin-top:2px}
+.vital .u{font-size:14.5px;color:var(--muted);margin-top:2px;line-height:1.4}
+.vital .g{font:600 12.5px var(--font-mono);color:var(--accent-ink);margin-top:4px}
+.vital.bad .b{color:var(--pink)}
+.tabs .tcount.red{background:var(--pink)}
+.h2n{display:inline-block;margin-left:8px;min-width:28px;text-align:center;padding:1px 9px;border-radius:999px;background:var(--pink);color:#fff;font:700 15px var(--font-ui);vertical-align:middle}
+#wlist .item{border-left:4px solid var(--pink);padding-left:10px;margin-left:-4px}
+#wlist .num{color:var(--pink)}
+#wlist .txt,#slist .txt{font-size:17px;line-height:1.5}#wlist .meta,#slist .meta{font-size:14px}#tabToday .cap{font-size:15px}#timeline{font-size:16px}#brief li{font-size:17px;line-height:1.55;margin:8px 0}.chip{font-size:14px;padding:5px 12px}.btn{font-size:14px}
+.src{display:inline-block;margin-right:6px;padding:0 8px;border-radius:6px;font:700 11.5px var(--font-mono);letter-spacing:.06em;border:1px solid currentColor}
+.src.slack{color:#a855f7}.src.email{color:#2f80ed}.src.board{color:var(--gold)}
+.brd .who{display:flex;gap:12px;align-items:center}.brd .avb{flex:0 0 46px;height:46px;border-radius:50%;display:grid;place-items:center;font:700 16px var(--font-ui);background:color-mix(in oklab,var(--gold) 25%,var(--surface));border:2px solid var(--gold)}
+.brd .nm{font:700 19px var(--font-display)}.brd .ln{font-size:14px;color:var(--muted)}
+.brd .rd{margin:10px 0 0;font-size:17px;line-height:1.55}.brd .do{margin-top:10px;padding:10px 12px;border-radius:10px;border:1.5px solid var(--pink);background:color-mix(in oklab,var(--pink) 8%,transparent);font-size:17px}
+.brd .do b{color:var(--pink);font:700 12.5px var(--font-mono);letter-spacing:.12em;display:block}
+.brd .life{margin-top:8px;font-style:italic;color:var(--muted);font-size:16px}
+details.more2{margin-top:12px}details.more2 summary{cursor:pointer;font:700 13px var(--font-mono);letter-spacing:.1em;text-transform:uppercase;color:var(--accent-ink)}
+.sc{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:10px;margin-top:10px}
+.scc{border:1px solid var(--line);border-radius:12px;padding:10px 12px;background:var(--surface-2)}
+.scc .gr{float:right;font:800 30px/1 var(--font-display)}.scc .gr.A,.scc .gr.B{color:var(--good)}.scc .gr.C{color:var(--warn)}.scc .gr.D,.scc .gr.F{color:var(--pink)}.scc .gr.na{color:var(--faint);font-size:18px}
+.scc .an{font-weight:700}.scc .ms{font-size:14px;color:var(--muted)}.scc .vv{font-size:15px;margin-top:6px}.scc .nt{font-size:13.5px;color:var(--faint);margin-top:4px}
+.lst{list-style:none;margin:0;padding:0}.lst li{padding:9px 0;border-top:1px solid var(--bd2)}.lst li:first-child{border-top:none}
+.lst .t{font:600 14px var(--font-mono);color:var(--accent-ink);margin-right:8px}
+.tag2{display:inline-block;padding:0 8px;border-radius:999px;font:600 12.5px var(--font-mono);border:1px solid var(--line);margin-left:6px}
+.tag2.hot{color:var(--pink);border-color:var(--pink)}.tag2.ok{color:var(--good);border-color:var(--good)}.tag2.warn{color:var(--warn);border-color:var(--warn)}
+.team2{display:flex;flex-wrap:wrap;gap:8px;margin-top:6px}.team2 span{padding:5px 12px;border-radius:999px;border:1px solid var(--line);font-size:15px}.team2 .on{border-color:var(--good);color:var(--good)}
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,460px),1fr));gap:24px}
+.tt{font:700 20px var(--font-display);font-variant-numeric:tabular-nums}.us{font-size:14px;color:var(--muted)}
+.ob{display:grid;grid-template-columns:90px 1fr 56px;gap:10px;align-items:center;margin:10px 0}
+.ob .bar{height:14px;border-radius:8px;background:var(--surface-2);border:1px solid var(--line-soft);overflow:hidden}.ob .bar i{display:block;height:100%;background:var(--accent)}
+.ob .bar i.lo{background:var(--warn)}.ob .mo{grid-column:2/4;font:13.5px var(--font-mono);color:var(--muted);margin-top:-6px}
+.goal{margin-top:12px}.goal .track{height:12px}.goal .track i{background:var(--good)}
+.blurbox{position:relative}.blurbox.blurred .val{filter:blur(12px);user-select:none}
+.big .kpi .b{font-size:32px}
+.stale-flag{color:var(--warn);font-weight:700}
+.tabpane{display:flex;flex-direction:column;gap:24px}.tabpane[hidden]{display:none}
+@media (max-width:640px){.vital .b{font-size:26px}.onemove{padding:14px}.big{font-size:16.5px}.big table{font-size:15.5px}.ob{grid-template-columns:70px 1fr 48px}.big td,.big th{padding:8px 5px}.tblwrap{overflow-x:auto}}
 </style></head><body><main>
-<div class="ribbon">◆ Mission control live&nbsp;·&nbsp;<b>Bot chats · Asana · Staff · JARVIS</b>&nbsp;·&nbsp;asks · presses · routines — one deck</div>
+<div class="ribbon">◆ Mission control live&nbsp;·&nbsp;<b>Bots · Villas · Money · Growth · JARVIS</b>&nbsp;·&nbsp;one page, one engine</div>
 <div class="bridge">
   <div class="greet">
     <div class="logo"><svg width="22" height="22" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10.5" fill="none" stroke="var(--accent)" stroke-width="1.5"/><circle cx="12" cy="12" r="5.5" fill="none" stroke="var(--accent-2)" stroke-width="1.5"/><circle cx="12" cy="12" r="1.8" fill="var(--accent)"/><path d="M12 1.5v4M12 18.5v4M1.5 12h4M18.5 12h4" stroke="var(--accent)" stroke-width="1.5" stroke-linecap="round"/></svg><p class="eyebrow">Mission Control</p></div>
@@ -198,11 +249,12 @@ td{padding:8px;border-bottom:1px solid var(--bd2);vertical-align:top}
   </div>
   <div class="clock"><div class="day" id="hdrDay"></div><div id="hdrTime"></div><div style="font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)">Trinidad time (AST)</div></div>
 </div>
-<nav class="tabs" role="tablist"><button type="button" role="tab" data-tab="today" aria-selected="true">◆ Today</button><button type="button" role="tab" data-tab="org" aria-selected="false">⚑ Org<span class="tcount" id="orgTabCount" hidden></span></button></nav>
+<nav class="tabs" role="tablist"><button type="button" role="tab" data-tab="today" aria-selected="true">◆ Today<span class="tcount red" id="todayTabCount" hidden></span></button><button type="button" role="tab" data-tab="villas" aria-selected="false">🏝 Villas</button><button type="button" role="tab" data-tab="money" aria-selected="false">$ Money</button><button type="button" role="tab" data-tab="growth" aria-selected="false">↗ Growth</button><button type="button" role="tab" data-tab="org" aria-selected="false">⚑ Org &amp; Systems<span class="tcount" id="orgTabCount" hidden></span></button></nav>
 <div id="tabToday">
+<div class="big"><div class="onemove" id="oneMove" hidden></div><div class="vitals" id="vitals"></div></div>
 <div class="cols">
   <div class="left"><section>
-    <div class="sh"><h2>Waiting on me</h2>
+    <div class="sh"><h2>Waiting on me<span class="h2n" id="wN" hidden></span></h2>
       <div style="display:flex;gap:14px;flex-wrap:wrap">
         <label class="tog"><input type="checkbox" id="showIgn"><span id="showIgnLbl">Show ignored (0)</span></label>
         <label class="tog"><input type="checkbox" id="blurAll">Blur all</label>
@@ -219,24 +271,32 @@ td{padding:8px;border-bottom:1px solid var(--bd2);vertical-align:top}
   <div class="right top">
     <section><h2 style="margin-bottom:10px">Right now</h2><div class="cards">
       <div class="kpi"><div class="s">Time in Tobago (AST)</div><div class="b" id="clock">--</div><div class="s" id="date"></div></div>
-      <a class="kpi" id="stat" target="_blank" rel="noreferrer"><div class="s">Waiting on Miles · deduped</div><div class="b" id="statN">--</div><div class="s" id="statS"></div></a>
+      <a class="kpi" id="stat" target="_blank" rel="noreferrer"><div class="s">Waiting on Miles · deduped</div><div class="b need" id="statN">--</div><div class="s" id="statS"></div></a>
     </div></section>
+    <section class="big brd" id="boardSec" hidden><h2>The Board Room</h2><p class="cap" id="boardCap"></p><div id="board"></div></section>
+    <section class="big"><h2>Today</h2><p class="cap" id="calCap"></p><ul class="lst" id="cal"></ul><div class="osub" style="margin-top:14px">Team today</div><div class="team2" id="team"></div></section>
+    <section class="big" id="asanaSec" hidden><h2>Overdue in Asana · important</h2><p class="cap" id="asanaCap"></p><ul class="lst" id="asana"></ul></section>
   </div>
 </div>
 <div class="stack">
     <section><h2>The office</h2><p class="cap" id="ocap">Who is working right now and who is idle.</p><div id="office"></div></section>
-    <section><h2>Bot activity by hour, last 7 days</h2><p class="cap" id="hcap"></p><div class="hm" id="heat"></div></section>
-    <section><h2>Today's brief</h2><p class="cap" id="bcap"></p><ol id="brief"></ol><div class="links" id="blinks"></div></section>
-    <div class="two">
-      <section><h2>Activity timeline</h2><p class="cap" id="tcap"></p><div id="timeline"></div></section>
-      <section><h2>Upcoming routines</h2><p class="cap" id="rcap"></p><table><thead><tr><th>Routine</th><th>Next run (AST)</th><th>Owner</th></tr></thead><tbody id="routines"></tbody></table></section>
-    </div>
+    <section class="big"><h2>Today's brief</h2><p class="cap" id="bcap"></p><ol id="brief"></ol><div class="links" id="blinks"></div></section>
+    <section><h2>Activity timeline</h2><p class="cap" id="tcap"></p><div id="timeline"></div></section>
 </div>
 </div>
+<div id="tabVillas" class="big tabpane" hidden></div>
+<div id="tabMoney" class="big tabpane" hidden></div>
+<div id="tabGrowth" class="big tabpane" hidden></div>
 <div id="tabOrg" hidden>
 <div class="og-top"><div class="og-stats" id="orgStats"></div><div class="og-ctl"><div class="seg" id="orgView" role="group" aria-label="Seats shown"><button type="button" data-v="heads" aria-pressed="false">Heads only</button><button type="button" data-v="all" aria-pressed="true">Show all</button></div><button type="button" class="pill" id="orgRefresh">↻ Refresh</button></div></div>
 <p class="og-cap" id="orgCap">Loading the org chart…</p>
 <div id="orgBody"></div>
+<div class="og-h">Systems</div>
+<div class="stack" style="margin-top:0">
+    <section><h2>Bot activity by hour, last 7 days</h2><p class="cap" id="hcap"></p><div class="hm" id="heat"></div></section>
+    <section><h2>Upcoming routines</h2><p class="cap" id="rcap"></p><div class="tblwrap"><table><thead><tr><th>Routine</th><th>Next run (AST)</th><th>Owner</th></tr></thead><tbody id="routines"></tbody></table></div></section>
+    <section><h2>Data sources</h2><p class="cap" id="srcCap">Bot chats + Asana (hourly), the Operational Brain engine (weekdays 7:35 AM AST: Hospitable, Gmail, Slack, Calendar, Meta Ads, receivables), org.json.</p></section>
+</div>
 </div>
 </main>
 <script>
@@ -280,7 +340,8 @@ async function post(body) {
 }
 function renderWaitingHead() {
   const w = D.waiting, chats = w.filter((i) => !i.stale).length, also = w.filter((i) => !i.stale && i.card).length;
-  $("wcap").textContent = `From the bots' own chats, cross-checked with Asana. ${chats} open asks from chats come first (${also} also on Asana), then ${w.length - chats} cards only Asana lists. Answer buttons send straight to JARVIS. Ignore hides for this view; tell JARVIS to remove an item for good.`;
+  const sl = w.filter((i) => String(i.botId || "").startsWith("brain:")).length;
+  $("wcap").textContent = `From the bots' chats and Asana (hourly), plus ${sl} unanswered Slack and email ask${sl === 1 ? "" : "s"} from the 7:35 AM engine run. Answer buttons send straight to JARVIS. Ignore hides for this view; tell JARVIS to remove an item for good.`;
   $("warn").hidden = !!D.configured;
   $("warn").textContent = "Not connected to JARVIS: presses are saved to the outbox only.";
   $("showIgnLbl").textContent = `Show ignored (${w.filter((i) => ignored.has(i.key)).length})`;
@@ -292,10 +353,10 @@ function renderWaiting() {
   $("wlist").innerHTML = items.length ? items.map((it) => {
     const k = esc(it.key), ig = ignored.has(it.key), bl = blurAll || hidden.has(it.key), s = sent.get(it.key);
     return `<div class="item ${it.stale ? "stale" : ""} ${ig ? "ign" : ""} ${bl ? "blur" : ""} ${s && s.ok ? "sent" : ""}" data-k="${k}"><div class="nrow"><div class="num">${it.number ? "#" + it.number : ""}</div><div class="nbody">
-      <div class="meta">${esc(it.bot)} · ${esc(it.when)}${it.stale ? " · <i>Asana only, may be stale</i>" : ""}<span class="badge">${esc(it.status || "")}</span></div>
+      <div class="meta">${it.src ? `<span class="src ${esc(it.src)}">${esc(it.src.toUpperCase())}</span>` : ""}${esc(it.bot)} · ${esc(it.when)}${it.stale ? " · <i>Asana only, may be stale</i>" : ""}<span class="badge">${esc(it.status || "")}</span></div>
       <div class="txt">${esc(it.text)}</div>
       <div class="row">
-        <a class="btn p" href="${CHAT(it.botId)}">Open</a>
+        ${String(it.botId || "").startsWith("brain:") ? (it.url ? `<a class="btn p" target="_blank" rel="noreferrer" href="${esc(it.url)}">Open</a>` : "") : `<a class="btn p" href="${CHAT(it.botId)}">Open</a>`}
         <button class="btn" data-eye title="${bl ? "Show" : "Blur for privacy"}" aria-label="${bl ? "Show item" : "Blur item"}">${bl ? "🙈" : "👁"}</button>
         <button class="btn" data-ign>${ig ? "Restore" : "Ignore"}</button>
         ${it.card ? `<a class="btn l" target="_blank" rel="noreferrer" href="${esc(D.card_base + it.card)}">Asana card</a>` : ""}
@@ -411,8 +472,89 @@ function renderRest() {
   const w = D.waiting, chats = w.filter((i) => !i.stale).length;
   $("stat").href = D.board; $("statN").textContent = w.length;
   $("statS").textContent = `${chats} from bot chats, ${w.length - chats} Asana only · ${D.as_of}`;
-  $("summary").textContent = `What every bot is doing, what they need from you, and what runs next. Data as of ${D.as_of}.`;
+  $("summary").textContent = `What needs you, what the villas and the money are doing, and what every bot is up to. Bots as of ${D.as_of}${D.brain && D.brain.as_of ? ` · engine run ${fmtRun(D.brain.as_of)}` : ""}.`;
+  $("wN").textContent = w.length; $("wN").hidden = !w.length;
+  $("todayTabCount").textContent = w.length || ""; $("todayTabCount").hidden = !w.length;
+  try { renderBrain(); } catch (e) { console.error(e); }
 }
+
+// ---- Operational Brain engine (merged Oct 31 2026): D.brain from the 7:35 AM weekday run (si.ai data.json). ----
+const fmtRun = (iso) => new Date(iso).toLocaleString("en-US", { timeZone: "America/Port_of_Spain", weekday: "short", month: "short", day: "numeric", hour: "numeric", minute: "2-digit" }) + " AST";
+const NW = { show: false };
+const sec = (title, cap, body, extra = "") => `<section ${extra}><h2>${title}</h2>${cap ? `<p class="cap">${esc(cap)}</p>` : ""}${body}</section>`;
+const ttab = (head, rows) => `<div class="tblwrap"><table><thead><tr>${head.map((h) => `<th>${h}</th>`).join("")}</tr></thead><tbody>${rows.join("")}</tbody></table></div>`;
+const none = (s) => `<p class="cap">${esc(s)}</p>`;
+function renderBrain(force) {
+  const B = D.brain, sig = JSON.stringify(B || null) + NW.show;
+  if (!force && sig === renderBrain.sig) return; renderBrain.sig = sig;
+  const noData = "Waiting for the first Operational Brain run (weekdays 7:35 AM AST).";
+  if (!B) { for (const id of ["tabVillas", "tabMoney", "tabGrowth"]) $(id).innerHTML = none(noData); return; }
+  const om = B.onemove || {};
+  $("oneMove").hidden = !om.head;
+  $("oneMove").innerHTML = `<div class="lab">Your one move today · from the ${esc(fmtRun(B.as_of))} run</div><div class="hd">${esc(om.head)}</div>${om.detail ? `<div class="dt">${esc(om.detail)}</div>` : ""}${om.why ? `<div class="why">Why: ${esc(om.why)}</div>` : ""}${om.advisor_line ? `<div class="adv">🎩 ${esc(om.advisor_line)}</div>` : ""}`;
+  $("vitals").innerHTML = (B.vitals || []).map((v) => `<button type="button" class="vital ${v.bad ? "bad" : ""}" data-go="${esc(v.tab)}"><div class="s">${esc(v.k)}</div><div class="b">${esc(v.v ?? "unknown")}</div>${v.sub ? `<div class="u">${esc(v.sub)}</div>` : ""}${v.goal ? `<div class="g">${esc(v.goal)}</div>` : ""}</button>`).join("");
+  // Board Room
+  const bd = B.board || {}, tk = bd.take;
+  $("boardSec").hidden = !tk && !(bd.scorecards || []).length;
+  $("boardCap").textContent = tk ? `${tk.date === (B.as_of || "").slice(0, 10) ? "Today's" : "Latest"} take (${tk.date}). The advisor whose lens fits the one move speaks; each "Do this" is logged and checked a week later.` : "No take yet.";
+  const sc = (bd.scorecards || []).map((c) => `<div class="scc"><span class="gr ${c.grade || "na"}">${esc(c.grade || "–")}</span><div class="an">${esc(c.advisor)}</div><div class="ms">${esc(c.measure)}</div><div class="vv">${esc(c.value || "Not graded yet")}</div><div class="nt">${esc(c.note || "")}</div></div>`).join("");
+  const lg = (bd.log || []).map((e) => `<li><span class="t">${esc(e.date)}</span>${esc(e.advisor)}: ${esc(e.do)} <span class="tag2 ${e.status === "open" ? (e.check_on <= new Date().toISOString().slice(0, 10) ? "hot" : "warn") : "ok"}">${e.status === "open" ? "check-back " + esc(e.check_on) : esc(e.status)}</span></li>`).join("");
+  $("board").innerHTML = (tk ? `<div class="who"><div class="avb">${esc(tk.ini || "")}</div><div><div class="nm">${esc(tk.advisor)}</div><div class="ln">${esc(tk.lens || "")}</div></div></div>
+    <div class="rd">${esc(tk.read || "")}</div>${tk.do ? `<div class="do"><b>DO THIS</b>${esc(tk.do)}</div>` : ""}${tk.life ? `<div class="life">On life: ${esc(tk.life)}</div>` : ""}` : "")
+    + `<details class="more2"><summary>Scorecards · ${esc(bd.month || "")} (A–F)</summary><div class="sc">${sc}</div></details>`
+    + `<details class="more2"><summary>Follow-through log${(bd.due || []).length ? ` · ${(bd.due || []).length} due` : ""}</summary><ul class="lst">${lg || "<li>Nothing logged yet.</li>"}</ul></details>`;
+  // Today: calendar, team, Asana
+  const T = B.today || {};
+  $("calCap").textContent = `Your calendar${T.sched_asof ? " · " + T.sched_asof : ""}${T.sched_note ? ". " + T.sched_note : ""}`;
+  $("cal").innerHTML = (T.sched || []).map((i) => `<li><span class="t">${esc(i.t)}</span>${i.url ? `<a href="${esc(i.url)}" target="_blank" rel="noreferrer" style="color:inherit">${esc(i.text)}</a>` : esc(i.text)}${i.tag ? `<span class="tag2">${esc(i.tag)}</span>` : ""}</li>`).join("") || "<li>Nothing on the calendar.</li>";
+  $("team").innerHTML = (T.staff || []).map((s) => `<span class="${s.on ? "on" : ""}">${s.on ? "● " : "○ "}${esc(s.name)}${s.note ? " · " + esc(s.note) : ""}</span>`).join("") || `<span>Unknown</span>`;
+  const AS = T.asana || {};
+  $("asanaSec").hidden = !(AS.items || []).length;
+  $("asanaCap").textContent = AS.caption || "";
+  $("asana").innerHTML = (AS.items || []).map((t) => `<li>${t.url ? `<a href="${esc(t.url)}" target="_blank" rel="noreferrer" style="color:inherit">${esc(t.text)}</a>` : esc(t.text)}${t.tag ? `<span class="tag2 ${t.overdue ? "hot" : "warn"}">${esc(t.tag)}</span>` : ""}${t.meta ? `<div class="us">${esc(t.meta)}</div>` : ""}</li>`).join("");
+  // Villas
+  const V = B.villas || {}, rev = V.revenue || [], m0 = rev[0];
+  const goalPct = m0 && m0.total_tt != null ? Math.round(m0.total_tt / 120000 * 100) : null;
+  $("tabVillas").innerHTML =
+    sec("Villa revenue by check-in month", V.revenue_caption,
+      (m0 ? `<div class="goal"><div class="kt" style="display:flex;justify-content:space-between;font-weight:700"><span>${esc(m0.month)}: ${esc(m0.total_tt_lbl)}</span><span>${goalPct}% of the TT$120,000 monthly goal</span></div><div class="track"><i style="width:${Math.min(100, goalPct || 0)}%"></i></div></div>` : "")
+      + ttab(["Month", "Total", "Airbnb", "Direct"], rev.map((r) => `<tr><td><b>${esc(r.month)}</b><div class="us">${esc(r.when || "")}</div></td><td><div class="tt">${esc(r.total_tt_lbl || "?")}</div><div class="us">${esc(r.total_usd_lbl || "")}</div></td><td>${esc(r.airbnb_usd)}<div class="us">US$ · ${esc(r.airbnb_n || "")}</div></td><td>${esc(r.direct_tt)}<div class="us">${esc(r.direct_n || "")}</div></td></tr>`))
+      + (V.top_villa ? `<p class="cap">Top villa: ${esc(V.top_villa)}</p>` : "") + `<p class="cap">The 4 owned villas only (Nest, Heart, Fairway, Casa). TT$ = US$ × 6.8.</p>`)
+    + `<div class="grid2">`
+    + sec("Booked, next 30 days", V.occ_caption, (V.occupancy || []).map((o) => `<div class="ob"><b>${esc(o.villa)}</b><div class="bar"><i class="${o.warn ? "lo" : ""}" style="width:${o.pct}%"></i></div><b>${o.pct}%</b><div class="mo">${(o.months || []).map((m) => `${esc(m.m)} ${m.pct}%`).join(" · ")}${o.open_nts_90 != null ? ` · ${o.open_nts_90} open nights (90d)` : ""}</div></div>`).join("") + (V.next_move ? `<p class="cap" style="margin-top:12px">${esc(V.next_move)}</p>` : ""))
+    + sec("Next arrivals", "", `<ul class="lst">${(V.arrivals || []).map((a) => `<li><b>${esc(a.text)}</b><span class="tag2">${esc(a.chan)}</span><div class="us">${esc(a.g)}</div></li>`).join("") || "<li>None in the window.</li>"}</ul>`)
+    + `</div><div class="grid2">`
+    + sec("Airbnb payouts in transit", "Booked Airbnb net not yet paid out. Airbnb pays about a day after each check-in.", V.airbnb ? `<div class="tt" style="font-size:30px">${esc(V.airbnb.total_tt)}</div><div class="us">${esc(V.airbnb.total_usd)} · ${esc(V.airbnb.n)} stays${V.airbnb.next ? ` · next: ${esc(V.airbnb.next.g)} (${esc(V.airbnb.next.v)}) ${esc(V.airbnb.next.ttd)} on ${esc(V.airbnb.next.payout)}` : ""}</div>` + ttab(["Month", "TT$", "US$", "Stays"], (V.airbnb.months || []).map((m) => `<tr><td>${esc(m.m)}</td><td><b>${esc(m.tt)}</b></td><td>${esc(m.usd)}</td><td>${esc(m.n)}</td></tr>`)) : none("No data."))
+    + sec("Villa Direct balances", V.direct && V.direct.efficiency ? V.direct.efficiency.sub : "", V.direct ? `<div class="tt" style="font-size:30px">${esc(V.direct.total_tt)}</div><div class="us">${esc(V.direct.total_usd)} · ${esc(V.direct.n_open)} open · collection ${esc(V.direct.efficiency ? V.direct.efficiency.pct : "?")}</div>` + ttab(["Guest", "Villa", "Check-in", "Balance", "Status"], (V.direct.bookings || []).map((b) => `<tr><td>${esc(b.g)}</td><td>${esc(b.v)}</td><td>${esc(b.ci)}</td><td><b>${esc(b.bal_tt)}</b><div class="us">${esc(b.bal_usd)}</div></td><td>${b.warn ? `<span class="tag2 warn">${esc(b.st)}</span>` : esc(b.st)}</td></tr>`)) : none("No data."))
+    + `</div>`
+    + sec("Guest feedback and the fix list", V.feedback && V.feedback.caption, V.feedback ? `<div class="cards">${(V.feedback.villas || []).map((v) => `<div class="kpi"><div class="s">${esc(v.villa)}</div><div class="b">${esc(v.rating)}★</div><div class="us">${esc(v.n)} reviews · ${esc(v.top)}</div></div>`).join("")}</div>
+      <h3 class="osub" style="margin-top:18px">Open fixes <span class="ocount">${(V.feedback.fixes || []).length}</span></h3><ul class="lst">${(V.feedback.fixes || []).map((f) => `<li><b>${esc(f.villa)}</b>${f.sev === "crit" ? `<span class="tag2 hot">critical</span>` : `<span class="tag2 warn">${esc(f.sev || "")}</span>`} ${esc(f.issue)}<div class="us">${esc(f.meta || "")}</div></li>`).join("")}</ul>` : none("No data."));
+  // Money
+  const M = B.money || {}, nw = M.networth || {}, ag = M.agency || {};
+  $("tabMoney").innerHTML =
+    sec("Net worth", nw.as_of ? `Finance snapshot, ${nw.as_of}. Business + personal, ${nw.currency || "TTD"}.` : "Finance writes a snapshot on the 1st of each month (business + personal).",
+      `<div class="blurbox ${NW.show ? "" : "blurred"}" id="nwBox"><div class="val">${nw.total != null ? `<div class="tt" style="font-size:34px">TT$${Number(nw.total).toLocaleString("en-US")}</div><div class="us">Business TT$${Number(nw.business || 0).toLocaleString("en-US")} · Personal TT$${Number(nw.personal || 0).toLocaleString("en-US")}</div>${(nw.lines || []).length ? ttab(["Item", "Value"], nw.lines.map((l) => `<tr><td>${esc(l.label)}</td><td>${esc(l.value)}</td></tr>`)) : ""}` : `<div class="tt" style="font-size:30px">TT$ ———,———</div><div class="us">${esc(nw.note || "Awaiting Finance's first snapshot.")}</div>`}</div></div>
+      <div class="row"><button class="btn" type="button" id="nwTog">${NW.show ? "🙈 Blur" : "👁 Show"}</button></div>`)
+    + `<div class="grid2">`
+    + sec("Cash landing by week", M.weeks_caption, ttab(["Week", "TT$", "US$", "Payments"], (M.weeks || []).map((w) => `<tr><td><b>${esc(w.label)}</b><div class="us">${esc(w.rng)}</div></td><td><b>${esc(w.tt)}</b></td><td>${esc(w.usd)}</td><td>${(w.items || []).length ? `<details><summary>${w.n}</summary>${w.items.map((i) => `<div class="us">${esc(i.when)} · ${esc(i.g)} (${esc(i.v)}, ${esc(i.src)}) ${esc(i.amt)}</div>`).join("")}</details>` : "0"}</td></tr>`)) + (M.beyond ? `<p class="cap">${esc(M.beyond.note)}: ${esc(M.beyond.usd)} across ${esc(M.beyond.n)} payments.</p>` : ""))
+    + sec("Expected income by month", M.months_caption, ttab(["Month", "Total", "Airbnb (US$)", "Villa Direct (US$)"], (M.months || []).map((m) => `<tr><td><b>${esc(m.m)}</b></td><td><b>TT$${Math.round((+m.tot || 0) * 6.8 * 1000).toLocaleString("en-US")}</b><div class="us">US$${esc(m.tot)}k</div></td><td>${esc(m.airbnb)}</td><td>${esc(m.direct)}</td></tr>`)))
+    + `</div><div class="grid2">`
+    + sec("Agency receivables", ag.asof ? `From Sunday's Receivables Update email (${ag.asof}).` : "", `<div class="cards"><div class="kpi"><div class="s">Owed</div><div class="b">${esc(ag.total || "?")}</div></div><div class="kpi"><div class="s">Overdue</div><div class="b need">${esc(ag.overdue || "?")}</div></div></div><p class="cap" style="margin-top:10px">${esc(ag.summary || "")}</p>` + ttab(["Invoice", "Client", "TT$", ""], (ag.invoices || []).map((i) => `<tr><td>${esc(i.num)}</td><td>${esc(i.client)}</td><td><b>${esc(i.amt)}</b></td><td>${i.bucket === "overdue" ? `<span class="tag2 hot">overdue</span>` : `<span class="tag2">${esc(i.bucket)}</span>`}</td></tr>`)))
+    + sec("Payables", M.payables && M.payables.note, `<div class="links">${((M.payables || {}).links || []).map((l) => `<a class="lk" target="_blank" rel="noreferrer" href="${esc(l.href)}"><div class="t">${esc(l.title)}</div><div class="m">Google Sheets</div></a>`).join("")}</div>`)
+    + `</div>`;
+  // Growth
+  const G = B.growth || {}, P = G.pipeline || {}, AD = G.ads, PL = G.ad_plan;
+  $("tabGrowth").innerHTML =
+    sec(`Pipeline · ${esc(P.deals || "?")} active deals`, P.summary, `<ul class="lst">${(P.hot || []).map((d) => `<li><span class="tag2 ${d.warn ? "warn" : ""}">${esc(d.stage)}</span> <span class="us">${esc(d.who)}</span><div>${d.url ? `<a href="${esc(d.url)}" target="_blank" rel="noreferrer" style="color:inherit">${esc(d.text)}</a>` : esc(d.text)}</div></li>`).join("")}</ul>${P.next_move ? `<p class="cap" style="margin-top:10px"><b>Next move:</b> ${esc(P.next_move)}</p>` : ""}`)
+    + (AD ? sec(`Villa ads · ${esc(AD.account)}`, "", `<p class="cap">${esc(AD.window)}${AD.stale ? ` · <span class="stale-flag">stale: Meta Ads hasn't refreshed since this window</span>` : ""}</p><div class="cards">${(AD.kpis || []).map((k) => `<div class="kpi"><div class="s">${esc(k.k)}</div><div class="b">${esc(k.v)}</div><div class="us">${esc(k.sub)} · ${esc(k.delta)}</div></div>`).join("")}</div><p style="margin-top:12px">${esc(AD.story)}</p>` + ttab(["Campaign", "Status", "Spend", "Clicks", "CTR"], (AD.campaigns || []).map((c) => `<tr><td>${esc(c.name)}${c.tag ? `<div class="us">${esc(c.tag)}</div>` : ""}</td><td>${esc(c.status)}</td><td>${esc(c.spend)}</td><td>${esc(c.clicks)}</td><td>${esc(c.ctr)}</td></tr>`))) : "")
+    + (PL ? sec("Ad spend plan, next 6 months", PL.note, ttab(["Month", "Posture", "Spend", "Why"], (PL.months || []).map((m) => `<tr><td><b>${esc(m.m)}</b></td><td>${esc(m.posture)}</td><td>${esc(m.spend)}</td><td>${esc(m.why)}</td></tr>`))) : "")
+    + sec("Division goals", "", `<p>Sprint leads, SI Ventures deals and real-estate leads are tracked as KPIs on <a href="#" data-go="org" style="color:var(--accent-ink)">Org &amp; Systems</a>.</p>`);
+  $("srcCap").textContent = `Bot chats + Asana (hourly), the Operational Brain engine (last run ${fmtRun(B.as_of)}; weekdays 7:35 AM AST: Hospitable, Gmail, Slack, Calendar, Meta Ads, receivables), org.json.`;
+}
+document.addEventListener("click", (e) => {
+  const g = e.target.closest("[data-go]"); if (g) { e.preventDefault(); setTab(g.dataset.go, true); return; }
+  if (e.target.closest("#nwTog")) { NW.show = !NW.show; renderBrain(true); }
+});
 
 // Fade a card out, let the next one slide up, then drop it from the DOM (other cards keep their typed replies).
 function fadeOut(el) {
@@ -517,12 +659,14 @@ setInterval(() => { if (!document.querySelector("input.reply:focus")) load().cat
 // org-refresh.js / the mc-sync daemon). Tab chosen by #...&tab=org (fragment only, never sent anywhere).
 const O = { d: null, view: localStorage.getItem("mcOrgView") || "all", loading: false };
 const hashP = () => new URLSearchParams(location.hash.slice(1));
+const TABS = { today: "tabToday", villas: "tabVillas", money: "tabMoney", growth: "tabGrowth", org: "tabOrg" };
+const tabFromHash = () => { const t = hashP().get("tab"); return TABS[t] ? t : "today"; };
 function setTab(t, push) {
-  const org = t === "org";
-  $("tabToday").hidden = org; $("tabOrg").hidden = !org;
+  if (!TABS[t]) t = "today";
+  for (const [k, id] of Object.entries(TABS)) $(id).hidden = k !== t;
   for (const b of document.querySelectorAll(".tabs button")) b.setAttribute("aria-selected", String(b.dataset.tab === t));
-  if (push) { const p = hashP(); if (org) p.set("tab", "org"); else p.delete("tab"); history.replaceState(null, "", "#" + p.toString()); }
-  if (org && !O.d) loadOrg();
+  if (push) { const p = hashP(); if (t !== "today") p.set("tab", t); else p.delete("tab"); history.replaceState(null, "", "#" + p.toString()); window.scrollTo({ top: 0 }); }
+  if (t === "org" && !O.d) loadOrg();
 }
 const fmtK = (k, n) => n === null || n === undefined ? "unknown" : k.fmt === "tt" ? "TT$" + Number(n).toLocaleString("en-US")
   : k.fmt === "usd" ? "US$" + Number(n).toLocaleString("en-US") : k.fmt === "pct" ? n + "%" : Number(n).toLocaleString("en-US");
@@ -617,8 +761,8 @@ document.querySelector(".tabs").addEventListener("click", (e) => { const b = e.t
 $("orgView").addEventListener("click", (e) => { const b = e.target.closest("button[data-v]"); if (!b) return; O.view = b.dataset.v; localStorage.setItem("mcOrgView", O.view); renderOrg(); });
 $("orgRefresh").addEventListener("click", () => { loadOrg(); load(true).catch(() => {}); });
 $("orgBody").addEventListener("click", (e) => { const s = e.target.closest("button.seat"); if (!s) return; s.classList.toggle("open"); s.setAttribute("aria-expanded", String(s.classList.contains("open"))); });
-window.addEventListener("hashchange", () => setTab(hashP().get("tab") === "org" ? "org" : "today"));
-setTab(hashP().get("tab") === "org" ? "org" : "today");
+window.addEventListener("hashchange", () => setTab(tabFromHash()));
+setTab(tabFromHash());
 if (MCKEY) loadOrg();   // also fills the tab's waiting badge
 setInterval(() => { if (!document.hidden && !$("tabOrg").hidden) loadOrg(); }, 5 * 60 * 1000);
 </script>
