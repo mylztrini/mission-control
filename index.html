@@ -254,31 +254,37 @@ details.more2{margin-top:12px}details.more2 summary{cursor:pointer;font:700 13px
 .big .kpi .b{font-size:32px}
 .stale-flag{color:var(--warn);font-weight:700}
 .tabpane{display:flex;flex-direction:column;gap:24px}.tabpane[hidden]{display:none}
-/* ---- Routines tab (Nov 1 2026): every bot's routines, data = D.routines_all (box: routines-snapshot.json -> export-routines.js) ---- */
-#tabRoutines{font-size:17px;line-height:1.55;color:var(--text);--muted:color-mix(in oklab,var(--text) 86%,transparent)}
-#tabRoutines h2{font-size:22px;margin:0 0 6px}#tabRoutines .cap{font-size:15.5px;color:var(--muted)}
-.rt-stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px}
-.rt-stat{border:1px solid var(--line);border-radius:14px;padding:10px 14px;background:var(--glass);font:inherit;color:inherit;text-align:left;cursor:pointer}
-.rt-stat[aria-pressed=true]{border:2px solid var(--accent);background:var(--accent-bg)}
-.rt-stat .s{font:700 12.5px var(--font-mono);letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}.rt-stat .b{font:700 30px/1.2 var(--font-display);font-variant-numeric:tabular-nums}
-.rt-up{list-style:none;margin:0;padding:0;display:grid;gap:8px}
-.rt-up li{display:flex;flex-wrap:wrap;gap:4px 14px;align-items:baseline;border-left:4px solid var(--accent);padding:6px 12px;background:var(--surface-2);border-radius:8px}
-.rt-up .when{font:700 16px var(--font-mono);color:var(--accent-ink);min-width:15ch}.rt-up .who{color:var(--muted);font-size:15.5px}
-.rt-bots{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,420px),1fr));gap:14px}
-.rt-bot{border:1px solid var(--line);border-radius:16px;padding:14px 16px;background:var(--surface)}
-.rt-bot>h3{font:700 19px var(--font-display);margin:0 0 8px;display:flex;justify-content:space-between;gap:10px;align-items:baseline}
-.rt-bot>h3 a{color:inherit;text-decoration:none}.rt-bot>h3 a:hover{text-decoration:underline}
-.rt-bot>h3 span{font:600 13px var(--font-mono);color:var(--muted);white-space:nowrap}
-.rt-r{border-top:1px solid var(--line-soft);padding:10px 0}.rt-r:first-of-type{border-top:0}
-.rt-r .nm{font-weight:700;font-size:17px;line-height:1.4}
-.rt-r .sch{font-size:17px;margin-top:2px}.rt-r .meta{font-size:15px;color:var(--muted);margin-top:4px;display:flex;flex-wrap:wrap;gap:2px 16px}
-.rt-r .meta b{color:var(--text)}.rt-r .nt{font-size:14.5px;color:var(--muted);margin-top:4px;font-style:italic}
-.rt-st{display:inline-block;margin-left:8px;padding:1px 9px;border-radius:999px;font:700 12px var(--font-mono);letter-spacing:.08em;vertical-align:2px;border:1.5px solid currentColor}
-.rt-st.enabled{color:var(--good)}.rt-st.paused{color:var(--warn)}.rt-st.done{color:var(--muted)}.rt-st.unknown{color:var(--pink)}
-.rt-r.paused .nm,.rt-r.done .nm{color:var(--muted)}
-.rt-none{display:flex;flex-wrap:wrap;gap:8px}.rt-none span{border:1.5px dashed var(--pink);border-radius:10px;padding:4px 12px;font-size:15.5px}
-.rt-none.rooms span{border-color:var(--line)}
-@media (max-width:640px){#tabRoutines{font-size:18px}.rt-r .nm,.rt-r .sch{font-size:18px}.rt-stat .b{font-size:26px}.rt-up .when{min-width:0;width:100%}}
+/* ---- Routines tab (Nov 1 2026, week grid): every bot's routines, data = D.routines_all (box: routines-snapshot.json -> export-routines.js) ---- */
+#tabRoutines{font-size:17px;line-height:1.5;color:var(--text);gap:14px}
+.rt-fresh{font-size:15.5px;color:var(--muted);margin:0}
+.rt-bar{font:700 19px/1.4 var(--font-display);margin:0;display:flex;flex-wrap:wrap;gap:4px 18px}
+.rt-bar .bad{color:var(--crit)}
+.rt-wrap{overflow-x:auto;border:1px solid var(--line);border-radius:14px;background:var(--surface)}
+.rt-grid{border-collapse:separate;border-spacing:0;width:100%;min-width:1120px;font-size:16px;table-layout:fixed}
+.rt-grid col.c-bot{width:150px}
+.rt-grid th,.rt-grid td{border-bottom:1px solid var(--line-soft);border-left:1px solid var(--line-soft);padding:6px;vertical-align:top;text-align:left}
+.rt-grid thead th{position:sticky;top:0;background:var(--surface-2);font:700 15px var(--font-mono);white-space:nowrap;z-index:1}
+.rt-grid thead th .n{display:block;font:700 22px/1.2 var(--font-display);font-variant-numeric:tabular-nums;color:var(--text)}
+.rt-grid thead th.light .n{color:var(--warn)}.rt-grid thead th.today{box-shadow:inset 0 -3px 0 var(--accent)}
+.rt-grid .bot{position:sticky;left:0;background:var(--surface);z-index:2;border-left:0;font:700 16px/1.35 var(--font-display);text-transform:none;letter-spacing:0;color:var(--text)}
+.rt-grid thead .bot{z-index:3;background:var(--surface-2)}
+.rt-grid .bot a{color:inherit;text-decoration:none}.rt-grid .bot a:hover{text-decoration:underline}
+.rt-tag{display:inline-block;margin-top:4px;padding:1px 8px;border-radius:999px;font:700 13px/1.35 var(--font-display);white-space:nowrap;border:1.5px solid var(--crit);color:var(--crit)}
+.rt-tag.soft{border-color:var(--muted);color:var(--muted);white-space:normal}
+.rt-grid td.e{background:color-mix(in oklab,var(--text) 5%,transparent)}
+.rt-grid tr.none td.e{background:color-mix(in oklab,var(--text) 8%,transparent)}
+.rt-chip{display:flex;flex-direction:column;align-items:flex-start;gap:0;position:relative;width:100%;margin:0 0 4px;padding:4px 8px;border:1.5px solid var(--accent);border-radius:8px;background:var(--accent-bg);color:var(--text);font:600 15px/1.3 var(--font-body,inherit);text-align:left;cursor:pointer}
+.rt-chip .t{order:-1;font:700 13px var(--font-mono);color:var(--accent-ink);white-space:normal;padding-right:14px}
+.rt-chip .nm{overflow:hidden;text-overflow:ellipsis;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;word-break:break-word}
+.rt-chip.paused,.rt-chip.unknown{border-style:dashed;border-color:var(--muted);background:transparent}
+.rt-chip.paused .t,.rt-chip.unknown .t{color:var(--muted)}
+.rt-chip .dot{position:absolute;top:6px;right:6px;width:12px;height:12px;border-radius:50%;background:var(--crit)}
+.rt-chip:focus-visible{outline:3px solid var(--accent);outline-offset:1px}
+#rtTip{position:fixed;z-index:50;max-width:min(380px,calc(100vw - 20px));background:var(--surface);color:var(--text);border:2px solid var(--accent);border-radius:12px;padding:12px 14px;box-shadow:0 10px 30px rgba(0,0,0,.3);font-size:16px;line-height:1.45}
+#rtTip[hidden]{display:none}#rtTip h4{margin:0 0 2px;font:700 17px var(--font-display)}#rtTip .who{color:var(--muted);font-size:14.5px;margin-bottom:6px}
+#rtTip dl{display:grid;grid-template-columns:auto 1fr;gap:2px 10px;margin:0 0 8px}#rtTip dt{color:var(--muted)}#rtTip dd{margin:0;font-weight:600}
+#rtTip .warn{color:var(--crit);font-weight:700;margin:0 0 6px}#rtTip .sum{margin:0}#rtTip .sum.none{color:var(--muted);font-style:italic}
+@media (max-width:640px){#tabRoutines{font-size:18px}.rt-bar{font-size:18px}.rt-grid col.c-bot{width:132px}.rt-grid .bot{font-size:15.5px}.rt-grid{font-size:16px}}
 @media (max-width:640px){.vital .b{font-size:26px}.onemove{padding:14px}.big{font-size:16.5px}.big table{font-size:15.5px}.ob{grid-template-columns:70px 1fr 48px}.big td,.big th{padding:8px 5px}.tblwrap{overflow-x:auto}}
 </style></head><body class="t-today"><main>
 <div class="shell">
@@ -528,37 +534,59 @@ function renderRest() {
   try { renderRoutines(); } catch (e) { console.error(e); }
 }
 
-// ---- Routines tab (Nov 1 2026). Data: D.routines_all, built on the box by export-routines.js from routines-snapshot.json
-// (read from every bot's chat history) and pushed with data.json each hourly refresh. Next runs are recomputed hourly.
-const RT = { f: localStorage.getItem("mcRtFilter") || "all" };
-const RT_LBL = { enabled: "ON", paused: "PAUSED", done: "DONE", unknown: "UNKNOWN" };
+// ---- Routines tab (Nov 1 2026, week grid). Data: D.routines_all, built on the box by export-routines.js from
+// routines-snapshot.json (read from every bot's chat history), pushed with data.json each hourly refresh.
+// Rows = bots, columns = today + 6 days (AST) with a per-day total, last column = routines with no set day (paused, on demand, unknown).
+const RT = { list: [] };
+const RT_LBL = { enabled: "On", paused: "Paused", done: "Done", unknown: "Status unknown" };
 function renderRoutines(force) {
   const R = D && D.routines_all, el = $("tabRoutines");
   if (!D) { el.innerHTML = none("Loading…"); return; }
-  if (!R) { el.innerHTML = none("No routine list yet. JARVIS builds it on the box with node export-routines.js (runs in the hourly refresh)."); return; }
-  const sig = JSON.stringify([R.generated_at, R.as_of, RT.f]);
+  if (!R || !R.week) { el.innerHTML = none("No routine list yet. JARVIS builds it on the box with node export-routines.js (runs in the hourly refresh)."); return; }
+  const sig = JSON.stringify([R.generated_at, R.as_of]);
   if (!force && sig === renderRoutines.sig) return; renderRoutines.sig = sig;
-  const c = R.counts || {};
-  $("rtTabCount").hidden = true;
-  const stat = (k, s, b) => `<button type="button" class="rt-stat" data-f="${k}" aria-pressed="${RT.f === k}"><div class="s">${s}</div><div class="b">${b}</div></button>`;
-  const show = (r) => RT.f === "all" || r.status === RT.f;
-  const bots = (R.bots || []).map((b) => ({ ...b, rs: b.routines.filter(show) })).filter((b) => b.rs.length);
-  const row = (r) => `<div class="rt-r ${esc(r.status)}"><div class="nm">${esc(r.name)}<span class="rt-st ${esc(r.status)}">${RT_LBL[r.status] || esc(r.status)}</span></div>
-    <div class="sch">${esc(r.schedule)}</div>
-    <div class="meta">${r.next_run ? `<span>Next: <b>${esc(r.next_run)}</b></span>` : ""}<span>Last run: <b>${esc(r.last_run || "not on record")}</b></span>${r.checked ? `<span>Checked ${esc(r.checked)}</span>` : ""}</div>
-    ${r.note ? `<div class="nt">${esc(r.note)}</div>` : ""}${/Mission Control list|own chat message/.test(r.source || "") ? `<div class="nt">Source: ${esc(r.source)}</div>` : ""}</div>`;
-  const up = (R.upcoming || []).slice(0, 14).map((u) => `<li><span class="when">${esc(u.next_run.replace(/ AST$/, ""))}</span><span><b>${esc(u.name)}</b> <span class="who">· ${esc(u.bot)}</span></span></li>`).join("");
-  el.innerHTML =
-    sec("Routines", `Every routine your bots run, and when. All times AST (Trinidad). List checked ${R.as_of ? fmtRun(R.as_of) : "unknown"}; next runs worked out ${R.generated_at ? fmtRun(R.generated_at) : "unknown"}. "About" means the bot may run up to 15 min early or late.`,
-      `<div class="rt-stats">${stat("all", "All routines", c.routines ?? 0)}${stat("enabled", "On", c.enabled ?? 0)}${stat("paused", "Paused", c.paused ?? 0)}${stat("unknown", "Status unknown", c.unknown ?? 0)}${stat("done", "Done (one-offs)", c.done ?? 0)}</div><p class="cap" style="margin-top:8px">${c.bots ?? 0} bots have routines on record. Tap a number to filter.</p>`)
-    + (up && (RT.f === "all" || RT.f === "enabled") ? sec("Next 7 days", "The next run of each routine that's on, soonest first.", `<ul class="rt-up">${up}</ul>`) : "")
-    + sec("By bot", RT.f === "all" ? "On first, then unknown, paused and done." : `Showing: ${RT_LBL[RT.f] || RT.f}.`,
-      bots.length ? `<div class="rt-bots">${bots.map((b) => `<div class="rt-bot"><h3><a href="${CHAT(b.bot_id)}">${esc(b.name)}</a><span>${b.rs.length} routine${b.rs.length === 1 ? "" : "s"}</span></h3>${b.rs.map(row).join("")}</div>`).join("")}</div>` : none("None in this filter."))
-    + ((R.unknown_bots || []).length ? sec("Unknown: no routines on record", "No routine was found in these bots' chat history. They may have none, or one wasn't visible. Nothing is guessed.", `<div class="rt-none">${R.unknown_bots.map((n) => `<span>${esc(n)}</span>`).join("")}</div>`) : "")
-    + ((R.rooms || []).length ? sec("Group rooms", "Rooms have no chat history of their own to read, so their routines (if any) are unknown.", `<div class="rt-none rooms">${R.rooms.map((n) => `<span>${esc(n)}</span>`).join("")}</div>`) : "")
-    + `<p class="cap">How this stays current: the hourly refresh recomputes next runs. When a bot adds, pauses or changes a routine, JARVIS updates the list on the box (routines-snapshot.json).</p>`;
+  const S = R.summary || {}, W = R.week, med = [...W.map((w) => w.total)].sort((a, b) => a - b)[3] || 0;
+  $("rtTabCount").hidden = !S.stale; $("rtTabCount").textContent = S.stale || "";
+  RT.list = [];
+  const chip = (r, t) => { const i = RT.list.push(r) - 1;
+    return `<button type="button" class="rt-chip ${esc(r.status)}" data-rt="${i}" aria-label="${esc(r.name)}: details">${r.stale ? `<span class="dot" title="Stale or overdue"></span>` : ""}<span class="nm">${esc(r.name)}</span>${t ? `<span class="t">${esc(t)}</span>` : ""}</button>`; };
+  const live = (R.bots || []).filter((b) => !b.retired || b.running);
+  const J = "3fd332ea-d3e2-49ee-acfb-8a985cae203d";
+  live.sort((x, y) => (!x.running - !y.running) || ((y.bot_id === J) - (x.bot_id === J)) || x.name.localeCompare(y.name));
+  const rows = live.map((b) => {
+    const on = b.routines.filter((r) => r.days), other = b.routines.filter((r) => r.no_day || r.status === "paused" || r.status === "unknown");
+    const tag = b.running ? "" : b.room ? `<br><span class="rt-tag soft">Group room · not readable</span>` : `<br><span class="rt-tag">No routines running</span>`;
+    const cells = W.map((w, i) => { const c = on.filter((r) => r.days[i]).map((r) => chip(r, rtTimes(r.days[i]))).join(""); return `<td${c ? "" : ' class="e"'}>${c}</td>`; }).join("");
+    const oc = other.map((r) => chip(r, r.status === "paused" ? "paused" : r.status === "unknown" ? "status?" : "on demand")).join("");
+    return `<tr${b.running ? "" : ' class="none"'}><th class="bot" scope="row"><a href="${CHAT(b.bot_id)}">${esc(b.name)}</a>${tag}</th>${cells}<td${oc ? "" : ' class="e"'}>${oc}</td></tr>`;
+  }).join("");
+  const head = W.map((w, i) => `<th class="${w.total < med * 0.6 ? "light" : ""}${i === 0 ? " today" : ""}" title="${w.total} routine${w.total === 1 ? "" : "s"} run on ${esc(w.date)}${w.total < med * 0.6 ? " (light day)" : ""}">${i === 0 ? "Today " : ""}${esc(w.label)}<span class="n">${w.total}</span></th>`).join("");
+  el.innerHTML = `<p class="rt-fresh">Checked as of ${R.as_of ? esc(fmtRun(R.as_of)) : "unknown"} · times in AST</p>
+    <p class="rt-bar"><span>${S.running ?? 0} running</span><span>${S.paused ?? 0} paused</span><span${S.bots_none ? ' class="bad"' : ""}>${S.bots_none ?? 0} bots with none</span><span${S.stale ? ' class="bad"' : ""}>${S.stale ? "● " : ""}${S.stale ?? 0} stale or overdue</span></p>
+    <div class="rt-wrap"><table class="rt-grid"><colgroup><col class="c-bot">${W.map(() => "<col>").join("")}<col></colgroup><thead><tr><th class="bot">Bot</th>${head}<th>No set day</th></tr></thead><tbody>${rows}</tbody></table></div>
+    <div id="rtTip" role="tooltip" hidden></div>`;
 }
-document.addEventListener("click", (e) => { const b = e.target.closest("#tabRoutines .rt-stat[data-f]"); if (!b) return; RT.f = b.dataset.f; try { localStorage.setItem("mcRtFilter", RT.f); } catch {} renderRoutines(true); });
+const rtTimes = (d) => (d.length > 3 ? `${d.length}× ${d[0]}–${d[d.length - 1]}` : d.join(" · "));
+function rtTip(btn, pin) {
+  const tip = $("rtTip"); if (!tip) return;
+  if (!btn) { tip.hidden = true; RT.pin = RT.cur = null; return; }
+  const r = RT.list[+btn.dataset.rt]; if (!r) return;
+  tip.innerHTML = `<h4>${esc(r.name)}</h4><div class="who">${esc(r.bot)}</div>
+    <dl><dt>When</dt><dd>${esc(r.schedule || "not on record")} (AST)</dd><dt>Status</dt><dd>${RT_LBL[r.status] || esc(r.status)}</dd>
+    <dt>Next run</dt><dd>${esc(r.next_run || (r.status === "enabled" ? "no set time" : "none"))}</dd><dt>Last run</dt><dd>${esc(r.last_run || "not on record")}</dd></dl>
+    ${r.stale ? `<p class="warn">● ${esc(r.stale)}</p>` : ""}<p class="sum${r.summary ? "" : " none"}">${esc(r.summary || "Summary not on record.")}</p>`;
+  tip.hidden = false; RT.pin = pin ? btn : null; RT.cur = btn;
+  const b = btn.getBoundingClientRect(), t = tip.getBoundingClientRect(), vw = innerWidth, vh = innerHeight;
+  let x = Math.min(Math.max(8, b.left), vw - t.width - 8), y = b.bottom + 6;
+  if (y + t.height > vh - 8) y = Math.max(8, b.top - t.height - 6);
+  tip.style.left = x + "px"; tip.style.top = y + "px";
+}
+document.addEventListener("mouseover", (e) => { const b = e.target.closest && e.target.closest("#tabRoutines .rt-chip"); if (b && !RT.pin) rtTip(b); });
+document.addEventListener("mouseout", (e) => { const b = e.target.closest && e.target.closest("#tabRoutines .rt-chip"); if (b && !RT.pin && !(e.relatedTarget && b.contains(e.relatedTarget))) rtTip(null); });
+document.addEventListener("focusin", (e) => { const b = e.target.closest && e.target.closest("#tabRoutines .rt-chip"); if (b) rtTip(b); });
+document.addEventListener("click", (e) => { const b = e.target.closest("#tabRoutines .rt-chip"); if (b) { if (RT.pin === b) rtTip(null); else rtTip(b, true); return; } if (!e.target.closest("#rtTip")) rtTip(null); });
+document.addEventListener("keydown", (e) => { if (e.key === "Escape") rtTip(null); });
+addEventListener("scroll", () => { if (RT.cur && document.contains(RT.cur)) rtTip(RT.cur, !!RT.pin); }, true);
 
 // ---- Operational Brain engine (merged Oct 31 2026): D.brain from the 7:35 AM weekday run (si.ai data.json). ----
 const fmtRun = (iso) => new Date(iso).toLocaleString("en-US", { timeZone: "America/Port_of_Spain", weekday: "short", month: "short", day: "numeric", hour: "numeric", minute: "2-digit" }) + " AST";
