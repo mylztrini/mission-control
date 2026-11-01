@@ -254,6 +254,31 @@ details.more2{margin-top:12px}details.more2 summary{cursor:pointer;font:700 13px
 .big .kpi .b{font-size:32px}
 .stale-flag{color:var(--warn);font-weight:700}
 .tabpane{display:flex;flex-direction:column;gap:24px}.tabpane[hidden]{display:none}
+/* ---- Routines tab (Nov 1 2026): every bot's routines, data = D.routines_all (box: routines-snapshot.json -> export-routines.js) ---- */
+#tabRoutines{font-size:17px;line-height:1.55;color:var(--text);--muted:color-mix(in oklab,var(--text) 86%,transparent)}
+#tabRoutines h2{font-size:22px;margin:0 0 6px}#tabRoutines .cap{font-size:15.5px;color:var(--muted)}
+.rt-stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px}
+.rt-stat{border:1px solid var(--line);border-radius:14px;padding:10px 14px;background:var(--glass);font:inherit;color:inherit;text-align:left;cursor:pointer}
+.rt-stat[aria-pressed=true]{border:2px solid var(--accent);background:var(--accent-bg)}
+.rt-stat .s{font:700 12.5px var(--font-mono);letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}.rt-stat .b{font:700 30px/1.2 var(--font-display);font-variant-numeric:tabular-nums}
+.rt-up{list-style:none;margin:0;padding:0;display:grid;gap:8px}
+.rt-up li{display:flex;flex-wrap:wrap;gap:4px 14px;align-items:baseline;border-left:4px solid var(--accent);padding:6px 12px;background:var(--surface-2);border-radius:8px}
+.rt-up .when{font:700 16px var(--font-mono);color:var(--accent-ink);min-width:15ch}.rt-up .who{color:var(--muted);font-size:15.5px}
+.rt-bots{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,420px),1fr));gap:14px}
+.rt-bot{border:1px solid var(--line);border-radius:16px;padding:14px 16px;background:var(--surface)}
+.rt-bot>h3{font:700 19px var(--font-display);margin:0 0 8px;display:flex;justify-content:space-between;gap:10px;align-items:baseline}
+.rt-bot>h3 a{color:inherit;text-decoration:none}.rt-bot>h3 a:hover{text-decoration:underline}
+.rt-bot>h3 span{font:600 13px var(--font-mono);color:var(--muted);white-space:nowrap}
+.rt-r{border-top:1px solid var(--line-soft);padding:10px 0}.rt-r:first-of-type{border-top:0}
+.rt-r .nm{font-weight:700;font-size:17px;line-height:1.4}
+.rt-r .sch{font-size:17px;margin-top:2px}.rt-r .meta{font-size:15px;color:var(--muted);margin-top:4px;display:flex;flex-wrap:wrap;gap:2px 16px}
+.rt-r .meta b{color:var(--text)}.rt-r .nt{font-size:14.5px;color:var(--muted);margin-top:4px;font-style:italic}
+.rt-st{display:inline-block;margin-left:8px;padding:1px 9px;border-radius:999px;font:700 12px var(--font-mono);letter-spacing:.08em;vertical-align:2px;border:1.5px solid currentColor}
+.rt-st.enabled{color:var(--good)}.rt-st.paused{color:var(--warn)}.rt-st.done{color:var(--muted)}.rt-st.unknown{color:var(--pink)}
+.rt-r.paused .nm,.rt-r.done .nm{color:var(--muted)}
+.rt-none{display:flex;flex-wrap:wrap;gap:8px}.rt-none span{border:1.5px dashed var(--pink);border-radius:10px;padding:4px 12px;font-size:15.5px}
+.rt-none.rooms span{border-color:var(--line)}
+@media (max-width:640px){#tabRoutines{font-size:18px}.rt-r .nm,.rt-r .sch{font-size:18px}.rt-stat .b{font-size:26px}.rt-up .when{min-width:0;width:100%}}
 @media (max-width:640px){.vital .b{font-size:26px}.onemove{padding:14px}.big{font-size:16.5px}.big table{font-size:15.5px}.ob{grid-template-columns:70px 1fr 48px}.big td,.big th{padding:8px 5px}.tblwrap{overflow-x:auto}}
 </style></head><body class="t-today"><main>
 <div class="shell">
@@ -269,7 +294,7 @@ details.more2{margin-top:12px}details.more2 summary{cursor:pointer;font:700 13px
       <audio id="aPlayer" controls preload="none" hidden></audio>
     </div>
   </div>
-<nav class="tabs" role="tablist"><button type="button" role="tab" data-tab="today" aria-selected="true">◆ Today<span class="tcount red" id="todayTabCount" hidden></span></button><button type="button" role="tab" data-tab="villas" aria-selected="false">🏝 Villas</button><button type="button" role="tab" data-tab="money" aria-selected="false">$ Money</button><button type="button" role="tab" data-tab="growth" aria-selected="false">↗ Growth</button><button type="button" role="tab" data-tab="org" aria-selected="false">⚑ Org &amp; Systems<span class="tcount" id="orgTabCount" hidden></span></button></nav>
+<nav class="tabs" role="tablist"><button type="button" role="tab" data-tab="today" aria-selected="true">◆ Today<span class="tcount red" id="todayTabCount" hidden></span></button><button type="button" role="tab" data-tab="villas" aria-selected="false">🏝 Villas</button><button type="button" role="tab" data-tab="money" aria-selected="false">$ Money</button><button type="button" role="tab" data-tab="growth" aria-selected="false">↗ Growth</button><button type="button" role="tab" data-tab="org" aria-selected="false">⚑ Org &amp; Systems<span class="tcount" id="orgTabCount" hidden></span></button><button type="button" role="tab" data-tab="routines" aria-selected="false">⏱ Routines<span class="tcount" id="rtTabCount" hidden></span></button></nav>
 <div class="big today-only t-move"><div class="onemove" id="oneMove" hidden></div></div>
 <div class="big today-only t-vitals"><div class="vitals" id="vitals"></div></div>
 </div>
@@ -312,6 +337,7 @@ details.more2{margin-top:12px}details.more2 summary{cursor:pointer;font:700 13px
 <div id="tabVillas" class="big tabpane" hidden></div>
 <div id="tabMoney" class="big tabpane" hidden></div>
 <div id="tabGrowth" class="big tabpane" hidden></div>
+<div id="tabRoutines" class="big tabpane" hidden></div>
 <div id="tabOrg" hidden>
 <div class="og-top"><div class="og-stats" id="orgStats"></div><div class="og-ctl"><div class="seg" id="orgView" role="group" aria-label="Seats shown"><button type="button" data-v="heads" aria-pressed="false">Heads only</button><button type="button" data-v="all" aria-pressed="true">Show all</button></div><button type="button" class="pill" id="orgRefresh">↻ Refresh</button></div></div>
 <p class="og-cap" id="orgCap">Loading the org chart…</p>
@@ -499,7 +525,40 @@ function renderRest() {
   $("wN").textContent = w.length; $("wN").hidden = !w.length;
   $("todayTabCount").textContent = w.length || ""; $("todayTabCount").hidden = !w.length;
   try { renderBrain(); } catch (e) { console.error(e); }
+  try { renderRoutines(); } catch (e) { console.error(e); }
 }
+
+// ---- Routines tab (Nov 1 2026). Data: D.routines_all, built on the box by export-routines.js from routines-snapshot.json
+// (read from every bot's chat history) and pushed with data.json each hourly refresh. Next runs are recomputed hourly.
+const RT = { f: localStorage.getItem("mcRtFilter") || "all" };
+const RT_LBL = { enabled: "ON", paused: "PAUSED", done: "DONE", unknown: "UNKNOWN" };
+function renderRoutines(force) {
+  const R = D && D.routines_all, el = $("tabRoutines");
+  if (!D) { el.innerHTML = none("Loading…"); return; }
+  if (!R) { el.innerHTML = none("No routine list yet. JARVIS builds it on the box with node export-routines.js (runs in the hourly refresh)."); return; }
+  const sig = JSON.stringify([R.generated_at, R.as_of, RT.f]);
+  if (!force && sig === renderRoutines.sig) return; renderRoutines.sig = sig;
+  const c = R.counts || {};
+  $("rtTabCount").hidden = true;
+  const stat = (k, s, b) => `<button type="button" class="rt-stat" data-f="${k}" aria-pressed="${RT.f === k}"><div class="s">${s}</div><div class="b">${b}</div></button>`;
+  const show = (r) => RT.f === "all" || r.status === RT.f;
+  const bots = (R.bots || []).map((b) => ({ ...b, rs: b.routines.filter(show) })).filter((b) => b.rs.length);
+  const row = (r) => `<div class="rt-r ${esc(r.status)}"><div class="nm">${esc(r.name)}<span class="rt-st ${esc(r.status)}">${RT_LBL[r.status] || esc(r.status)}</span></div>
+    <div class="sch">${esc(r.schedule)}</div>
+    <div class="meta">${r.next_run ? `<span>Next: <b>${esc(r.next_run)}</b></span>` : ""}<span>Last run: <b>${esc(r.last_run || "not on record")}</b></span>${r.checked ? `<span>Checked ${esc(r.checked)}</span>` : ""}</div>
+    ${r.note ? `<div class="nt">${esc(r.note)}</div>` : ""}${/Mission Control list|own chat message/.test(r.source || "") ? `<div class="nt">Source: ${esc(r.source)}</div>` : ""}</div>`;
+  const up = (R.upcoming || []).slice(0, 14).map((u) => `<li><span class="when">${esc(u.next_run.replace(/ AST$/, ""))}</span><span><b>${esc(u.name)}</b> <span class="who">· ${esc(u.bot)}</span></span></li>`).join("");
+  el.innerHTML =
+    sec("Routines", `Every routine your bots run, and when. All times AST (Trinidad). List checked ${R.as_of ? fmtRun(R.as_of) : "unknown"}; next runs worked out ${R.generated_at ? fmtRun(R.generated_at) : "unknown"}. "About" means the bot may run up to 15 min early or late.`,
+      `<div class="rt-stats">${stat("all", "All routines", c.routines ?? 0)}${stat("enabled", "On", c.enabled ?? 0)}${stat("paused", "Paused", c.paused ?? 0)}${stat("unknown", "Status unknown", c.unknown ?? 0)}${stat("done", "Done (one-offs)", c.done ?? 0)}</div><p class="cap" style="margin-top:8px">${c.bots ?? 0} bots have routines on record. Tap a number to filter.</p>`)
+    + (up && (RT.f === "all" || RT.f === "enabled") ? sec("Next 7 days", "The next run of each routine that's on, soonest first.", `<ul class="rt-up">${up}</ul>`) : "")
+    + sec("By bot", RT.f === "all" ? "On first, then unknown, paused and done." : `Showing: ${RT_LBL[RT.f] || RT.f}.`,
+      bots.length ? `<div class="rt-bots">${bots.map((b) => `<div class="rt-bot"><h3><a href="${CHAT(b.bot_id)}">${esc(b.name)}</a><span>${b.rs.length} routine${b.rs.length === 1 ? "" : "s"}</span></h3>${b.rs.map(row).join("")}</div>`).join("")}</div>` : none("None in this filter."))
+    + ((R.unknown_bots || []).length ? sec("Unknown: no routines on record", "No routine was found in these bots' chat history. They may have none, or one wasn't visible. Nothing is guessed.", `<div class="rt-none">${R.unknown_bots.map((n) => `<span>${esc(n)}</span>`).join("")}</div>`) : "")
+    + ((R.rooms || []).length ? sec("Group rooms", "Rooms have no chat history of their own to read, so their routines (if any) are unknown.", `<div class="rt-none rooms">${R.rooms.map((n) => `<span>${esc(n)}</span>`).join("")}</div>`) : "")
+    + `<p class="cap">How this stays current: the hourly refresh recomputes next runs. When a bot adds, pauses or changes a routine, JARVIS updates the list on the box (routines-snapshot.json).</p>`;
+}
+document.addEventListener("click", (e) => { const b = e.target.closest("#tabRoutines .rt-stat[data-f]"); if (!b) return; RT.f = b.dataset.f; try { localStorage.setItem("mcRtFilter", RT.f); } catch {} renderRoutines(true); });
 
 // ---- Operational Brain engine (merged Oct 31 2026): D.brain from the 7:35 AM weekday run (si.ai data.json). ----
 const fmtRun = (iso) => new Date(iso).toLocaleString("en-US", { timeZone: "America/Port_of_Spain", weekday: "short", month: "short", day: "numeric", hour: "numeric", minute: "2-digit" }) + " AST";
@@ -697,7 +756,7 @@ setInterval(() => { if (!document.querySelector("input.reply:focus")) load().cat
 // org-refresh.js / the mc-sync daemon). Tab chosen by #...&tab=org (fragment only, never sent anywhere).
 const O = { d: null, view: localStorage.getItem("mcOrgView") || "all", loading: false };
 const hashP = () => new URLSearchParams(location.hash.slice(1));
-const TABS = { today: "tabToday", villas: "tabVillas", money: "tabMoney", growth: "tabGrowth", org: "tabOrg" };
+const TABS = { today: "tabToday", villas: "tabVillas", money: "tabMoney", growth: "tabGrowth", org: "tabOrg", routines: "tabRoutines" };
 const tabFromHash = () => { const t = hashP().get("tab"); return TABS[t] ? t : "today"; };
 function setTab(t, push) {
   if (!TABS[t]) t = "today";
@@ -706,6 +765,7 @@ function setTab(t, push) {
   for (const b of document.querySelectorAll(".tabs button")) b.setAttribute("aria-selected", String(b.dataset.tab === t));
   if (push) { const p = hashP(); if (t !== "today") p.set("tab", t); else p.delete("tab"); history.replaceState(null, "", "#" + p.toString()); window.scrollTo({ top: 0 }); }
   if (t === "org" && !O.d) loadOrg();
+  if (t === "routines") renderRoutines(true);
 }
 const fmtK = (k, n) => n === null || n === undefined ? "unknown" : k.fmt === "tt" ? "TT$" + Number(n).toLocaleString("en-US")
   : k.fmt === "usd" ? "US$" + Number(n).toLocaleString("en-US") : k.fmt === "pct" ? n + "%" : Number(n).toLocaleString("en-US");
