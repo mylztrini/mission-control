@@ -221,6 +221,7 @@ td{padding:8px;border-bottom:1px solid var(--bd2);vertical-align:top}
 .vital .u{font-size:14.5px;color:var(--muted);margin-top:2px;line-height:1.4}
 .vital .g{font:600 12.5px var(--font-mono);color:var(--accent-ink);margin-top:4px}
 .vital.bad .b{color:var(--pink)}
+.vital .vpill{display:inline-flex;margin-top:8px;font-size:12.5px;padding:4px 10px;white-space:nowrap;max-width:100%}
 .tabs .tcount.red{background:var(--pink)}
 .h2n{display:inline-block;margin-left:8px;min-width:28px;text-align:center;padding:1px 9px;border-radius:999px;background:var(--pink);color:#fff;font:700 15px var(--font-ui);vertical-align:middle}
 #wlist .item{border-left:4px solid var(--pink);padding-left:10px;margin-left:-4px}
@@ -505,6 +506,7 @@ const fmtRun = (iso) => new Date(iso).toLocaleString("en-US", { timeZone: "Ameri
 const NW = { show: false };
 const sec = (title, cap, body, extra = "") => `<section ${extra}><h2>${title}</h2>${cap ? `<p class="cap">${esc(cap)}</p>` : ""}${body}</section>`;
 const ttab = (head, rows) => `<div class="tblwrap"><table><thead><tr>${head.map((h) => `<th>${h}</th>`).join("")}</tr></thead><tbody>${rows.join("")}</tbody></table></div>`;
+const secId = (id, title, cap, body) => sec(title, cap, body, `id="${id}"`);
 const none = (s) => `<p class="cap">${esc(s)}</p>`;
 function renderBrain(force) {
   const B = D.brain, sig = JSON.stringify(B || null) + NW.show;
@@ -514,7 +516,8 @@ function renderBrain(force) {
   const om = B.onemove || {};
   $("oneMove").hidden = !om.head;
   $("oneMove").innerHTML = `<div class="lab">Your one move today · from the ${esc(fmtRun(B.as_of))} run</div><div class="hd">${esc(om.head)}</div>${om.detail ? `<div class="dt">${esc(om.detail)}</div>` : ""}${om.why ? `<div class="why">Why: ${esc(om.why)}</div>` : ""}${om.advisor_line ? `<div class="adv">🎩 ${esc(om.advisor_line)}</div>` : ""}`;
-  $("vitals").innerHTML = (B.vitals || []).map((v) => `<button type="button" class="vital ${v.bad ? "bad" : ""}" data-go="${esc(v.tab)}"><div class="s">${esc(v.k)}</div><div class="b">${esc(v.v ?? "unknown")}</div>${v.sub ? `<div class="u">${esc(v.sub)}</div>` : ""}${v.goal ? `<div class="g">${esc(v.goal)}</div>` : ""}</button>`).join("");
+  $("vitals").innerHTML = (B.vitals || []).map((v) => { const pnlBtn = /^Villa profit/.test(v.k || ""), tag = pnlBtn ? "div" : "button";
+    return `<${tag} ${pnlBtn ? `role="button" tabindex="0"` : `type="button"`} class="vital ${v.bad ? "bad" : ""}" data-go="${esc(v.tab)}"><div class="s">${esc(v.k)}</div><div class="b">${esc(v.v ?? "unknown")}</div>${v.sub ? `<div class="u">${esc(v.sub)}</div>` : ""}${v.goal ? `<div class="g">${esc(v.goal)}</div>` : ""}${pnlBtn ? `<a class="pill vpill" href="#tab=villas" data-go="villas" data-sec="villaPnl">See revenue and expenses</a>` : ""}</${tag}>`; }).join("");
   // Board Room
   const bd = B.board || {}, tk = bd.take;
   $("boardSec").hidden = !tk && !(bd.scorecards || []).length;
@@ -545,7 +548,7 @@ function renderBrain(force) {
     return `<tr><td><b>${esc(m.label)}</b>${m.partial ? ` <span class="tag2 warn" title="${esc(m.flags.join("; "))}">partial</span><div class="us">${esc(m.flags.join("; "))}</div>` : ""}</td><td>${m.revenue ? `${tt(m.revenue.tt)} ${bas(m.revenue.basis)}<div class="us">US$${Math.round(m.revenue.usd).toLocaleString("en-US")}</div>` : "–"}</td><td>${brk} ${bas(o.basis)}</td><td><b>${m.profit ? tt(m.profit.tt) : "–"}</b> ${m.profit ? bas(m.profit.basis) : ""}</td></tr>`; });
   const ppct = pf ? Math.round(pf.tt / 120000 * 100) : null;
   $("tabVillas").innerHTML =
-    sec("Villa profit vs the TT$120,000 monthly goal", PN.rules || "",
+    secId("villaPnl", "Villa profit vs the TT$120,000 monthly goal", PN.rules || "",
       (pf ? `<div class="goal"><div class="kt" style="display:flex;justify-content:space-between;font-weight:700;flex-wrap:wrap;gap:6px"><span>${esc(pf.month)} profit: ${tt(pf.tt)} ${bas(pf.basis)}${pf.partial ? ` <span class="tag2 warn">partial</span>` : ""}</span><span>${ppct}% of the TT$120,000 monthly profit goal</span></div><div class="track"><i style="width:${Math.max(0, Math.min(100, ppct || 0))}%"></i></div><div class="us" style="margin-top:6px">Revenue ${tt(PH.revenue_tt)} (${esc(PH.revenue_basis)}) − overheads ${tt(PH.overheads_tt)} (${esc(PH.overheads_basis)})</div></div>` : none(PN.error || "Profit not available."))
       + (PN.months ? ttab(["Month", "Revenue (Hospitable)", "Overheads (cash flow sheet)", "Profit"], pnlRows) : "")
       + (PN.ytd ? `<p class="cap">${esc(PN.ytd.months)} (actual): revenue ${tt(PN.ytd.revenue_tt)} − overheads ${tt(PN.ytd.overheads_tt)} = profit ${tt(PN.ytd.profit_tt)}. Estimated month overheads = ${tt(PN.base.overheads_total_tt)} ÷ 10 = ${tt(PN.base.est_month_tt)}.</p>` : "")
@@ -584,8 +587,9 @@ function renderBrain(force) {
     + sec("Division goals", "", `<p>Sprint leads, SI Ventures deals and real-estate leads are tracked as KPIs on <a href="#" data-go="org" style="color:var(--accent-ink)">Org &amp; Systems</a>.</p>`);
   $("srcCap").textContent = `Bot chats + Asana (hourly), the Operational Brain engine (last run ${fmtRun(B.as_of)}; weekdays 7:35 AM AST: Hospitable, Gmail, Slack, Calendar, Meta Ads, receivables), org.json.`;
 }
+document.addEventListener("keydown", (e) => { const v = e.target.closest && e.target.closest("div.vital[role=button]"); if (v && e.target === v && (e.key === "Enter" || e.key === " ")) { e.preventDefault(); v.click(); } });
 document.addEventListener("click", (e) => {
-  const g = e.target.closest("[data-go]"); if (g) { e.preventDefault(); setTab(g.dataset.go, true); return; }
+  const g = e.target.closest("[data-go]"); if (g) { e.preventDefault(); setTab(g.dataset.go, true); if (g.dataset.sec) { const t = $(g.dataset.sec); if (t) t.scrollIntoView({ behavior: "smooth", block: "start" }); } return; }
   if (e.target.closest("#stat")) { setTab("today", true); const wl = $("wlist"); if (wl) wl.closest("section").scrollIntoView({ behavior: "smooth", block: "start" }); return; }
   if (e.target.closest("#nwTog")) { NW.show = !NW.show; renderBrain(true); }
 });
