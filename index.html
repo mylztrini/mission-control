@@ -233,7 +233,7 @@ td{padding:8px;border-bottom:1px solid var(--bd2);vertical-align:top}
 .h2n{display:inline-block;margin-left:8px;min-width:28px;text-align:center;padding:1px 9px;border-radius:999px;background:var(--pink);color:#fff;font:700 15px var(--font-ui);vertical-align:middle}
 #wlist .item{border-left:4px solid var(--pink);padding-left:10px;margin-left:-4px}
 #wlist .num{color:var(--pink)}
-#wlist .txt,#slist .txt{font-size:17px;line-height:1.5}#wlist .meta,#slist .meta{font-size:14px}#tabToday .cap{font-size:15px}#timeline{font-size:16px}#brief li{font-size:17px;line-height:1.55;margin:8px 0}.chip{font-size:14px;padding:5px 12px}.btn{font-size:14px}
+#wlist .txt,#slist .txt{font-size:17px;line-height:1.5}#wlist .meta,#slist .meta{font-size:14px}#tabToday .cap,#tabActivity .cap{font-size:15px}#timeline{font-size:16px}#brief li{font-size:17px;line-height:1.55;margin:8px 0}.chip{font-size:14px;padding:5px 12px}.btn{font-size:14px}
 .src{display:inline-block;margin-right:6px;padding:0 8px;border-radius:6px;font:700 11.5px var(--font-mono);letter-spacing:.06em;border:1px solid currentColor}
 .src.slack{color:#a855f7}.src.email{color:#2f80ed}.src.board{color:var(--gold)}
 .brd .who{display:flex;gap:12px;align-items:center}.brd .avb{flex:0 0 46px;height:46px;border-radius:50%;display:grid;place-items:center;font:700 16px var(--font-ui);background:color-mix(in oklab,var(--gold) 25%,var(--surface));border:2px solid var(--gold)}
@@ -330,7 +330,7 @@ details.more2{margin-top:12px}details.more2 summary{cursor:pointer;font:700 13px
       <audio id="aPlayer" controls preload="none" hidden></audio>
     </div>
   </div>
-<nav class="tabs" role="tablist"><button type="button" role="tab" data-tab="today" aria-selected="true">◆ Today<span class="tcount red" id="todayTabCount" hidden></span></button><button type="button" role="tab" data-tab="villas" aria-selected="false">🏝 Villas</button><button type="button" role="tab" data-tab="money" aria-selected="false">$ Money</button><button type="button" role="tab" data-tab="growth" aria-selected="false">↗ Growth</button><button type="button" role="tab" data-tab="org" aria-selected="false">⚑ Org &amp; Systems<span class="tcount" id="orgTabCount" hidden></span></button><button type="button" role="tab" data-tab="routines" aria-selected="false">⏱ Routines<span class="tcount" id="rtTabCount" hidden></span></button></nav>
+<nav class="tabs" role="tablist"><button type="button" role="tab" data-tab="today" aria-selected="true">◆ Today<span class="tcount red" id="todayTabCount" hidden></span></button><button type="button" role="tab" data-tab="villas" aria-selected="false">🏝 Villas</button><button type="button" role="tab" data-tab="money" aria-selected="false">$ Money</button><button type="button" role="tab" data-tab="growth" aria-selected="false">↗ Growth</button><button type="button" role="tab" data-tab="org" aria-selected="false">⚑ Org &amp; Systems<span class="tcount" id="orgTabCount" hidden></span></button><button type="button" role="tab" data-tab="activity" aria-selected="false">⚡ Activity</button><button type="button" role="tab" data-tab="routines" aria-selected="false">⏱ Routines<span class="tcount" id="rtTabCount" hidden></span></button></nav>
 <div class="big today-only t-move"><div class="onemove" id="oneMove" hidden></div></div>
 <div class="big today-only t-vitals"><div class="vitals" id="vitals"></div></div>
 </div>
@@ -367,12 +367,15 @@ details.more2{margin-top:12px}details.more2 summary{cursor:pointer;font:700 13px
 <div class="stack">
     <section><h2>The office</h2><p class="cap" id="ocap">Who is working right now and who is idle.</p><div id="office"></div></section>
     <section class="big"><h2>Today's brief</h2><p class="cap" id="bcap"></p><ol id="brief"></ol><div class="links" id="blinks"></div></section>
-    <section><h2>Activity timeline</h2><p class="cap" id="tcap"></p><div id="timeline"></div></section>
 </div>
 </div>
 <div id="tabVillas" class="big tabpane" hidden></div>
 <div id="tabMoney" class="big tabpane" hidden></div>
 <div id="tabGrowth" class="big tabpane" hidden></div>
+<div id="tabActivity" class="tabpane" hidden>
+    <section><h2>Activity timeline</h2><p class="cap" id="tcap"></p><div id="timeline"></div></section>
+    <section><h2>Bot activity by hour, last 7 days</h2><p class="cap" id="hcap"></p><div class="hm" id="heat"></div></section>
+</div>
 <div id="tabRoutines" class="big tabpane" hidden></div>
 <div id="tabOrg" hidden>
 <div class="og-top"><div class="og-stats" id="orgStats"></div><div class="og-ctl"><div class="seg" id="orgView" role="group" aria-label="Seats shown"><button type="button" data-v="heads" aria-pressed="false">Heads only</button><button type="button" data-v="all" aria-pressed="true">Show all</button></div><button type="button" class="pill" id="orgRefresh">↻ Refresh</button></div></div>
@@ -380,7 +383,6 @@ details.more2{margin-top:12px}details.more2 summary{cursor:pointer;font:700 13px
 <div id="orgBody"></div>
 <div class="og-h">Systems</div>
 <div class="stack" style="margin-top:0">
-    <section><h2>Bot activity by hour, last 7 days</h2><p class="cap" id="hcap"></p><div class="hm" id="heat"></div></section>
     <section><h2>Upcoming routines</h2><p class="cap" id="rcap"></p><div class="tblwrap"><table><thead><tr><th>Routine</th><th>Next run (AST)</th><th>Owner</th></tr></thead><tbody id="routines"></tbody></table></div></section>
     <section><h2>Data sources</h2><p class="cap" id="srcCap">Bot chats + Asana (hourly), the Operational Brain engine (weekdays 7:35 AM AST: Hospitable, Gmail, Slack, Calendar, Meta Ads, receivables), org.json.</p></section>
 </div>
@@ -862,7 +864,7 @@ setInterval(() => { if (!document.querySelector("input.reply:focus")) load().cat
 // org-refresh.js / the mc-sync daemon). Tab chosen by #...&tab=org (fragment only, never sent anywhere).
 const O = { d: null, view: ST.get("mcOrgView") || "all", loading: false };
 const hashP = () => new URLSearchParams(location.hash.slice(1));
-const TABS = { today: "tabToday", villas: "tabVillas", money: "tabMoney", growth: "tabGrowth", org: "tabOrg", routines: "tabRoutines" };
+const TABS = { today: "tabToday", villas: "tabVillas", money: "tabMoney", growth: "tabGrowth", org: "tabOrg", activity: "tabActivity", routines: "tabRoutines" };
 const tabFromHash = () => { const t = hashP().get("tab"); return TABS[t] ? t : "today"; };
 function setTab(t, push) {
   if (!TABS[t]) t = "today";
