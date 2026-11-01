@@ -27,6 +27,7 @@ main{padding:clamp(16px,3vw,38px) clamp(12px,3vw,38px) 60px;max-width:1800px;mar
 h1,h2,.kpi .b,.num{font-family:var(--font-display)}
 .ribbon{display:inline-flex;align-items:center;gap:8px;font-family:var(--font-mono);font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--accent-ink);background:var(--accent-bg);border:1px solid color-mix(in oklab,var(--accent) 35%,transparent);padding:6px 12px;border-radius:100px;margin-bottom:20px;box-shadow:var(--bloom)}
 .ribbon b{font-weight:700}
+@media (max-width:640px){.ribbon{display:inline-block;line-height:1.7;border-radius:14px}}
 .bridge{display:grid;grid-template-columns:1fr auto;gap:16px 30px;align-items:end;margin-bottom:24px}
 .logo{display:flex;align-items:center;gap:10px;margin:0 0 8px}
 .logo svg{flex:0 0 auto}
@@ -303,7 +304,7 @@ details.more2{margin-top:12px}details.more2 summary{cursor:pointer;font:700 13px
 // Always-on Mission Control. This page holds NO data: it reads the view key from the #k= fragment (never sent to
 // this host, never put in a link) and calls the private Supabase function with it in a request header.
 const FN = "https://ufwckditozswfzosymwu.supabase.co/functions/v1/mission-control";
-const MCKEY = new URLSearchParams(location.hash.slice(1)).get("k") || "";
+const MCKEY = (() => { const k = new URLSearchParams(location.hash.slice(1)).get("k") || ""; try { if (k) localStorage.setItem("mcKey", k); return k || localStorage.getItem("mcKey") || ""; } catch { return k; } })();
 function api(op, opt = {}) {
   return fetch(`${FN}/${op}`, { cache: "no-store", referrerPolicy: "no-referrer", credentials: "omit", ...opt,
     headers: { ...(opt.headers || {}), "X-MC-Key": MCKEY } });
