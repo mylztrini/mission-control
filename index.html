@@ -412,6 +412,7 @@ function api(op, opt = {}) {
 const $ = (id) => document.getElementById(id);
 const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 const MILES_VILLA_RATE = 7.8; // Miles villa rate 7.8: fallback only; the live figure comes from data (villa-rate.js on the box)
+const MILES_BANK_RATE = 6.75; // bank rate 6.75 for cash / payout / in-transit TT$ figures: fallback only; the live figure comes from data (villa-rate.js on the box)
 const CHAT = (id) => `grokbot://app/v1/agent?id=${encodeURIComponent(id)}`;
 const PALETTE = ["--c0", "--c1", "--c2", "--c3", "--c4"];
 const css = (v) => getComputedStyle(document.documentElement).getPropertyValue(v).trim();
@@ -716,13 +717,14 @@ function renderBrain(force) {
       <h3 class="osub" style="margin-top:18px">Open fixes <span class="ocount">${(V.feedback.fixes || []).length}</span></h3><ul class="lst">${(V.feedback.fixes || []).map((f) => `<li><b>${esc(f.villa)}</b>${f.sev === "crit" ? `<span class="tag2 hot">critical</span>` : `<span class="tag2 warn">${esc(f.sev || "")}</span>`} ${esc(f.issue)}<div class="us">${esc(f.meta || "")}</div></li>`).join("")}</ul>` : none("No data."));
   // Money
   const M = B.money || {}, nw = M.networth || {}, ag = M.agency || {};
+  const BR = M.bank_rate && M.bank_rate.usd_ttd ? M.bank_rate.usd_ttd : MILES_BANK_RATE; // bank rate 6.75
   $("tabMoney").innerHTML =
     sec("Net worth", nw.as_of ? `Finance snapshot, ${nw.as_of}. Business + personal, ${nw.currency || "TTD"}.` : "Finance writes a snapshot on the 1st of each month (business + personal).",
       `<div class="blurbox ${NW.show ? "" : "blurred"}" id="nwBox"><div class="val">${nw.total != null ? `<div class="tt" style="font-size:34px">TT$${Number(nw.total).toLocaleString("en-US")}</div><div class="us">Business TT$${Number(nw.business || 0).toLocaleString("en-US")} · Personal TT$${Number(nw.personal || 0).toLocaleString("en-US")}</div>${(nw.lines || []).length ? ttab(["Item", "Value"], nw.lines.map((l) => `<tr><td>${esc(l.label)}</td><td>${esc(l.value)}</td></tr>`)) : ""}` : `<div class="tt" style="font-size:30px">TT$ ———,———</div><div class="us">${esc(nw.note || "Awaiting Finance's first snapshot.")}</div>`}</div></div>
       <div class="row"><button class="btn" type="button" id="nwTog">${NW.show ? "🙈 Blur" : "👁 Show"}</button></div>`)
     + `<div class="grid2">`
     + sec("Cash landing by week", M.weeks_caption, ttab(["Week", "TT$", "US$", "Payments"], (M.weeks || []).map((w) => `<tr><td><b>${esc(w.label)}</b><div class="us">${esc(w.rng)}</div></td><td><b>${esc(w.tt)}</b></td><td>${esc(w.usd)}</td><td>${(w.items || []).length ? `<details><summary>${w.n}</summary>${w.items.map((i) => `<div class="us">${esc(i.when)} · ${esc(i.g)} (${esc(i.v)}, ${esc(i.src)}) ${esc(i.amt)}</div>`).join("")}</details>` : "0"}</td></tr>`)) + (M.beyond ? `<p class="cap">${esc(M.beyond.note)}: ${esc(M.beyond.usd)} across ${esc(M.beyond.n)} payments.</p>` : ""))
-    + sec("Expected income by month", M.months_caption, ttab(["Month", "Total", "Airbnb (US$)", "Villa Direct (US$)"], (M.months || []).map((m) => `<tr><td><b>${esc(m.m)}</b></td><td><b>TT$${Math.round((+m.tot || 0) * VR * 1000).toLocaleString("en-US")}</b><div class="us">US$${esc(m.tot)}k</div></td><td>${esc(m.airbnb)}</td><td>${esc(m.direct)}</td></tr>`)))
+    + sec("Expected income by month", (M.months_caption || "") + ` TT$ = US$ × ${BR} (bank rate).`, ttab(["Month", "Total", "Airbnb (US$)", "Villa Direct (US$)"], (M.months || []).map((m) => `<tr><td><b>${esc(m.m)}</b></td><td><b>TT$${Math.round((+m.tot || 0) * BR * 1000).toLocaleString("en-US")}</b><div class="us">US$${esc(m.tot)}k</div></td><td>${esc(m.airbnb)}</td><td>${esc(m.direct)}</td></tr>`)))
     + `</div><div class="grid2">`
     + sec("Agency receivables", ag.asof ? `From Sunday's Receivables Update email (${ag.asof}).` : "", `<div class="cards"><div class="kpi"><div class="s">Owed</div><div class="b">${esc(ag.total || "?")}</div></div><div class="kpi"><div class="s">Overdue</div><div class="b need">${esc(ag.overdue || "?")}</div></div></div><p class="cap" style="margin-top:10px">${esc(ag.summary || "")}</p>` + ttab(["Invoice", "Client", "TT$", ""], (ag.invoices || []).map((i) => `<tr><td>${esc(i.num)}</td><td>${esc(i.client)}</td><td><b>${esc(i.amt)}</b></td><td>${i.bucket === "overdue" ? `<span class="tag2 hot">overdue</span>` : `<span class="tag2">${esc(i.bucket)}</span>`}</td></tr>`)))
     + sec("Payables", M.payables && M.payables.note, `<div class="links">${((M.payables || {}).links || []).map((l) => `<a class="lk" target="_blank" rel="noreferrer" href="${esc(l.href)}"><div class="t">${esc(l.title)}</div><div class="m">Google Sheets</div></a>`).join("")}</div>`)
