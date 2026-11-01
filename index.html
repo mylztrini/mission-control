@@ -280,6 +280,12 @@ details.more2{margin-top:12px}details.more2 summary{cursor:pointer;font:700 13px
 .rt-chip.paused .t,.rt-chip.unknown .t{color:var(--muted)}
 .rt-chip .dot{position:absolute;top:6px;right:6px;width:12px;height:12px;border-radius:50%;background:var(--crit)}
 .rt-chip:focus-visible{outline:3px solid var(--accent);outline-offset:1px}
+.rt-filt{display:flex;flex-wrap:wrap;gap:8px;margin:0}
+.rt-f{border:2px solid var(--line);border-radius:999px;padding:6px 16px;background:var(--surface);color:var(--text);font:700 16px var(--font-display);cursor:pointer;min-height:40px}
+.rt-f[aria-pressed=true]{border-color:var(--accent);background:var(--accent-bg);color:var(--accent-ink)}
+.rt-grid td.e[data-day]{cursor:copy}.rt-grid td.e[data-day]:hover{background:color-mix(in oklab,var(--accent) 14%,transparent);box-shadow:inset 0 0 0 2px var(--accent)}
+#rtToast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);z-index:60;background:var(--text);color:var(--surface);padding:12px 20px;border-radius:12px;font:700 17px var(--font-display);box-shadow:0 8px 24px rgba(0,0,0,.3)}
+#rtToast[hidden]{display:none}
 #rtTip{position:fixed;z-index:50;max-width:min(380px,calc(100vw - 20px));background:var(--surface);color:var(--text);border:2px solid var(--accent);border-radius:12px;padding:12px 14px;box-shadow:0 10px 30px rgba(0,0,0,.3);font-size:16px;line-height:1.45}
 #rtTip[hidden]{display:none}#rtTip h4{margin:0 0 2px;font:700 17px var(--font-display)}#rtTip .who{color:var(--muted);font-size:14.5px;margin-bottom:6px}
 #rtTip dl{display:grid;grid-template-columns:auto 1fr;gap:2px 10px;margin:0 0 8px}#rtTip dt{color:var(--muted)}#rtTip dd{margin:0;font-weight:600}
@@ -537,13 +543,14 @@ function renderRest() {
 // ---- Routines tab (Nov 1 2026, week grid). Data: D.routines_all, built on the box by export-routines.js from
 // routines-snapshot.json (read from every bot's chat history), pushed with data.json each hourly refresh.
 // Rows = bots, columns = today + 6 days (AST) with a per-day total, last column = routines with no set day (paused, on demand, unknown).
-const RT = { list: [] };
+const RT = { list: [], f: ["all", "enabled", "paused", "unknown"].includes(localStorage.getItem("mcRtFilter")) ? localStorage.getItem("mcRtFilter") : "all" };
+const RT_DAY = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
 const RT_LBL = { enabled: "On", paused: "Paused", done: "Done", unknown: "Status unknown" };
 function renderRoutines(force) {
   const R = D && D.routines_all, el = $("tabRoutines");
   if (!D) { el.innerHTML = none("Loading…"); return; }
   if (!R || !R.week) { el.innerHTML = none("No routine list yet. JARVIS builds it on the box with node export-routines.js (runs in the hourly refresh)."); return; }
-  const sig = JSON.stringify([R.generated_at, R.as_of]);
+  const sig = JSON.stringify([R.generated_at, R.as_of, RT.f]);
   if (!force && sig === renderRoutines.sig) return; renderRoutines.sig = sig;
   const S = R.summary || {}, W = R.week, med = [...W.map((w) => w.total)].sort((a, b) => a - b)[3] || 0;
   $("rtTabCount").hidden = !S.stale; $("rtTabCount").textContent = S.stale || "";
@@ -553,18 +560,22 @@ function renderRoutines(force) {
   const live = (R.bots || []).filter((b) => !b.retired || b.running);
   const J = "3fd332ea-d3e2-49ee-acfb-8a985cae203d";
   live.sort((x, y) => (!x.running - !y.running) || ((y.bot_id === J) - (x.bot_id === J)) || x.name.localeCompare(y.name));
+  // Status filter: hides chips that don't match, and bot rows left with no chips (All shows every row, empty ones included).
+  const show = (r) => RT.f === "all" || r.status === RT.f;
   const rows = live.map((b) => {
-    const on = b.routines.filter((r) => r.days), other = b.routines.filter((r) => r.no_day || r.status === "paused" || r.status === "unknown");
+    const on = b.routines.filter((r) => r.days && show(r)), other = b.routines.filter((r) => (r.no_day || r.status === "paused" || r.status === "unknown") && show(r));
+    if (RT.f !== "all" && !on.length && !other.length) return "";
     const tag = b.running ? "" : b.room ? `<br><span class="rt-tag soft">Group room · not readable</span>` : `<br><span class="rt-tag">No routines running</span>`;
-    const cells = W.map((w, i) => { const c = on.filter((r) => r.days[i]).map((r) => chip(r, rtTimes(r.days[i]))).join(""); return `<td${c ? "" : ' class="e"'}>${c}</td>`; }).join("");
+    const cells = W.map((w, i) => { const c = on.filter((r) => r.days[i]).map((r) => chip(r, rtTimes(r.days[i]))).join(""); return c ? `<td>${c}</td>` : `<td class="e" data-day="${i}" data-bot="${esc(b.bot_id)}" title="Add a routine on ${RT_DAY[w.dow]}: copies a request and opens ${esc(b.name)}"></td>`; }).join("");
     const oc = other.map((r) => chip(r, r.status === "paused" ? "paused" : r.status === "unknown" ? "status?" : "on demand")).join("");
     return `<tr${b.running ? "" : ' class="none"'}><th class="bot" scope="row"><a href="${CHAT(b.bot_id)}">${esc(b.name)}</a>${tag}</th>${cells}<td${oc ? "" : ' class="e"'}>${oc}</td></tr>`;
   }).join("");
   const head = W.map((w, i) => `<th class="${w.total < med * 0.6 ? "light" : ""}${i === 0 ? " today" : ""}" title="${w.total} routine${w.total === 1 ? "" : "s"} run on ${esc(w.date)}${w.total < med * 0.6 ? " (light day)" : ""}">${i === 0 ? "Today " : ""}${esc(w.label)}<span class="n">${w.total}</span></th>`).join("");
   el.innerHTML = `<p class="rt-fresh">Checked as of ${R.as_of ? esc(fmtRun(R.as_of)) : "unknown"} · times in AST</p>
     <p class="rt-bar"><span>${S.running ?? 0} running</span><span>${S.paused ?? 0} paused</span><span${S.bots_none ? ' class="bad"' : ""}>${S.bots_none ?? 0} bots with none</span><span${S.stale ? ' class="bad"' : ""}>${S.stale ? "● " : ""}${S.stale ?? 0} stale or overdue</span></p>
-    <div class="rt-wrap"><table class="rt-grid"><colgroup><col class="c-bot">${W.map(() => "<col>").join("")}<col></colgroup><thead><tr><th class="bot">Bot</th>${head}<th>No set day</th></tr></thead><tbody>${rows}</tbody></table></div>
-    <div id="rtTip" role="tooltip" hidden></div>`;
+    <div class="rt-filt" role="group" aria-label="Filter by status">${[["all", "All"], ["enabled", "On"], ["paused", "Paused"], ["unknown", "Unknown"]].map(([k, l]) => `<button type="button" class="rt-f" data-f="${k}" aria-pressed="${RT.f === k}">${l}</button>`).join("")}</div>
+    <div class="rt-wrap"><table class="rt-grid"><colgroup><col class="c-bot">${W.map(() => "<col>").join("")}<col></colgroup><thead><tr><th class="bot">Bot</th>${head}<th>No set day</th></tr></thead><tbody>${rows || `<tr><td colspan="${W.length + 2}">${none("No routines in this filter.")}</td></tr>`}</tbody></table></div>
+    <div id="rtTip" role="tooltip" hidden></div><div id="rtToast" role="status" aria-live="polite" hidden></div>`;
 }
 const rtTimes = (d) => (d.length > 3 ? `${d.length}× ${d[0]}–${d[d.length - 1]}` : d.join(" · "));
 function rtTip(btn, pin) {
@@ -584,6 +595,19 @@ function rtTip(btn, pin) {
 document.addEventListener("mouseover", (e) => { const b = e.target.closest && e.target.closest("#tabRoutines .rt-chip"); if (b && !RT.pin) rtTip(b); });
 document.addEventListener("mouseout", (e) => { const b = e.target.closest && e.target.closest("#tabRoutines .rt-chip"); if (b && !RT.pin && !(e.relatedTarget && b.contains(e.relatedTarget))) rtTip(null); });
 document.addEventListener("focusin", (e) => { const b = e.target.closest && e.target.closest("#tabRoutines .rt-chip"); if (b) rtTip(b); });
+document.addEventListener("click", (e) => {
+  const f = e.target.closest("#tabRoutines .rt-f[data-f]");
+  if (f) { RT.f = f.dataset.f; try { localStorage.setItem("mcRtFilter", RT.f); } catch {} rtTip(null); renderRoutines(true); return; }
+  const td = e.target.closest("#tabRoutines td.e[data-day]");
+  if (td) { // empty cell: copy an add-routine request for that day, then open the bot's chat
+    const w = (D.routines_all.week || [])[+td.dataset.day]; if (!w) return;
+    const txt = `Add a new routine for you that runs on ${RT_DAY[w.dow]} at [time]: [what it should do]`;
+    const done = () => { const t = $("rtToast"); if (t) { t.textContent = "Copied — paste in the bot chat"; t.hidden = false; clearTimeout(RT.tt); RT.tt = setTimeout(() => (t.hidden = true), 3500); } location.href = CHAT(td.dataset.bot); };
+    const fallback = () => { const a = document.createElement("textarea"); a.value = txt; a.style.position = "fixed"; a.style.opacity = "0"; document.body.appendChild(a); a.select(); try { document.execCommand("copy"); } catch {} a.remove(); done(); };
+    if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(txt).then(done, fallback); else fallback();
+    return;
+  }
+});
 document.addEventListener("click", (e) => { const b = e.target.closest("#tabRoutines .rt-chip"); if (b) { if (RT.pin === b) rtTip(null); else rtTip(b, true); return; } if (!e.target.closest("#rtTip")) rtTip(null); });
 document.addEventListener("keydown", (e) => { if (e.key === "Escape") rtTip(null); });
 addEventListener("scroll", () => { if (RT.cur && document.contains(RT.cur)) rtTip(RT.cur, !!RT.pin); }, true);
