@@ -27,6 +27,7 @@
 --text:#e6f3f2;--muted:#a9c2c2;--faint:#7f9b9e;--accent:#3fe0e8;--accent-ink:#8bf2f8;--accent-2:#6ef0c8;--good:#35d99a;--warn:#ffb340;--crit:#ff5f45;--accent-bg:#08313a;
 --btn-ink:#04191c;--bloom:0 0 28px rgba(63,224,232,.30);--shadow:0 1px 2px rgba(0,0,0,.5),0 12px 34px rgba(0,0,0,.45);--idle:#4f6b6e;--heat:63,224,232}}
 *{box-sizing:border-box}
+.mcerr{margin:10px 0 14px;padding:12px 14px;border:2px solid var(--crit);border-radius:12px;background:var(--surface);color:var(--text);font:15px/1.5 var(--font-ui);max-width:720px}.mcerr .pill{margin-left:8px}
 body{margin:0;background:var(--ground);color:var(--text);font:15px/1.5 var(--font-ui);-webkit-font-smoothing:antialiased;isolation:isolate}
 body::before{content:"";position:fixed;inset:0;z-index:-2;pointer-events:none;background-image:linear-gradient(var(--grid) 1px,transparent 1px),linear-gradient(90deg,var(--grid) 1px,transparent 1px);background-size:46px 46px;mask-image:radial-gradient(ellipse 120% 90% at 50% 0%,#000 30%,transparent 78%)}
 body::after{content:"";position:fixed;inset:0;z-index:-3;pointer-events:none;background:radial-gradient(60% 42% at 12% 0%,color-mix(in oklab,var(--accent) 16%,transparent),transparent 70%),radial-gradient(52% 38% at 92% 8%,color-mix(in oklab,var(--accent-2) 12%,transparent),transparent 70%),radial-gradient(70% 50% at 50% 108%,color-mix(in oklab,var(--accent) 10%,transparent),transparent 72%);opacity:.9}
@@ -314,6 +315,8 @@ details.more2{margin-top:12px}details.more2 summary{cursor:pointer;font:700 13px
     <div class="logo"><svg width="22" height="22" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10.5" fill="none" stroke="var(--accent)" stroke-width="1.5"/><circle cx="12" cy="12" r="5.5" fill="none" stroke="var(--accent-2)" stroke-width="1.5"/><circle cx="12" cy="12" r="1.8" fill="var(--accent)"/><path d="M12 1.5v4M12 18.5v4M1.5 12h4M18.5 12h4" stroke="var(--accent)" stroke-width="1.5" stroke-linecap="round"/></svg><p class="eyebrow">Mission Control</p></div>
     <h1 id="greet">Miles, here's who needs you.</h1>
     <p class="summary" id="summary">Loading…</p>
+    <div id="mcErr" class="mcerr" role="alert" hidden><b id="mcErrT">Mission Control couldn't load.</b> <span id="mcErrM"></span> <button type="button" id="mcErrRetry" class="pill">Retry</button></div>
+    <noscript><div class="mcerr"><b>JavaScript is off.</b> Mission Control needs JavaScript to show your data. Turn it on in your browser settings and reload.</div></noscript>
     <form id="keyGate" hidden autocomplete="on">
       <h2>Unlock Mission Control on this device</h2>
       <p id="kgWhy">Paste your Mission Control view key once. This device remembers it, so plain links and the home-screen icon open straight in.</p>
@@ -404,9 +407,23 @@ const MCKEY = (() => { const p = new URLSearchParams(location.hash.slice(1)), k 
 let MC_OFF = false; // set after a rejected key: stop all calls so polling can't trip the bad-key lockout
 function api(op, opt = {}) {
   if (MC_OFF) return Promise.reject(new Error("bad key"));
-  return fetch(`${FN}/${op}`, { cache: "no-store", referrerPolicy: "no-referrer", credentials: "omit", ...opt,
-    headers: { ...(opt.headers || {}), "X-MC-Key": MCKEY } });
+  // Timeout so a stalled network shows an error instead of an endless blank "Loading…" (audio download excluded).
+  const ms = op === "audio/latest" ? 0 : 20000, ac = ms && typeof AbortController === "function" ? new AbortController() : null;
+  const t = ac ? setTimeout(() => ac.abort(), ms) : 0;
+  return fetch(`${FN}/${op}`, { cache: "no-store", referrerPolicy: "no-referrer", credentials: "omit", ...(ac ? { signal: ac.signal } : {}), ...opt,
+    headers: { ...(opt.headers || {}), "X-MC-Key": MCKEY } })
+    .catch((e) => { throw new Error(e && e.name === "AbortError" ? "the server didn't answer within 20 seconds" : "network error, check the connection"); })
+    .finally(() => t && clearTimeout(t));
 }
+// Visible error banner: the page must never sit blank. Used by load(), the watchdog and the global error handlers.
+function mcShowErr(msg, title) {
+  const b = document.getElementById("mcErr"); if (!b) return;
+  document.getElementById("mcErrT").textContent = title || "Mission Control couldn't load.";
+  document.getElementById("mcErrM").textContent = msg || ""; b.hidden = false;
+}
+function mcHideErr() { const b = document.getElementById("mcErr"); if (b) b.hidden = true; }
+window.addEventListener("error", (e) => { if (!window.D_READY) mcShowErr(`A script error stopped the page (${e.message || "unknown error"}). Try Cmd+Shift+R, or tell Builder.`); });
+window.addEventListener("unhandledrejection", (e) => { if (!window.D_READY) mcShowErr(`Something failed while loading (${(e.reason && e.reason.message) || e.reason || "unknown"}). Try Retry or Cmd+Shift+R.`); });
 </script>
 <script>
 const $ = (id) => document.getElementById(id);
@@ -757,7 +774,9 @@ let version = null;
 async function load(force) {
   const resp = await api("data");
   if (resp.status === 401 || resp.status === 429) throw new Error(resp.status === 401 ? "bad key" : "locked out, try again in 10 min");
+  if (!resp.ok) throw new Error("server error " + resp.status);
   const d = await resp.json();
+  if (!d || !Array.isArray(d.waiting)) throw new Error("the server sent no data");
   const first = !D, regen = first || D.generated_at !== d.generated_at;
   const oldKeys = first ? [] : D.waiting.map((i) => i.key), newKeys = new Set(d.waiting.map((i) => i.key));
   const gone = oldKeys.filter((k) => !newKeys.has(k)), added = d.waiting.some((i) => !oldKeys.includes(i.key));
@@ -846,7 +865,19 @@ $("keyGate").addEventListener("submit", (e) => {
   else { location.hash = "k=" + encodeURIComponent(k); location.reload(); } // storage blocked: this tab only
 });
 if (!MCKEY) showGate("missing");
-else { $("phoneSetup").hidden = false; audioMeta(); load(true).catch((e) => { if (e && e.message === "bad key") return showGate("bad"); $("summary").textContent = "Couldn't load data from the server" + (e && e.message ? ` (${e.message})` : "") + ". Pull down to retry."; }); }
+else { $("phoneSetup").hidden = false; audioMeta(); firstLoad(); }
+function firstLoad() {
+  mcHideErr(); if (!D) $("summary").textContent = "Loading…";
+  const wd = setTimeout(() => { if (!D) mcShowErr("Still waiting for the server after 12 seconds. Check the internet connection, then press Retry.", "Mission Control is taking a while."); }, 12000);
+  load(true).then(() => { clearTimeout(wd); window.D_READY = true; mcHideErr(); }).catch((e) => {
+    clearTimeout(wd);
+    if (e && e.message === "bad key") return showGate("bad");
+    const m = (e && e.message) || "unknown error";
+    $("summary").textContent = "Couldn't load data from the server (" + m + ").";
+    mcShowErr(m.startsWith("locked out") ? "Too many wrong keys from this network. Wait 10 minutes, then press Retry." : `Reason: ${m}. Press Retry. If it keeps happening, reload with Cmd+Shift+R.`);
+  });
+}
+$("mcErrRetry").addEventListener("click", () => { if (!MCKEY) return location.reload(); MC_OFF = false; firstLoad(); });
 // Phone setup: copies this device's key so it can be pasted into the home-screen app's first launch (stays on the device).
 $("phoneSetup").addEventListener("click", async () => {
   const b = $("phoneSetup"), t = b.textContent;
