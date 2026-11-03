@@ -308,6 +308,16 @@ details.more2{margin-top:12px}details.more2 summary{cursor:pointer;font:700 13px
 #keyGate button{font:600 15px var(--font-ui);padding:11px 18px;border-radius:10px;border:0;background:var(--accent);color:var(--btn-ink);cursor:pointer}
 #keyGate .err{color:var(--crit);font-size:14px}
 @supports(padding:env(safe-area-inset-top)){main{padding-top:max(env(safe-area-inset-top),clamp(16px,3vw,32px))}}
+/* ---- Si Helpdesk tab (Nov 2 2026): data = D.helpdesk, built on the box by export-helpdesk.js (read-only), hourly. Large text, no faint labels. ---- */
+#tabHelpdesk .kpi{flex:1 1 200px}#tabHelpdesk .kpi .s{font:700 16px var(--font-ui);letter-spacing:0;text-transform:none;color:var(--text)}
+#tabHelpdesk .kpi .b{font-size:44px}#tabHelpdesk .kpi .us{font-size:15px;color:var(--text)}#tabHelpdesk .kpi.hot{border:2px solid var(--pink)}
+#tabHelpdesk .cap{color:var(--text)}#tabHelpdesk th{font-size:15px;color:var(--text)}#tabHelpdesk td{font-size:17px}
+#tabHelpdesk .tag2{font:700 14px var(--font-ui);padding:2px 10px;margin-left:0}#tabHelpdesk a.tk{color:var(--accent-ink);font-weight:700}
+#tabHelpdesk .hdc{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,230px),1fr));gap:12px}
+#tabHelpdesk .hdc>div{border:1px solid var(--bd);border-radius:14px;padding:12px 16px;background:var(--surface-2)}#tabHelpdesk .hdc>div.key{border:2px solid var(--accent)}
+#tabHelpdesk .hdc .n{font:700 34px var(--font-display);line-height:1.1}#tabHelpdesk .hdc .nm{font:700 17px var(--font-ui)}#tabHelpdesk .hdc .sm{font-size:15px}
+#tabHelpdesk section{margin-bottom:26px}
+@media (max-width:640px){#tabHelpdesk .kpi{flex:1 1 140px;padding:12px 14px}#tabHelpdesk .kpi .b{font-size:34px}#tabHelpdesk td{font-size:16px}#tabHelpdesk .hdc{grid-template-columns:repeat(2,minmax(0,1fr))}#tabHelpdesk .hdc .n{font-size:30px}}
 </style></head><body class="t-today"><main>
 <div class="shell">
 <div class="sh-left">
@@ -333,7 +343,7 @@ details.more2{margin-top:12px}details.more2 summary{cursor:pointer;font:700 13px
       <audio id="aPlayer" controls preload="none" hidden></audio>
     </div>
   </div>
-<nav class="tabs" role="tablist"><button type="button" role="tab" data-tab="today" aria-selected="true">◆ Today<span class="tcount red" id="todayTabCount" hidden></span></button><button type="button" role="tab" data-tab="villas" aria-selected="false">🏝 Villas</button><button type="button" role="tab" data-tab="money" aria-selected="false">$ Money</button><button type="button" role="tab" data-tab="growth" aria-selected="false">↗ Growth</button><button type="button" role="tab" data-tab="org" aria-selected="false">⚑ Org &amp; Systems<span class="tcount" id="orgTabCount" hidden></span></button><button type="button" role="tab" data-tab="activity" aria-selected="false">⚡ Activity</button><button type="button" role="tab" data-tab="routines" aria-selected="false">⏱ Routines<span class="tcount" id="rtTabCount" hidden></span></button></nav>
+<nav class="tabs" role="tablist"><button type="button" role="tab" data-tab="today" aria-selected="true">◆ Today<span class="tcount red" id="todayTabCount" hidden></span></button><button type="button" role="tab" data-tab="villas" aria-selected="false">🏝 Villas</button><button type="button" role="tab" data-tab="money" aria-selected="false">$ Money</button><button type="button" role="tab" data-tab="growth" aria-selected="false">↗ Growth</button><button type="button" role="tab" data-tab="helpdesk" aria-selected="false">🎧 Si Helpdesk<span class="tcount" id="hdTabCount" hidden></span></button><button type="button" role="tab" data-tab="org" aria-selected="false">⚑ Org &amp; Systems<span class="tcount" id="orgTabCount" hidden></span></button><button type="button" role="tab" data-tab="activity" aria-selected="false">⚡ Activity</button><button type="button" role="tab" data-tab="routines" aria-selected="false">⏱ Routines<span class="tcount" id="rtTabCount" hidden></span></button></nav>
 <div class="big today-only t-move"><div class="onemove" id="oneMove" hidden></div></div>
 <div class="big today-only t-vitals"><div class="vitals" id="vitals"></div></div>
 </div>
@@ -375,6 +385,7 @@ details.more2{margin-top:12px}details.more2 summary{cursor:pointer;font:700 13px
 <div id="tabVillas" class="big tabpane" hidden></div>
 <div id="tabMoney" class="big tabpane" hidden></div>
 <div id="tabGrowth" class="big tabpane" hidden></div>
+<div id="tabHelpdesk" class="big tabpane" hidden></div>
 <div id="tabActivity" class="tabpane" hidden>
     <section><h2>Activity timeline</h2><p class="cap" id="tcap"></p><div id="timeline"></div></section>
     <section><h2>Bot activity by hour, last 7 days</h2><p class="cap" id="hcap"></p><div class="hm" id="heat"></div></section>
@@ -593,8 +604,47 @@ function renderRest() {
   $("todayTabCount").textContent = w.length || ""; $("todayTabCount").hidden = !w.length;
   try { renderBrain(); } catch (e) { console.error(e); }
   try { renderRoutines(); } catch (e) { console.error(e); }
+  try { renderHelpdesk(); } catch (e) { console.error(e); }
 }
 
+// ---- Si Helpdesk tab (Nov 2 2026). Data: D.helpdesk from export-helpdesk.js on the box (read-only, hourly refresh.sh).
+// Subject lines only: no customer emails or message bodies are in the data.
+const HD_ST = { open: ["Open", "hot"], pending: ["Pending", "warn"], waiting_on_customer: ["Waiting on customer", ""], resolved: ["Resolved", "ok"], closed: ["Closed", "ok"] };
+const hdAge = (d) => d === null || d === undefined ? "" : d === 0 ? "today" : d === 1 ? "1 day" : d + " days";
+const hdWhen = (iso) => { try { return new Date(iso).toLocaleString("en-US", { timeZone: "America/Port_of_Spain", weekday: "short", month: "short", day: "numeric", hour: "numeric", minute: "2-digit" }) + " AST"; } catch (_e) { return iso; } };
+function renderHelpdesk() {
+  const H = D && D.helpdesk, el = $("tabHelpdesk"); if (!el) return;
+  if (!H || !H.metrics) { el.innerHTML = sec("Si Helpdesk", "", "<p>No helpdesk data yet. It fills in on the next hourly refresh.</p>"); $("hdTabCount").hidden = true; return; }
+  const M = H.metrics, K = H.key_tickets || {};
+  $("hdTabCount").textContent = M.waiting_on_us || ""; $("hdTabCount").hidden = !M.waiting_on_us;
+  const kpi = (label, v, sub, hot) => `<div class="kpi ${hot ? "hot" : ""}"><div class="s">${esc(label)}</div><div class="b">${v === null || v === undefined ? "unknown" : esc(String(v))}</div>${sub ? `<div class="us">${esc(sub)}</div>` : ""}</div>`;
+  const frt = M.avg_first_response_hours_30d;
+  const frtTxt = frt === null || frt === undefined ? null : frt >= 48 ? (Math.round(frt / 24 * 10) / 10) + " days" : frt + " hrs";
+  const rows = (list, waitCol) => (list || []).map((t) => { const s = HD_ST[t.status] || [t.status, ""];
+    return `<tr><td><a class="tk" target="_blank" rel="noreferrer" href="${esc(t.link)}">#${esc(String(t.number))}</a></td><td>${esc(t.client)}</td><td>${esc(t.subject)}${t.priority === "urgent" || t.priority === "high" ? ` <span class="tag2 hot">${esc(t.priority)}</span>` : ""}</td><td><span class="tag2 ${s[1]}">${esc(s[0])}</span></td><td><b>${esc(hdAge(t.age_days))}</b></td>${waitCol ? `<td><b>${esc(hdAge(t.waiting_days))}</b></td>` : ""}</tr>`; });
+  const head = (waitCol) => ["Ticket", "Client", "Subject", "Status", "Age"].concat(waitCol ? ["Waiting on us"] : []);
+  const list = (title, cap, l, waitCol, empty) => sec(title, cap, l && l.length ? ttab(head(waitCol), rows(l, waitCol)) : `<p>${esc(empty)}</p>`);
+  el.innerHTML =
+    sec("Si Helpdesk", `helpdesk.getsi.media · updated ${hdWhen(H.generated_at)} · this week = since Monday`,
+      `<div class="cards">`
+      + kpi("Not closed or resolved", M.not_closed_or_resolved, "open + pending + waiting on customer")
+      + kpi("Open", M.open, "", M.open > 0)
+      + kpi("Pending", M.pending)
+      + kpi("Waiting on customer", M.waiting_on_customer)
+      + kpi("Waiting on us", M.waiting_on_us, "customer spoke last", M.waiting_on_us > 0)
+      + `</div><div class="cards" style="margin-top:16px">`
+      + kpi("New this week", M.new_this_week)
+      + kpi("Resolved this week", M.resolved_this_week)
+      + kpi("Oldest open ticket", M.oldest_open_days === null ? null : hdAge(M.oldest_open_days), "not counting waiting on customer")
+      + kpi("Avg first response", frtTxt, M.first_response_sample_30d ? `tickets from the last 30 days (${M.first_response_sample_30d} answered)` : "")
+      + `</div>`
+      + `<p style="margin-top:14px"><a class="pill" target="_blank" rel="noreferrer" href="https://helpdesk.getsi.media/admin/tickets">Open the helpdesk</a></p>`)
+    + sec("Tickets by client", "Not closed or resolved, with new this week and all-time totals. Key clients are outlined.",
+      `<div class="hdc">${(H.by_client || []).map((c) => `<div class="${c.key ? "key" : ""}"><div class="nm">${esc(c.short && c.short !== c.name ? c.short + " · " + c.name : c.name)}</div><div class="n">${esc(String(c.active))}</div><div class="sm">${c.missing ? "No client set up with this name in the helpdesk" : `${esc(String(c.new_this_week))} new this week · ${esc(String(c.total))} all time`}</div></div>`).join("")}</div>`)
+    + list("Key tickets · waiting on us longest", "Open or pending tickets where the customer sent the last message. Time since their last message.", K.waiting_on_us_longest, true, "Nothing is waiting on us.")
+    + list("Key tickets · high or urgent priority", "", K.high_priority, false, "No open high or urgent tickets.")
+    + list("Key tickets · oldest unresolved", "Open or pending, oldest first.", K.oldest_unresolved, false, "No unresolved tickets.");
+}
 // ---- Routines tab (Nov 1 2026, week grid). Data: D.routines_all, built on the box by export-routines.js from
 // routines-snapshot.json (read from every bot's chat history), pushed with data.json each hourly refresh.
 // Rows = bots, columns = today + 6 days (AST) with a per-day total, last column = routines with no set day (paused, on demand, unknown).
@@ -899,7 +949,7 @@ setInterval(() => { if (!document.querySelector("input.reply:focus")) load().cat
 // org-refresh.js / the mc-sync daemon). Tab chosen by #...&tab=org (fragment only, never sent anywhere).
 const O = { d: null, view: ST.get("mcOrgView") || "all", loading: false };
 const hashP = () => new URLSearchParams(location.hash.slice(1));
-const TABS = { today: "tabToday", villas: "tabVillas", money: "tabMoney", growth: "tabGrowth", org: "tabOrg", activity: "tabActivity", routines: "tabRoutines" };
+const TABS = { today: "tabToday", villas: "tabVillas", money: "tabMoney", growth: "tabGrowth", helpdesk: "tabHelpdesk", org: "tabOrg", activity: "tabActivity", routines: "tabRoutines" };
 const tabFromHash = () => { const t = hashP().get("tab"); return TABS[t] ? t : "today"; };
 function setTab(t, push) {
   if (!TABS[t]) t = "today";
