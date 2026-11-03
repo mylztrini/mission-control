@@ -317,6 +317,18 @@ details.more2{margin-top:12px}details.more2 summary{cursor:pointer;font:700 13px
 #tabHelpdesk .hdc>div{border:1px solid var(--bd);border-radius:14px;padding:12px 16px;background:var(--surface-2)}#tabHelpdesk .hdc>div.key{border:2px solid var(--accent)}
 #tabHelpdesk .hdc .n{font:700 34px var(--font-display);line-height:1.1}#tabHelpdesk .hdc .nm{font:700 17px var(--font-ui)}#tabHelpdesk .hdc .sm{font-size:15px}
 #tabHelpdesk section{margin-bottom:26px}
+/* Needs attention panel (Nov 2 2026): red = critical, amber = concerning. Solid label colours, >=15px. */
+.tabs .tcount.hdcrit{background:#c62828;color:#fff;font-weight:800}.tabs .tcount.hdconc{background:#f5a524;color:#1d1300;font-weight:800}
+#tabHelpdesk .na{border:3px solid #c62828;border-radius:16px;padding:16px 18px;background:var(--surface-2)}#tabHelpdesk .na.calm{border-color:var(--good)}
+#tabHelpdesk .na h2{margin-top:0}#tabHelpdesk .na .cnt{display:flex;gap:12px;flex-wrap:wrap;margin:6px 0 14px}
+#tabHelpdesk .na .cnt span{font:800 18px var(--font-ui);padding:6px 14px;border-radius:999px}
+#tabHelpdesk .lv-c{background:#c62828;color:#fff}#tabHelpdesk .lv-a{background:#f5a524;color:#1d1300}
+#tabHelpdesk .na ul{list-style:none;margin:0;padding:0;display:grid;gap:10px}
+#tabHelpdesk .na li{border-radius:12px;padding:12px 14px;border:1px solid var(--bd);border-left:8px solid #c62828;background:var(--surface,transparent)}#tabHelpdesk .na li.a{border-left-color:#f5a524}
+#tabHelpdesk .na .top{display:flex;gap:10px;align-items:baseline;flex-wrap:wrap;font:700 17px var(--font-ui)}#tabHelpdesk .na .top .cl{color:var(--text)}
+#tabHelpdesk .na .sj{font-size:17px;margin:4px 0 8px;color:var(--text);overflow-wrap:anywhere}#tabHelpdesk .na .rs{display:flex;gap:8px;flex-wrap:wrap}
+#tabHelpdesk .na .rs span{font:700 15px var(--font-ui);padding:3px 12px;border-radius:999px}#tabHelpdesk .na .meta{font-size:15px;color:var(--text);margin-top:8px}
+#tabHelpdesk .na .lvl{font:800 15px var(--font-ui);padding:2px 10px;border-radius:6px;text-transform:uppercase;letter-spacing:.03em}
 @media (max-width:640px){#tabHelpdesk .kpi{flex:1 1 140px;padding:12px 14px}#tabHelpdesk .kpi .b{font-size:34px}#tabHelpdesk td{font-size:16px}#tabHelpdesk .hdc{grid-template-columns:repeat(2,minmax(0,1fr))}#tabHelpdesk .hdc .n{font-size:30px}}
 </style></head><body class="t-today"><main>
 <div class="shell">
@@ -343,7 +355,7 @@ details.more2{margin-top:12px}details.more2 summary{cursor:pointer;font:700 13px
       <audio id="aPlayer" controls preload="none" hidden></audio>
     </div>
   </div>
-<nav class="tabs" role="tablist"><button type="button" role="tab" data-tab="today" aria-selected="true">◆ Today<span class="tcount red" id="todayTabCount" hidden></span></button><button type="button" role="tab" data-tab="villas" aria-selected="false">🏝 Villas</button><button type="button" role="tab" data-tab="money" aria-selected="false">$ Money</button><button type="button" role="tab" data-tab="growth" aria-selected="false">↗ Growth</button><button type="button" role="tab" data-tab="helpdesk" aria-selected="false">🎧 Si Helpdesk<span class="tcount" id="hdTabCount" hidden></span></button><button type="button" role="tab" data-tab="org" aria-selected="false">⚑ Org &amp; Systems<span class="tcount" id="orgTabCount" hidden></span></button><button type="button" role="tab" data-tab="activity" aria-selected="false">⚡ Activity</button><button type="button" role="tab" data-tab="routines" aria-selected="false">⏱ Routines<span class="tcount" id="rtTabCount" hidden></span></button></nav>
+<nav class="tabs" role="tablist"><button type="button" role="tab" data-tab="today" aria-selected="true">◆ Today<span class="tcount red" id="todayTabCount" hidden></span></button><button type="button" role="tab" data-tab="villas" aria-selected="false">🏝 Villas</button><button type="button" role="tab" data-tab="money" aria-selected="false">$ Money</button><button type="button" role="tab" data-tab="growth" aria-selected="false">↗ Growth</button><button type="button" role="tab" data-tab="helpdesk" aria-selected="false">🎧 Si Helpdesk<span class="tcount hdcrit" id="hdTabCrit" hidden title="Critical tickets"></span><span class="tcount hdconc" id="hdTabConc" hidden title="Concerning tickets"></span></button><button type="button" role="tab" data-tab="org" aria-selected="false">⚑ Org &amp; Systems<span class="tcount" id="orgTabCount" hidden></span></button><button type="button" role="tab" data-tab="activity" aria-selected="false">⚡ Activity</button><button type="button" role="tab" data-tab="routines" aria-selected="false">⏱ Routines<span class="tcount" id="rtTabCount" hidden></span></button></nav>
 <div class="big today-only t-move"><div class="onemove" id="oneMove" hidden></div></div>
 <div class="big today-only t-vitals"><div class="vitals" id="vitals"></div></div>
 </div>
@@ -614,9 +626,11 @@ const hdAge = (d) => d === null || d === undefined ? "" : d === 0 ? "today" : d 
 const hdWhen = (iso) => { try { return new Date(iso).toLocaleString("en-US", { timeZone: "America/Port_of_Spain", weekday: "short", month: "short", day: "numeric", hour: "numeric", minute: "2-digit" }) + " AST"; } catch (_e) { return iso; } };
 function renderHelpdesk() {
   const H = D && D.helpdesk, el = $("tabHelpdesk"); if (!el) return;
-  if (!H || !H.metrics) { el.innerHTML = sec("Si Helpdesk", "", "<p>No helpdesk data yet. It fills in on the next hourly refresh.</p>"); $("hdTabCount").hidden = true; return; }
+  if (!H || !H.metrics) { el.innerHTML = sec("Si Helpdesk", "", "<p>No helpdesk data yet. It fills in on the next hourly refresh.</p>"); $("hdTabCrit").hidden = $("hdTabConc").hidden = true; return; }
   const M = H.metrics, K = H.key_tickets || {};
-  $("hdTabCount").textContent = M.waiting_on_us || ""; $("hdTabCount").hidden = !M.waiting_on_us;
+  const A = H.attention || null, nC = A ? A.critical : 0, nA = A ? A.concerning : 0;
+  $("hdTabCrit").textContent = nC ? nC + " critical" : ""; $("hdTabCrit").hidden = !nC;
+  $("hdTabConc").textContent = nA ? nA + " concerning" : ""; $("hdTabConc").hidden = !nA;
   const kpi = (label, v, sub, hot) => `<div class="kpi ${hot ? "hot" : ""}"><div class="s">${esc(label)}</div><div class="b">${v === null || v === undefined ? "unknown" : esc(String(v))}</div>${sub ? `<div class="us">${esc(sub)}</div>` : ""}</div>`;
   const frt = M.avg_first_response_hours_30d;
   const frtTxt = frt === null || frt === undefined ? null : frt >= 48 ? (Math.round(frt / 24 * 10) / 10) + " days" : frt + " hrs";
@@ -624,7 +638,15 @@ function renderHelpdesk() {
     return `<tr><td><a class="tk" target="_blank" rel="noreferrer" href="${esc(t.link)}">#${esc(String(t.number))}</a></td><td>${esc(t.client)}</td><td>${esc(t.subject)}${t.priority === "urgent" || t.priority === "high" ? ` <span class="tag2 hot">${esc(t.priority)}</span>` : ""}</td><td><span class="tag2 ${s[1]}">${esc(s[0])}</span></td><td><b>${esc(hdAge(t.age_days))}</b></td>${waitCol ? `<td><b>${esc(hdAge(t.waiting_days))}</b></td>` : ""}</tr>`; });
   const head = (waitCol) => ["Ticket", "Client", "Subject", "Status", "Age"].concat(waitCol ? ["Waiting on us"] : []);
   const list = (title, cap, l, waitCol, empty) => sec(title, cap, l && l.length ? ttab(head(waitCol), rows(l, waitCol)) : `<p>${esc(empty)}</p>`);
-  el.innerHTML =
+  const naItem = (t) => { const c = t.level === "critical", s = HD_ST[t.status] || [t.status, ""];
+    return `<li class="${c ? "" : "a"}"><div class="top"><span class="lvl ${c ? "lv-c" : "lv-a"}">${c ? "Critical" : "Concerning"}</span><a class="tk" target="_blank" rel="noreferrer" href="${esc(t.link)}">#${esc(String(t.number))}</a><span class="cl">${esc(t.client)}${t.key_client ? " · key client" : ""}</span></div>`
+      + `<div class="sj">${esc(t.subject)}</div><div class="rs">${(t.reasons || []).map((r) => `<span class="${r.level === "critical" ? "lv-c" : "lv-a"}">${esc(r.text)}</span>`).join("")}</div>`
+      + `<div class="meta">${esc(s[0])} · opened ${esc(hdAge(t.age_days))} ago${t.priority ? " · " + esc(t.priority) + " priority" : ""}</div></li>`; };
+  const naPanel = !A ? "" : `<section class="na ${A.tickets.length ? "" : "calm"}"><h2>Needs attention</h2>`
+    + `<div class="cnt"><span class="lv-c">${esc(String(nC))} critical</span><span class="lv-a">${esc(String(nA))} concerning</span></div>`
+    + (A.tickets.length ? `<ul>${A.tickets.map(naItem).join("")}</ul>` : `<p style="font-size:17px">No critical or concerning tickets right now.</p>`)
+    + `<p class="cap" style="margin-top:12px;font-size:15px">${esc(A.rules || "")} Sorted by severity, then age.</p></section>`;
+  el.innerHTML = naPanel +
     sec("Si Helpdesk", `helpdesk.getsi.media · updated ${hdWhen(H.generated_at)} · this week = since Monday`,
       `<div class="cards">`
       + kpi("Not closed or resolved", M.not_closed_or_resolved, "open + pending + waiting on customer")
