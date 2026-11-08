@@ -113,24 +113,39 @@ async function ready(page) {
   }, { timeout: 15000 });
 }
 
+// Task-start positions measured on PR 2 head 204ab3d (stats collapsed, synthetic fixture).
+const PR2_TASK_TOP = { desktop: 660, mobile: 601 };
+
 async function metrics(page) {
   return page.evaluate(() => {
     const task = document.getElementById("wlist").closest("section").getBoundingClientRect();
     const shell = document.querySelector(".shell").getBoundingClientRect();
+    const left = document.querySelector(".sh-left").getBoundingClientRect();
     const toggle = document.getElementById("vitalsToggle").getBoundingClientRect();
+    const move = document.getElementById("oneMove").getBoundingClientRect();
+    const board = document.getElementById("boardSec").getBoundingClientRect();
     const cards = [...document.querySelectorAll("#vitals .vital")].map((el) => el.getBoundingClientRect());
     const tabs = document.querySelector(".tabs");
     return {
       taskTop: task.top,
       shellW: shell.width,
+      leftRight: left.right,
+      leftLeft: left.left,
+      toggleRight: toggle.right,
+      toggleTop: toggle.top,
+      moveBottom: move.bottom,
+      boardTop: board.top,
+      boardBottom: board.bottom,
       toggleW: toggle.width,
+      toggleH: toggle.height,
       panelHidden: document.getElementById("vitals").hidden,
       expanded: document.getElementById("vitalsToggle").getAttribute("aria-expanded"),
-      cards: cards.map((c) => ({ top: Math.round(c.top), left: Math.round(c.left), h: Math.round(c.height) })),
+      cards: cards.map((c) => ({ top: Math.round(c.top), left: Math.round(c.left), right: Math.round(c.right), h: Math.round(c.height) })),
       overflow: document.documentElement.scrollWidth - document.documentElement.clientWidth,
       tabsClient: tabs.clientWidth,
       tabsScroll: tabs.scrollWidth,
-      vh: window.innerHeight
+      vh: window.innerHeight,
+      vw: window.innerWidth
     };
   });
 }
@@ -330,17 +345,20 @@ describe("Mission Control UI", { timeout: 120000 }, () => {
       await ready(page);
       const desktopClosed = await metrics(page);
       assert.equal(desktopClosed.panelHidden, true);
-      assert.ok(desktopClosed.toggleW > desktopClosed.shellW * 0.9, `toggle width ${desktopClosed.toggleW} shell ${desktopClosed.shellW}`);
+      assert.ok(desktopClosed.toggleW < desktopClosed.shellW * 0.75, `collapsed stats should stay in the left column (${desktopClosed.toggleW} vs shell ${desktopClosed.shellW})`);
+      assert.ok(desktopClosed.toggleRight <= desktopClosed.leftRight + 2, `collapsed stats reach ${desktopClosed.toggleRight}, column ends ${desktopClosed.leftRight}`);
+      assert.ok(desktopClosed.toggleTop >= desktopClosed.moveBottom - 2 && desktopClosed.toggleTop < desktopClosed.moveBottom + 40, `stats top ${desktopClosed.toggleTop} vs one move bottom ${desktopClosed.moveBottom}`);
+      assert.ok(desktopClosed.toggleH <= 52, `collapsed disclosure is ${desktopClosed.toggleH}px tall`);
+      assert.ok(desktopClosed.taskTop < desktopClosed.boardBottom - 20, `board still pushes tasks (${desktopClosed.taskTop} vs board bottom ${desktopClosed.boardBottom})`);
+      assert.ok(desktopClosed.taskTop <= PR2_TASK_TOP.desktop - 80, `desktop tasks start at ${desktopClosed.taskTop}, previous PR2 was ${PR2_TASK_TOP.desktop}`);
       assert.ok(desktopClosed.overflow <= 1, `desktop overflow ${desktopClosed.overflow}`);
-      assert.ok(desktopClosed.taskTop < desktopClosed.vh, `desktop tasks start at ${desktopClosed.taskTop}`);
 
       await page.click("#vitalsToggle");
       const desktopOpen = await metrics(page);
       assert.equal(desktopOpen.panelHidden, false);
       assert.equal(desktopOpen.cards.length, 4);
-      const tops = desktopOpen.cards.map((c) => c.top);
-      assert.ok(Math.max(...tops) - Math.min(...tops) < 8, `desktop cards should share a row: ${JSON.stringify(tops)}`);
-      assert.ok(desktopOpen.taskTop > desktopClosed.taskTop + 80, `tasks moved ${desktopOpen.taskTop - desktopClosed.taskTop}px`);
+      assert.ok(desktopOpen.cards.every((c) => c.right <= desktopOpen.leftRight + 2 && c.left >= desktopOpen.leftLeft - 2), `expanded stats leave the left column ${JSON.stringify(desktopOpen.cards)}`);
+      assert.ok(desktopOpen.taskTop > desktopClosed.taskTop + 40, `tasks moved ${desktopOpen.taskTop - desktopClosed.taskTop}px`);
 
       await page.click("#vitalsToggle");
       await page.setViewport({ width: 390, height: 844 });
@@ -349,6 +367,7 @@ describe("Mission Control UI", { timeout: 120000 }, () => {
       assert.ok(mobileClosed.overflow <= 1, `mobile overflow ${mobileClosed.overflow}`);
       assert.ok(mobileClosed.tabsScroll > mobileClosed.tabsClient + 20, `tabs should scroll inside the row (${mobileClosed.tabsScroll} vs ${mobileClosed.tabsClient})`);
       assert.ok(mobileClosed.taskTop < mobileClosed.vh, `mobile tasks start at ${mobileClosed.taskTop} in ${mobileClosed.vh}`);
+      assert.ok(mobileClosed.taskTop <= PR2_TASK_TOP.mobile + 8, `mobile tasks start at ${mobileClosed.taskTop}, previous PR2 was ${PR2_TASK_TOP.mobile}`);
       const mobileOrder = await page.evaluate(() => ({
         nav: document.querySelector(".mcnav").getBoundingClientRect().top,
         task: document.getElementById("wlist").closest("section").getBoundingClientRect().top,
@@ -374,16 +393,16 @@ describe("Mission Control UI", { timeout: 120000 }, () => {
         bar.style.cssText = "position:sticky;top:0;z-index:80;background:#3a2a00;color:#ffe7a3;font:700 13px/1.3 Arial,sans-serif;text-align:center;padding:6px 10px";
         document.body.prepend(bar);
       });
-      await page.screenshot({ path: path.join(ARTIFACTS, "followup_mobile_vitals_open.png") });
+      await page.screenshot({ path: path.join(ARTIFACTS, "layout_mobile_expanded.png") });
       await page.click("#vitalsToggle");
       await page.evaluate(() => window.scrollTo(0, 0));
-      await page.screenshot({ path: path.join(ARTIFACTS, "followup_mobile_nav.png") });
+      await page.screenshot({ path: path.join(ARTIFACTS, "layout_mobile_collapsed.png") });
       await page.setViewport({ width: 1440, height: 900 });
       await page.evaluate(() => window.scrollTo(0, 0));
-      await page.screenshot({ path: path.join(ARTIFACTS, "followup_desktop_nav.png") });
+      await page.screenshot({ path: path.join(ARTIFACTS, "layout_desktop_collapsed.png") });
       await page.click("#vitalsToggle");
       await page.evaluate(() => window.scrollTo(0, 0));
-      await page.screenshot({ path: path.join(ARTIFACTS, "followup_desktop_vitals_open.png") });
+      await page.screenshot({ path: path.join(ARTIFACTS, "layout_desktop_expanded.png") });
     } finally {
       await context.close();
     }
@@ -496,6 +515,7 @@ describe("Mission Control UI", { timeout: 120000 }, () => {
       assert.equal(await page.evaluate(() => localStorage.getItem("mcVitalsOpen")), null);
 
       await page.setViewport({ width: 390, height: 844 });
+      await page.evaluate(() => new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve))));
       const closed = await page.evaluate(() => ({
         open: document.querySelector(".mcnav").classList.contains("tools-open"),
         expanded: document.getElementById("toolsBtn").getAttribute("aria-expanded"),

@@ -63,8 +63,8 @@ h1{font-weight:700;font-size:clamp(30px,4.6vw,50px);line-height:1.03;margin:0;le
 .wstat .s2{font-size:14px;color:var(--text)}
 .lead3{display:grid;grid-template-columns:2fr 1fr;grid-template-areas:"move board" "vitals vitals";gap:18px;align-items:start;margin-bottom:24px}
 .lead3 #oneMove{grid-area:move;margin:0}.lead3 #boardSec{grid-area:board;margin:0}.lead3 .vitals{grid-area:vitals;margin:0}
-.shell{display:grid;grid-template-columns:minmax(0,2fr) minmax(300px,1fr);grid-template-areas:"left right" "stats stats";gap:16px 22px;align-items:start;margin-bottom:12px}
-.sh-left{grid-area:left}.sh-right{grid-area:right}.shell>.t-vitals{grid-area:stats;min-width:0}
+.shell{display:grid;grid-template-columns:minmax(0,2fr) minmax(300px,1fr);grid-template-areas:"left right";gap:16px 22px;align-items:start;margin-bottom:12px}
+.sh-left{grid-area:left;min-width:0}.sh-right{grid-area:right}
 .sh-left,.sh-right{display:flex;flex-direction:column;gap:16px;min-width:0}
 .sh-left .greet{margin:0}.sh-left .tabs{margin:0}.sh-left .onemove,.sh-left .vitals,.sh-right #boardSec{margin:0}
 .sh-right .nowbox{margin-left:0;justify-content:flex-end;flex-wrap:nowrap}.sh-right .nowbox>*{flex:0 1 auto;min-width:0}
@@ -396,6 +396,9 @@ details.more2{margin-top:12px}details.more2 summary{cursor:pointer;font:700 13px
 .mcnav.tools-open .tools-menu{display:flex;flex-direction:column;align-items:stretch;position:absolute;top:calc(100% + 6px);right:8px;z-index:40;min-width:min(280px,calc(100vw - 32px));padding:8px;border:1px solid var(--line);border-radius:14px;background:var(--surface);box-shadow:var(--shadow)}
 .mcnav.tools-open .tools-menu .mcnav-item{width:100%;justify-content:flex-start}
 }
+.sh-left .t-vitals{min-width:0;max-width:100%}
+.sh-left .vitals-toggle{width:auto;max-width:100%;min-height:40px;padding:8px 12px}
+.sh-left #tabToday,.sh-left .cols{min-width:0;max-width:100%}
 </style></head><body class="t-today"><main>
 <nav class="mcnav" aria-label="Mission Control">
   <div class="mcnav-row">
@@ -437,14 +440,6 @@ details.more2{margin-top:12px}details.more2 summary{cursor:pointer;font:700 13px
   </div>
 
 <div class="big today-only t-move"><div class="onemove" id="oneMove" hidden></div></div>
-</div>
-<div class="sh-right">
-<div class="nowbox">
-  <div class="clock"><div id="hdrTime">--</div><div class="day" id="hdrDay"></div><div class="tz">Trinidad time (AST)</div></div>
-  <button type="button" class="wstat" id="stat" title="Jump to Waiting on me"><div class="s">Waiting on Miles</div><div class="b need" id="statN">--</div><div class="s2" id="statS"></div></button>
-</div>
-<section class="big brd today-only" id="boardSec" hidden><h2>The Board Room</h2><p class="cap" id="boardCap"></p><div id="board"></div></section>
-</div>
 <div class="big today-only t-vitals" id="vitalsWrap">
   <button type="button" class="vitals-toggle" id="vitalsToggle" aria-expanded="false" aria-controls="vitals">
     <svg class="nav-ico chev" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M9 5.5 15.5 12 9 18.5"/></svg>
@@ -453,7 +448,6 @@ details.more2{margin-top:12px}details.more2 summary{cursor:pointer;font:700 13px
     <span class="vitals-hint" id="vitalsHint">Show</span>
   </button>
   <div class="vitals" id="vitals" role="region" aria-labelledby="vitalsToggleLabel" hidden></div>
-</div>
 </div>
 <div id="tabToday">
 <div class="cols">
@@ -480,6 +474,15 @@ details.more2{margin-top:12px}details.more2 summary{cursor:pointer;font:700 13px
 <div class="stack">
     <section><h2>The office</h2><p class="cap" id="ocap">Who is working right now and who is idle.</p><div id="office"></div></section>
     <section class="big"><h2>Today's brief</h2><p class="cap" id="bcap"></p><ol id="brief"></ol><div class="links" id="blinks"></div></section>
+</div>
+</div>
+</div>
+<div class="sh-right">
+<div class="nowbox">
+  <div class="clock"><div id="hdrTime">--</div><div class="day" id="hdrDay"></div><div class="tz">Trinidad time (AST)</div></div>
+  <button type="button" class="wstat" id="stat" title="Jump to Waiting on me"><div class="s">Waiting on Miles</div><div class="b need" id="statN">--</div><div class="s2" id="statS"></div></button>
+</div>
+<section class="big brd today-only" id="boardSec" hidden><h2>The Board Room</h2><p class="cap" id="boardCap"></p><div id="board"></div></section>
 </div>
 </div>
 <div id="tabVillas" class="big tabpane" hidden></div>
