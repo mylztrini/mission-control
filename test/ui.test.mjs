@@ -113,24 +113,39 @@ async function ready(page) {
   }, { timeout: 15000 });
 }
 
+// Task-start positions measured on PR 2 head 204ab3d (stats collapsed, synthetic fixture).
+const PR2_TASK_TOP = { desktop: 660, mobile: 601 };
+
 async function metrics(page) {
   return page.evaluate(() => {
     const task = document.getElementById("wlist").closest("section").getBoundingClientRect();
     const shell = document.querySelector(".shell").getBoundingClientRect();
+    const left = document.querySelector(".sh-left").getBoundingClientRect();
     const toggle = document.getElementById("vitalsToggle").getBoundingClientRect();
+    const move = document.getElementById("oneMove").getBoundingClientRect();
+    const board = document.getElementById("boardSec").getBoundingClientRect();
     const cards = [...document.querySelectorAll("#vitals .vital")].map((el) => el.getBoundingClientRect());
     const tabs = document.querySelector(".tabs");
     return {
       taskTop: task.top,
       shellW: shell.width,
+      leftRight: left.right,
+      leftLeft: left.left,
+      toggleRight: toggle.right,
+      toggleTop: toggle.top,
+      moveBottom: move.bottom,
+      boardTop: board.top,
+      boardBottom: board.bottom,
       toggleW: toggle.width,
+      toggleH: toggle.height,
       panelHidden: document.getElementById("vitals").hidden,
       expanded: document.getElementById("vitalsToggle").getAttribute("aria-expanded"),
-      cards: cards.map((c) => ({ top: Math.round(c.top), left: Math.round(c.left), h: Math.round(c.height) })),
+      cards: cards.map((c) => ({ top: Math.round(c.top), left: Math.round(c.left), right: Math.round(c.right), h: Math.round(c.height) })),
       overflow: document.documentElement.scrollWidth - document.documentElement.clientWidth,
       tabsClient: tabs.clientWidth,
       tabsScroll: tabs.scrollWidth,
-      vh: window.innerHeight
+      vh: window.innerHeight,
+      vw: window.innerWidth
     };
   });
 }
@@ -169,6 +184,9 @@ describe("Mission Control UI", { timeout: 120000 }, () => {
     assert.match(html, /post\(\{ key, action, note, keep_open: false \}\)/);
     assert.equal(html.includes(SYNTH_KEY), false);
     assert.equal(html.includes("mcVitalsOpen"), true);
+    assert.equal(html.includes("mcNetworthOpen"), true);
+    assert.equal(html.includes('class="xbar"'), false);
+    assert.equal(html.includes('id="toolsMenu"'), true);
   });
 
   it("collapses villa stats on a fresh visit, toggles from the keyboard, and remembers the choice", async () => {
@@ -327,17 +345,20 @@ describe("Mission Control UI", { timeout: 120000 }, () => {
       await ready(page);
       const desktopClosed = await metrics(page);
       assert.equal(desktopClosed.panelHidden, true);
-      assert.ok(desktopClosed.toggleW > desktopClosed.shellW * 0.9, `toggle width ${desktopClosed.toggleW} shell ${desktopClosed.shellW}`);
+      assert.ok(desktopClosed.toggleW < desktopClosed.shellW * 0.75, `collapsed stats should stay in the left column (${desktopClosed.toggleW} vs shell ${desktopClosed.shellW})`);
+      assert.ok(desktopClosed.toggleRight <= desktopClosed.leftRight + 2, `collapsed stats reach ${desktopClosed.toggleRight}, column ends ${desktopClosed.leftRight}`);
+      assert.ok(desktopClosed.toggleTop >= desktopClosed.moveBottom - 2 && desktopClosed.toggleTop < desktopClosed.moveBottom + 40, `stats top ${desktopClosed.toggleTop} vs one move bottom ${desktopClosed.moveBottom}`);
+      assert.ok(desktopClosed.toggleH <= 52, `collapsed disclosure is ${desktopClosed.toggleH}px tall`);
+      assert.ok(desktopClosed.taskTop < desktopClosed.boardBottom - 20, `board still pushes tasks (${desktopClosed.taskTop} vs board bottom ${desktopClosed.boardBottom})`);
+      assert.ok(desktopClosed.taskTop <= PR2_TASK_TOP.desktop - 80, `desktop tasks start at ${desktopClosed.taskTop}, previous PR2 was ${PR2_TASK_TOP.desktop}`);
       assert.ok(desktopClosed.overflow <= 1, `desktop overflow ${desktopClosed.overflow}`);
-      assert.ok(desktopClosed.taskTop < desktopClosed.vh, `desktop tasks start at ${desktopClosed.taskTop}`);
 
       await page.click("#vitalsToggle");
       const desktopOpen = await metrics(page);
       assert.equal(desktopOpen.panelHidden, false);
       assert.equal(desktopOpen.cards.length, 4);
-      const tops = desktopOpen.cards.map((c) => c.top);
-      assert.ok(Math.max(...tops) - Math.min(...tops) < 8, `desktop cards should share a row: ${JSON.stringify(tops)}`);
-      assert.ok(desktopOpen.taskTop > desktopClosed.taskTop + 80, `tasks moved ${desktopOpen.taskTop - desktopClosed.taskTop}px`);
+      assert.ok(desktopOpen.cards.every((c) => c.right <= desktopOpen.leftRight + 2 && c.left >= desktopOpen.leftLeft - 2), `expanded stats leave the left column ${JSON.stringify(desktopOpen.cards)}`);
+      assert.ok(desktopOpen.taskTop > desktopClosed.taskTop + 40, `tasks moved ${desktopOpen.taskTop - desktopClosed.taskTop}px`);
 
       await page.click("#vitalsToggle");
       await page.setViewport({ width: 390, height: 844 });
@@ -346,11 +367,14 @@ describe("Mission Control UI", { timeout: 120000 }, () => {
       assert.ok(mobileClosed.overflow <= 1, `mobile overflow ${mobileClosed.overflow}`);
       assert.ok(mobileClosed.tabsScroll > mobileClosed.tabsClient + 20, `tabs should scroll inside the row (${mobileClosed.tabsScroll} vs ${mobileClosed.tabsClient})`);
       assert.ok(mobileClosed.taskTop < mobileClosed.vh, `mobile tasks start at ${mobileClosed.taskTop} in ${mobileClosed.vh}`);
-      const prop = await page.evaluate(() => {
-        const r = document.getElementById("propertySite").getBoundingClientRect();
-        return { right: r.right, vw: window.innerWidth };
-      });
-      assert.ok(prop.right <= prop.vw - 4, `property link clipped at ${prop.right} of ${prop.vw}`);
+      assert.ok(mobileClosed.taskTop <= PR2_TASK_TOP.mobile + 8, `mobile tasks start at ${mobileClosed.taskTop}, previous PR2 was ${PR2_TASK_TOP.mobile}`);
+      const mobileOrder = await page.evaluate(() => ({
+        nav: document.querySelector(".mcnav").getBoundingClientRect().top,
+        task: document.getElementById("wlist").closest("section").getBoundingClientRect().top,
+        board: document.getElementById("boardSec").getBoundingClientRect().top
+      }));
+      assert.ok(mobileOrder.nav < 80, `nav should sit at the top, got ${mobileOrder.nav}`);
+      assert.ok(mobileOrder.task < mobileOrder.board, `tasks ${mobileOrder.task} should come before the board ${mobileOrder.board}`);
 
       await page.click("#vitalsToggle");
       const mobileOpen = await metrics(page);
@@ -369,16 +393,16 @@ describe("Mission Control UI", { timeout: 120000 }, () => {
         bar.style.cssText = "position:sticky;top:0;z-index:80;background:#3a2a00;color:#ffe7a3;font:700 13px/1.3 Arial,sans-serif;text-align:center;padding:6px 10px";
         document.body.prepend(bar);
       });
-      await page.screenshot({ path: path.join(ARTIFACTS, "mobile_expanded_stats.png") });
+      await page.screenshot({ path: path.join(ARTIFACTS, "layout_mobile_expanded.png") });
       await page.click("#vitalsToggle");
       await page.evaluate(() => window.scrollTo(0, 0));
-      await page.screenshot({ path: path.join(ARTIFACTS, "mobile_collapsed_stats.png") });
+      await page.screenshot({ path: path.join(ARTIFACTS, "layout_mobile_collapsed.png") });
       await page.setViewport({ width: 1440, height: 900 });
       await page.evaluate(() => window.scrollTo(0, 0));
-      await page.screenshot({ path: path.join(ARTIFACTS, "desktop_collapsed_stats.png") });
+      await page.screenshot({ path: path.join(ARTIFACTS, "layout_desktop_collapsed.png") });
       await page.click("#vitalsToggle");
       await page.evaluate(() => window.scrollTo(0, 0));
-      await page.screenshot({ path: path.join(ARTIFACTS, "desktop_expanded_stats.png") });
+      await page.screenshot({ path: path.join(ARTIFACTS, "layout_desktop_expanded.png") });
     } finally {
       await context.close();
     }
@@ -446,6 +470,190 @@ describe("Mission Control UI", { timeout: 120000 }, () => {
       assert.equal(await page.$eval("#tabToday", (el) => el.hidden), false);
       assert.match(await page.$eval("#wlist", (el) => el.textContent), /Synthetic follow-up/);
       assert.equal(commands.length, 2);
+      assert.equal(leaked.length, 0);
+      assert.deepEqual(errors, []);
+    } finally {
+      await context.close();
+    }
+  });
+
+  it("uses one top navigation and keeps every destination working", async () => {
+    const commands = [];
+    const leaked = [];
+    const { context, page, errors } = await openPage(browser, commands, leaked);
+    try {
+      await page.setViewport({ width: 1440, height: 900 });
+      await page.goto(base, { waitUntil: "domcontentloaded", timeout: 20000 });
+      await ready(page);
+      const desk = await page.evaluate(() => {
+        const bar = document.querySelector(".mcnav").getBoundingClientRect();
+        const greet = document.querySelector(".greet").getBoundingClientRect();
+        const menu = document.getElementById("toolsMenu").getBoundingClientRect();
+        const site = document.getElementById("villasSite").getBoundingClientRect();
+        const selected = [...document.querySelectorAll(".tabs button[data-tab]")].filter((b) => b.getAttribute("aria-selected") === "true").map((b) => b.dataset.tab);
+        return {
+          barTop: bar.top, barW: bar.width, greetTop: greet.top, shellW: document.querySelector(".shell").getBoundingClientRect().width,
+          menuH: menu.height, siteW: site.width, toolsDisplay: getComputedStyle(document.getElementById("toolsBtn")).display,
+          selected, xbar: document.querySelector(".xbar"),
+          inNav: !!(document.querySelector(".mcnav #duLink") && document.querySelector(".mcnav .tabs"))
+        };
+      });
+      assert.equal(desk.xbar, null);
+      assert.equal(desk.inNav, true);
+      assert.ok(desk.barTop < desk.greetTop, "navigation sits above the greeting");
+      assert.ok(desk.barW > desk.shellW * 0.9);
+      assert.ok(desk.menuH > 20 && desk.siteW > 20, "desktop tools are in the bar");
+      assert.equal(desk.toolsDisplay, "none");
+      assert.deepEqual(desk.selected, ["today"]);
+      assert.ok((await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth)) <= 1);
+
+      for (const tab of ["villas", "money", "growth", "helpdesk", "org", "activity", "routines", "today"]) {
+        await page.click(`.tabs button[data-tab="${tab}"]`);
+        const on = await page.evaluate((name) => [...document.querySelectorAll(".tabs button[data-tab]")].filter((b) => b.getAttribute("aria-selected") === "true").map((b) => b.dataset.tab), tab);
+        assert.deepEqual(on, [tab]);
+      }
+      assert.equal(await page.evaluate(() => localStorage.getItem("mcVitalsOpen")), null);
+
+      await page.setViewport({ width: 390, height: 844 });
+      await page.evaluate(() => new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve))));
+      const closed = await page.evaluate(() => ({
+        open: document.querySelector(".mcnav").classList.contains("tools-open"),
+        expanded: document.getElementById("toolsBtn").getAttribute("aria-expanded"),
+        menu: getComputedStyle(document.getElementById("toolsMenu")).display
+      }));
+      assert.equal(closed.open, false);
+      assert.equal(closed.expanded, "false");
+      assert.equal(closed.menu, "none");
+      await page.focus("#toolsBtn");
+      await page.keyboard.press("Enter");
+      const opened = await page.evaluate((key) => {
+        const prop = document.getElementById("propertySite").getBoundingClientRect();
+        const text = document.getElementById("toolsMenu").innerText;
+        return {
+          expanded: document.getElementById("toolsBtn").getAttribute("aria-expanded"),
+          menu: getComputedStyle(document.getElementById("toolsMenu")).display,
+          focusInMenu: document.getElementById("toolsMenu").contains(document.activeElement),
+          propRight: prop.right,
+          vw: window.innerWidth,
+          leakedKey: text.includes(key),
+          labels: ["duLink", "villasSite", "propertySite", "aBtn", "phoneSetup"].map((id) => document.getElementById(id).querySelector(".pill-label").textContent)
+        };
+      }, SYNTH_KEY);
+      assert.equal(opened.expanded, "true");
+      assert.equal(opened.menu, "flex");
+      assert.equal(opened.focusInMenu, true);
+      assert.ok(opened.propRight <= opened.vw - 4, `property link clipped at ${opened.propRight}`);
+      assert.equal(opened.leakedKey, false);
+      assert.deepEqual(opened.labels, ["Daily Update", "Villas site", "Property site", "Play the latest JARVIS brief", "Copy key for phone app"]);
+      fs.mkdirSync(ARTIFACTS, { recursive: true });
+      await page.evaluate(() => {
+        if (document.getElementById("syntheticBanner")) return;
+        const bar = document.createElement("div");
+        bar.id = "syntheticBanner";
+        bar.textContent = "SYNTHETIC FIXTURE — not live Mission Control data";
+        bar.style.cssText = "position:sticky;top:0;z-index:80;background:#3a2a00;color:#ffe7a3;font:700 13px/1.3 Arial,sans-serif;text-align:center;padding:6px 10px";
+        document.body.prepend(bar);
+      });
+      await page.screenshot({ path: path.join(ARTIFACTS, "followup_mobile_tools.png") });
+      await page.click("#aBtn");
+      await page.waitForFunction(() => document.getElementById("aLab").textContent.includes("Couldn't load"));
+      await page.click("#phoneSetup");
+      const phoneText = await page.$eval("#phoneSetup", (el) => el.innerText);
+      assert.equal(phoneText.includes(SYNTH_KEY), false);
+      await page.keyboard.press("Escape");
+      assert.equal(await page.$eval("#toolsBtn", (el) => el.getAttribute("aria-expanded")), "false");
+      assert.equal(await page.evaluate(() => document.activeElement && document.activeElement.id), "toolsBtn");
+      assert.equal(commands.length, 0);
+      assert.equal(leaked.length, 0);
+      assert.deepEqual(errors, []);
+    } finally {
+      await context.close();
+    }
+  });
+
+  it("collapses net worth on a fresh visit without changing villa stats", async () => {
+    const commands = [];
+    const leaked = [];
+    const { context, page, errors } = await openPage(browser, commands, leaked);
+    try {
+      await page.setViewport({ width: 1440, height: 900 });
+      await page.goto(base, { waitUntil: "domcontentloaded", timeout: 20000 });
+      await ready(page);
+      await page.click('.tabs button[data-tab="money"]');
+      await page.waitForSelector("#nwDisclosure");
+      const fresh = await page.evaluate(() => ({
+        expanded: document.getElementById("nwDisclosure").getAttribute("aria-expanded"),
+        controls: document.getElementById("nwDisclosure").getAttribute("aria-controls"),
+        hidden: document.getElementById("nwPanel").hidden,
+        hint: document.getElementById("nwHint").textContent,
+        stored: localStorage.getItem("mcNetworthOpen"),
+        vitals: localStorage.getItem("mcVitalsOpen"),
+        vitalsExpanded: document.getElementById("vitalsToggle").getAttribute("aria-expanded")
+      }));
+      assert.equal(fresh.expanded, "false");
+      assert.equal(fresh.controls, "nwPanel");
+      assert.equal(fresh.hidden, true);
+      assert.equal(fresh.hint, "Show");
+      assert.equal(fresh.stored, null);
+      assert.equal(fresh.vitals, null);
+      assert.equal(fresh.vitalsExpanded, "false");
+      const focusedInside = await page.evaluate(() => {
+        document.getElementById("nwTog").focus();
+        return document.getElementById("nwPanel").contains(document.activeElement);
+      });
+      assert.equal(focusedInside, false);
+
+      await page.focus("#nwDisclosure");
+      await page.keyboard.press("Enter");
+      const opened = await page.evaluate(() => ({
+        expanded: document.getElementById("nwDisclosure").getAttribute("aria-expanded"),
+        hidden: document.getElementById("nwPanel").hidden,
+        hint: document.getElementById("nwHint").textContent,
+        stored: localStorage.getItem("mcNetworthOpen"),
+        note: document.getElementById("nwPanel").innerText.includes("Synthetic snapshot"),
+        vitals: localStorage.getItem("mcVitalsOpen")
+      }));
+      assert.equal(opened.expanded, "true");
+      assert.equal(opened.hidden, false);
+      assert.equal(opened.hint, "Hide");
+      assert.equal(opened.stored, "1");
+      assert.equal(opened.note, true);
+      assert.equal(opened.vitals, null);
+
+      await page.reload({ waitUntil: "domcontentloaded" });
+      await ready(page);
+      await page.click('.tabs button[data-tab="money"]');
+      await page.waitForSelector("#nwDisclosure");
+      assert.equal(await page.$eval("#nwDisclosure", (el) => el.getAttribute("aria-expanded")), "true");
+      assert.equal(await page.$eval("#vitalsToggle", (el) => el.getAttribute("aria-expanded")), "false");
+
+      await page.click("#nwTog");
+      await page.waitForFunction(() => document.getElementById("nwBox") && !document.getElementById("nwBox").classList.contains("blurred"));
+      assert.equal(await page.$eval("#nwPanel", (el) => el.hidden), false);
+      assert.equal(commands.length, 0);
+
+      await page.focus("#nwDisclosure");
+      await page.keyboard.press("Space");
+      assert.equal(await page.evaluate(() => localStorage.getItem("mcNetworthOpen")), "0");
+      assert.equal(await page.$eval("#nwPanel", (el) => el.hidden), true);
+      await page.reload({ waitUntil: "domcontentloaded" });
+      await ready(page);
+      await page.click('.tabs button[data-tab="money"]');
+      await page.waitForSelector("#nwPanel");
+      assert.equal(await page.$eval("#nwPanel", (el) => el.hidden), true);
+
+      fs.mkdirSync(ARTIFACTS, { recursive: true });
+      await page.evaluate(() => {
+        if (document.getElementById("syntheticBanner")) return;
+        const bar = document.createElement("div");
+        bar.id = "syntheticBanner";
+        bar.textContent = "SYNTHETIC FIXTURE — not live Mission Control data";
+        bar.style.cssText = "position:sticky;top:0;z-index:80;background:#3a2a00;color:#ffe7a3;font:700 13px/1.3 Arial,sans-serif;text-align:center;padding:6px 10px";
+        document.body.prepend(bar);
+      });
+      await page.screenshot({ path: path.join(ARTIFACTS, "followup_networth_collapsed.png") });
+      await page.click("#nwDisclosure");
+      await page.screenshot({ path: path.join(ARTIFACTS, "followup_networth_expanded.png") });
       assert.equal(leaked.length, 0);
       assert.deepEqual(errors, []);
     } finally {
