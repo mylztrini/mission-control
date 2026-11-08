@@ -42,8 +42,12 @@ h1,h2,.kpi .b,.num{font-family:var(--font-display)}
 .eyebrow{font-family:var(--font-mono);font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--accent);margin:0;font-weight:600}
 h1{font-weight:700;font-size:clamp(30px,4.6vw,50px);line-height:1.03;margin:0;letter-spacing:-.03em;text-wrap:balance}
 .summary{color:var(--muted);margin:8px 0 0;max-width:760px}
-.xbar{display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px;margin-top:14px}
-.pill{display:inline-flex;align-items:center;gap:6px;padding:8px 14px;border-radius:999px;font:600 14px var(--font-ui);text-decoration:none;color:var(--text);background:color-mix(in oklab,var(--accent) 22%,var(--surface));border:1px solid color-mix(in oklab,var(--accent) 55%,var(--line));cursor:pointer}
+.xbar{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-top:12px}
+.nav-ico{width:18px;height:18px;flex:0 0 auto;display:block;fill:none;stroke:currentColor;stroke-width:1.75;stroke-linecap:round;stroke-linejoin:round}
+.nav-ico *{fill:none;stroke:inherit;stroke-width:inherit;stroke-linecap:inherit;stroke-linejoin:inherit}
+.nav-ico .solid{fill:currentColor;stroke:none}
+.pill{display:inline-flex;align-items:center;gap:8px;padding:8px 12px;border-radius:999px;font:600 14px var(--font-ui);text-decoration:none;color:var(--text);background:color-mix(in oklab,var(--accent) 22%,var(--surface));border:1px solid color-mix(in oklab,var(--accent) 55%,var(--line));cursor:pointer}
+.pill .nav-ico{width:16px;height:16px}
 .pill:hover{background:color-mix(in oklab,var(--accent) 34%,var(--surface))}.pill:disabled{opacity:.6;cursor:default}
 .ab-lab{font-size:12px;color:var(--muted)}
 #aPlayer{width:100%;max-width:420px;height:36px}
@@ -59,14 +63,16 @@ h1{font-weight:700;font-size:clamp(30px,4.6vw,50px);line-height:1.03;margin:0;le
 .wstat .s2{font-size:14px;color:var(--text)}
 .lead3{display:grid;grid-template-columns:2fr 1fr;grid-template-areas:"move board" "vitals vitals";gap:18px;align-items:start;margin-bottom:24px}
 .lead3 #oneMove{grid-area:move;margin:0}.lead3 #boardSec{grid-area:board;margin:0}.lead3 .vitals{grid-area:vitals;margin:0}
-.shell{display:grid;grid-template-columns:minmax(0,2fr) minmax(330px,1fr);gap:18px 24px;align-items:start;margin-bottom:24px}
+.shell{display:grid;grid-template-columns:minmax(0,2fr) minmax(300px,1fr);grid-template-areas:"left right" "stats stats";gap:16px 22px;align-items:start;margin-bottom:12px}
+.sh-left{grid-area:left}.sh-right{grid-area:right}.shell>.t-vitals{grid-area:stats;min-width:0}
 .sh-left,.sh-right{display:flex;flex-direction:column;gap:16px;min-width:0}
 .sh-left .greet{margin:0}.sh-left .tabs{margin:0}.sh-left .onemove,.sh-left .vitals,.sh-right #boardSec{margin:0}
 .sh-right .nowbox{margin-left:0;justify-content:flex-end;flex-wrap:nowrap}.sh-right .nowbox>*{flex:0 1 auto;min-width:0}
 .clock #hdrTime,.clock .day,.wstat .s{white-space:nowrap}
 body:not(.t-today) .today-only{display:none!important}
-@media (max-width:720px){.shell{grid-template-columns:minmax(0,1fr);gap:14px}.shell>*,.sh-left>*,.sh-right>*{min-width:0}.sh-right .nowbox{gap:8px}.wstat .s,.clock .day{white-space:normal}.sh-left,.sh-right{display:contents}
-.sh-right .nowbox{order:1;width:100%}.sh-right .nowbox>*{flex:1 1 0}.sh-left .greet{order:2}.sh-left .tabs{order:3}.t-move{order:4}.t-vitals{order:5}.sh-right #boardSec{order:6}}
+@media (max-width:720px){.shell{grid-template-columns:minmax(0,1fr);grid-template-areas:none;gap:12px}.shell>*,.sh-left>*,.sh-right>*{min-width:0}.shell>.t-vitals,.sh-left,.sh-right{grid-area:auto}.sh-right .nowbox{gap:8px}.wstat .s,.clock .day{white-space:normal}.sh-left,.sh-right{display:contents}
+.sh-right .nowbox{order:1;width:100%}.sh-right .nowbox>*{flex:1 1 0}.sh-left .greet{order:2}.sh-left .tabs{order:3}.t-move{order:4}.t-vitals{order:5}#tabToday>.cols{order:6}#tabToday>.stack{order:7}.sh-right #boardSec{order:8}
+}
 .cols{display:flex;flex-wrap:wrap;gap:28px;align-items:flex-start}
 .left{flex:1 1 340px;min-width:0}.right{flex:1.3 1 420px;min-width:0;display:flex;flex-direction:column;gap:28px}
 .stack{display:flex;flex-direction:column;gap:28px;margin-top:28px}
@@ -106,7 +112,8 @@ td{padding:8px;border-bottom:1px solid var(--bd2);vertical-align:top}
 .two{display:flex;flex-wrap:wrap;gap:28px}.two>section{flex:1 1 320px;min-width:0}
 @media (max-width:720px){.bridge{grid-template-columns:1fr}
 .lead3{grid-template-columns:1fr;grid-template-areas:"move" "vitals" "board"}
-.nowbox{width:100%;margin-left:0}.nowbox>*{flex:1 1 0}.clock{text-align:left;padding:10px 14px}.clock #hdrTime{font-size:30px}.wstat{padding:10px 14px}.wstat .b{font-size:34px}}
+.nowbox{width:100%;margin-left:0}.nowbox>*{flex:1 1 0}.clock{text-align:left;padding:10px 14px}.clock #hdrTime{font-size:30px}.wstat{padding:10px 14px}.wstat .b{font-size:34px}
+.xbar{gap:8px}.pill{padding:8px 11px}}
 .btn:focus-visible,.chip:focus-visible,.pill:focus-visible{outline:2px solid var(--accent);outline-offset:3px}
 
 /* The office (readable HTML layout) */
@@ -126,9 +133,11 @@ td{padding:8px;border-bottom:1px solid var(--bd2);vertical-align:top}
 .oidle a:hover{border-color:var(--accent)}.oidle .oav{grid-row:1/3}.oidle .oname{font-size:15px}.oidle .olast{margin-top:0}
 .obot:focus-visible,.oidle a:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 /* ---- Org tab (added Oct 31 2026): JARVIS HQ org chart, data = org.json via GET /org ---- */
-.tabs{display:flex;gap:6px;margin:-6px 0 22px;border-bottom:1px solid var(--line);flex-wrap:wrap}
-.tabs button{font:600 12px var(--font-mono);letter-spacing:.14em;text-transform:uppercase;color:var(--muted);background:none;border:0;border-bottom:2px solid transparent;padding:10px 14px;cursor:pointer;margin-bottom:-1px}
-.tabs button[aria-selected=true]{color:var(--accent-ink);border-bottom-color:var(--accent)}
+.tabs{display:flex;gap:4px;margin:2px 0 12px;border-bottom:1px solid var(--line);flex-wrap:wrap;min-width:0}
+.tabs button{display:inline-flex;align-items:center;gap:8px;font:600 12px var(--font-mono);letter-spacing:.06em;text-transform:uppercase;color:var(--muted);background:none;border:0;border-bottom:2px solid transparent;padding:10px 12px;cursor:pointer;margin-bottom:-1px;border-radius:10px 10px 0 0;white-space:nowrap}
+.tabs button[aria-selected=true]{color:var(--accent-ink);border-bottom-color:var(--accent);background:color-mix(in oklab,var(--accent) 12%,transparent)}
+.tabs button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.tabs .nav-ico{width:16px;height:16px}.tabs .tab-label{line-height:1.2}
 .tabs .tcount{display:inline-block;min-width:18px;margin-left:6px;padding:0 6px;border-radius:9px;background:var(--pink);color:#fff;font-size:10.5px;letter-spacing:0}
 :root{--pink:#e5383b;--gold:#ff9f1c}
 .og-top{display:flex;flex-wrap:wrap;gap:10px 18px;align-items:center;justify-content:space-between;margin-bottom:16px}
@@ -211,6 +220,23 @@ td{padding:8px;border-bottom:1px solid var(--bd2);vertical-align:top}
 #tabOrg .gaps,#tabOrg .rules{grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:14px;font-size:16px}
 #tabOrg .gap h4{font-size:17px}#tabOrg .retired span{font-size:15px;padding:4px 10px}
 @media (max-width:640px){#tabOrg .divs,#tabOrg .kbars,#tabOrg .gaps,#tabOrg .rules{grid-template-columns:1fr}#tabOrg .og-stats{grid-template-columns:repeat(2,1fr)}#tabOrg .div{padding:14px}#tabOrg .seat .sn{font-size:18px}.tabs button{font-size:14px;padding:12px 12px}}
+@media (max-width:720px){
+main{display:flex;flex-direction:column;gap:12px}
+.shell,.sh-left,.sh-right,#tabToday{display:contents}
+#tabToday[hidden]{display:none!important}
+.nowbox{order:1;width:100%}
+.greet{order:2}.tabs{order:3}.t-move{order:4}.t-vitals{order:5}
+#tabToday>.cols,main>.tabpane,#tabOrg{order:6}
+#tabToday>.stack{order:7}
+#boardSec{order:8}
+.xbar{flex-wrap:nowrap;overflow-x:auto;overscroll-behavior-x:contain;max-width:100%;padding-bottom:2px}
+.xbar .pill{flex:0 0 auto;font-size:13px;padding:7px 9px}
+.tabs{flex-wrap:nowrap;overflow-x:auto;overscroll-behavior-x:contain;min-width:0;max-width:100%;scroll-snap-type:x proximity;padding-bottom:4px;-webkit-overflow-scrolling:touch}
+.tabs button{flex:0 0 auto;scroll-snap-align:start}
+.cols{gap:16px;width:100%}.right{gap:16px}.stack{gap:16px;margin-top:0;width:100%}
+section{padding:14px 14px}
+h1{font-size:28px}
+}
 /* ---- Merge with the Operational Brain (Oct 31 2026): Today additions + Villas / Money / Growth tabs ---- */
 .big{font-size:17px;line-height:1.55;--muted:color-mix(in oklab,var(--text) 82%,transparent)}
 .big h2{font-size:22px}.big .cap{font-size:15.5px;color:var(--muted)}
@@ -221,7 +247,16 @@ td{padding:8px;border-bottom:1px solid var(--bd2);vertical-align:top}
 .onemove .hd{font:700 clamp(22px,2.6vw,30px)/1.25 var(--font-display);margin:6px 0 6px;letter-spacing:-.01em}
 .onemove .dt{font-size:17px;line-height:1.55}.onemove .why{font-size:16px;color:var(--muted);margin-top:6px}
 .onemove .adv{font-size:16px;margin-top:10px;padding-top:10px;border-top:1px dashed color-mix(in oklab,var(--pink) 40%,var(--line))}
-.vitals{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:12px;margin:0 0 26px}
+.vitals{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,220px),1fr));gap:12px;margin:12px 0 0}
+.vitals[hidden]{display:none!important}
+.vitals-toggle{width:100%;display:flex;align-items:center;gap:10px;text-align:left;font:700 13px var(--font-mono);letter-spacing:.12em;text-transform:uppercase;color:var(--accent-ink);background:var(--glass);border:1px solid var(--line);border-radius:14px;padding:10px 14px;cursor:pointer;min-height:48px;box-shadow:var(--shadow)}
+.vitals-toggle:hover{border-color:var(--accent)}
+.vitals-toggle:focus-visible{outline:2px solid var(--accent);outline-offset:3px}
+.vitals-toggle .chev{transition:transform .18s ease}
+.vitals-toggle[aria-expanded="true"] .chev{transform:rotate(90deg)}
+.vitals-count{margin-left:auto;font:700 12px var(--font-ui);letter-spacing:0;text-transform:none;color:var(--accent-ink);background:var(--accent-bg);border:1px solid color-mix(in oklab,var(--accent) 35%,transparent);border-radius:999px;min-width:1.6em;text-align:center;padding:1px 8px}
+.vitals-hint{font:600 12.5px var(--font-ui);letter-spacing:0;text-transform:none;color:var(--muted)}
+@media (prefers-reduced-motion:reduce){.vitals-toggle .chev{transition:none}}
 .vital{display:block;text-align:left;font:inherit;color:inherit;cursor:pointer;border:1px solid var(--line);border-radius:14px;padding:12px 16px;background:var(--glass);box-shadow:var(--shadow)}
 .vital:hover{border-color:var(--accent)}
 .vital .s{font:700 12.5px var(--font-mono);letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
@@ -347,17 +382,18 @@ details.more2{margin-top:12px}details.more2 summary{cursor:pointer;font:700 13px
       <div class="row"><button type="submit" id="kgGo">Open</button><label class="rm"><input type="checkbox" id="kgRemember" checked> Remember on this device</label></div>
       <p class="err" id="kgErr" hidden></p>
     </form>
-    <div class="xbar">
-      <a class="pill" id="duLink" href="https://dailyupdate.simplyintense.com/" rel="noreferrer">◆ Daily Update</a>
-      <button class="pill" id="aBtn" type="button">🎧 Play the latest JARVIS brief</button>
-      <button class="pill" id="phoneSetup" type="button" hidden title="Copies the view key to this device's clipboard, for the home-screen app's first launch">📱 Copy key for phone app</button>
+    <nav class="xbar" aria-label="Sites and tools">
+      <a class="pill" id="duLink" href="https://dailyupdate.simplyintense.com/" rel="noreferrer"><svg class="nav-ico" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M7 3.5h7.2L19 8.2V20.5H7z"/><path d="M14 3.5V8.2H19"/><path d="M9.5 12.5h5M9.5 16h3.5"/></svg><span class="pill-label">Daily Update</span></a>
+      <a class="pill" id="villasSite" href="https://villas.tobago.ai" target="_blank" rel="noreferrer noopener" aria-label="Villas site, https://villas.tobago.ai"><svg class="nav-ico" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M4 11.2 12 4.5l8 6.7"/><path d="M6.5 10.2V19.5h11V10.2"/><path d="M10 19.5v-4.2h4V19.5"/></svg><span class="pill-label">Villas site</span></a>
+      <a class="pill" id="propertySite" href="https://property.tobago.ai" target="_blank" rel="noreferrer noopener" aria-label="Property site, https://property.tobago.ai"><svg class="nav-ico" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><rect x="5" y="3" width="14" height="18" rx="1.5"/><path d="M9 7h2M13 7h2M9 11h2M13 11h2M9 15h2M13 15h2"/><path d="M10 21v-3h4v3"/></svg><span class="pill-label">Property site</span></a>
+      <button class="pill" id="aBtn" type="button"><svg class="nav-ico" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="8.25"/><path class="solid" d="M10.2 8.9v6.2L15.6 12z"/></svg><span class="pill-label">Play the latest JARVIS brief</span></button>
+      <button class="pill" id="phoneSetup" type="button" hidden title="Copies the view key to this device's clipboard, for the home-screen app's first launch"><svg class="nav-ico" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="8" cy="15" r="3.25"/><path d="M10.6 13.2 19.5 4.5"/><path d="M16.5 4.5h3v3M15 8.5l2 2"/></svg><span class="pill-label">Copy key for phone app</span></button>
       <span class="ab-lab" id="aLab"></span>
       <audio id="aPlayer" controls preload="none" hidden></audio>
-    </div>
+    </nav>
   </div>
-<nav class="tabs" role="tablist"><button type="button" role="tab" data-tab="today" aria-selected="true">◆ Today<span class="tcount red" id="todayTabCount" hidden></span></button><button type="button" role="tab" data-tab="villas" aria-selected="false">🏝 Villas</button><button type="button" role="tab" data-tab="money" aria-selected="false">$ Money</button><button type="button" role="tab" data-tab="growth" aria-selected="false">↗ Growth</button><button type="button" role="tab" data-tab="helpdesk" aria-selected="false">🎧 Si Helpdesk<span class="tcount hdcrit" id="hdTabCrit" hidden title="Critical tickets"></span><span class="tcount hdconc" id="hdTabConc" hidden title="Concerning tickets"></span></button><button type="button" role="tab" data-tab="org" aria-selected="false">⚑ Org &amp; Systems<span class="tcount" id="orgTabCount" hidden></span></button><button type="button" role="tab" data-tab="activity" aria-selected="false">⚡ Activity</button><button type="button" role="tab" data-tab="routines" aria-selected="false">⏱ Routines<span class="tcount" id="rtTabCount" hidden></span></button></nav>
+<nav class="tabs" role="tablist" aria-label="Sections"><button type="button" role="tab" data-tab="today" aria-selected="true"><svg class="nav-ico" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="3.25"/><path d="M12 3.5v1.8M12 18.7v1.8M3.5 12h1.8M18.7 12h1.8M6.1 6.1l1.3 1.3M16.6 16.6l1.3 1.3M17.9 6.1l-1.3 1.3M7.4 16.6l-1.3 1.3"/></svg><span class="tab-label">Today</span><span class="tcount red" id="todayTabCount" hidden></span></button><button type="button" role="tab" data-tab="villas" aria-selected="false"><svg class="nav-ico" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 21V10.5"/><path d="M12 11c-1.2-3.2-4.6-4.6-7.2-3.6 1.8.6 3.2 2.2 3.6 4.2"/><path d="M12 11c1.2-3.2 4.6-4.6 7.2-3.6-1.8.6-3.2 2.2-3.6 4.2"/><path d="M12 12.2c-2.6.2-4.4 1.6-5.4 3.6M12 12.2c2.6.2 4.4 1.6 5.4 3.6"/></svg><span class="tab-label">Villas</span></button><button type="button" role="tab" data-tab="money" aria-selected="false"><svg class="nav-ico" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><ellipse cx="12" cy="7" rx="7" ry="2.6"/><path d="M5 7v4.2c0 1.5 3.1 2.6 7 2.6s7-1.1 7-2.6V7"/><path d="M5 11.2v4.2c0 1.5 3.1 2.6 7 2.6s7-1.1 7-2.6v-4.2"/></svg><span class="tab-label">Money</span></button><button type="button" role="tab" data-tab="growth" aria-selected="false"><svg class="nav-ico" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M4 16.5 9.5 11l3.8 3.2L20 7"/><path d="M14.5 7H20v5.5"/></svg><span class="tab-label">Growth</span></button><button type="button" role="tab" data-tab="helpdesk" aria-selected="false"><svg class="nav-ico" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M4.5 13a7.5 7.5 0 0 1 15 0"/><path d="M4.5 13v3.2A2.2 2.2 0 0 0 6.7 18.4H8v-5.6H6.6"/><path d="M19.5 13v3.2a2.2 2.2 0 0 1-2.2 2.2H16v-5.6h1.4"/><path d="M12 18.4v1.2a1.8 1.8 0 0 0 1.8 1.8H16"/></svg><span class="tab-label">Si Helpdesk</span><span class="tcount hdcrit" id="hdTabCrit" hidden title="Critical tickets"></span><span class="tcount hdconc" id="hdTabConc" hidden title="Concerning tickets"></span></button><button type="button" role="tab" data-tab="org" aria-selected="false"><svg class="nav-ico" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="12" cy="5" r="2"/><circle cx="6" cy="18.5" r="2"/><circle cx="18" cy="18.5" r="2"/><path d="M12 7v3.2M12 10.2H7.2L6 16.5M12 10.2h4.8L18 16.5"/></svg><span class="tab-label">Org &amp; Systems</span><span class="tcount" id="orgTabCount" hidden></span></button><button type="button" role="tab" data-tab="activity" aria-selected="false"><svg class="nav-ico" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M13 3 5.5 13.5H12l-1 7.5L18.5 10H12l1-7z"/></svg><span class="tab-label">Activity</span></button><button type="button" role="tab" data-tab="routines" aria-selected="false"><svg class="nav-ico" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="8.25"/><path d="M12 7.4V12l3.2 2"/></svg><span class="tab-label">Routines</span><span class="tcount" id="rtTabCount" hidden></span></button></nav>
 <div class="big today-only t-move"><div class="onemove" id="oneMove" hidden></div></div>
-<div class="big today-only t-vitals"><div class="vitals" id="vitals"></div></div>
 </div>
 <div class="sh-right">
 <div class="nowbox">
@@ -365,6 +401,15 @@ details.more2{margin-top:12px}details.more2 summary{cursor:pointer;font:700 13px
   <button type="button" class="wstat" id="stat" title="Jump to Waiting on me"><div class="s">Waiting on Miles</div><div class="b need" id="statN">--</div><div class="s2" id="statS"></div></button>
 </div>
 <section class="big brd today-only" id="boardSec" hidden><h2>The Board Room</h2><p class="cap" id="boardCap"></p><div id="board"></div></section>
+</div>
+<div class="big today-only t-vitals" id="vitalsWrap">
+  <button type="button" class="vitals-toggle" id="vitalsToggle" aria-expanded="false" aria-controls="vitals">
+    <svg class="nav-ico chev" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M9 5.5 15.5 12 9 18.5"/></svg>
+    <span id="vitalsToggleLabel">Villa stats</span>
+    <span class="vitals-count" id="vitalsCount" hidden></span>
+    <span class="vitals-hint" id="vitalsHint">Show</span>
+  </button>
+  <div class="vitals" id="vitals" role="region" aria-labelledby="vitalsToggleLabel" hidden></div>
 </div>
 </div>
 <div id="tabToday">
@@ -450,6 +495,18 @@ window.addEventListener("unhandledrejection", (e) => { if (!window.D_READY) mcSh
 </script>
 <script>
 const $ = (id) => document.getElementById(id);
+// Top villa stats stay collapsed on a fresh visit so Waiting on me is on screen. This browser remembers an explicit open/close.
+function setVitalsOpen(open, persist) {
+  const btn = $("vitalsToggle"), panel = $("vitals"), hint = $("vitalsHint");
+  if (!btn || !panel) return;
+  panel.hidden = !open;
+  btn.setAttribute("aria-expanded", open ? "true" : "false");
+  if (hint) hint.textContent = open ? "Hide" : "Show";
+  if (persist) ST.set("mcVitalsOpen", open ? "1" : "0");
+}
+setVitalsOpen(ST.get("mcVitalsOpen") === "1", false);
+$("vitalsToggle").addEventListener("click", () => setVitalsOpen($("vitalsToggle").getAttribute("aria-expanded") !== "true", true));
+const pillLabel = (el, text) => { const s = el && el.querySelector(".pill-label"); if (s) s.textContent = text; else if (el) el.textContent = text; };
 const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 const MILES_VILLA_RATE = 7.8; // Miles villa rate 7.8: fallback only; the live figure comes from data (villa-rate.js on the box)
 const MILES_BANK_RATE = 6.75; // bank rate 6.75 for cash / payout / in-transit TT$ figures: fallback only; the live figure comes from data (villa-rate.js on the box)
@@ -754,8 +811,10 @@ function renderBrain(force) {
   const om = B.onemove || {};
   $("oneMove").hidden = !om.head;
   $("oneMove").innerHTML = `<div class="lab">Your one move today · from the ${esc(fmtRun(B.as_of))} run</div><div class="hd">${esc(om.head)}</div>${om.detail ? `<div class="dt">${esc(om.detail)}</div>` : ""}${om.why ? `<div class="why">Why: ${esc(om.why)}</div>` : ""}${om.advisor_line ? `<div class="adv">🎩 ${esc(om.advisor_line)}</div>` : ""}`;
-  $("vitals").innerHTML = (B.vitals || []).map((v) => { const pnlBtn = /^Villa profit/.test(v.k || ""), tag = pnlBtn ? "div" : "button";
-    return `<${tag} ${pnlBtn ? `role="button" tabindex="0"` : `type="button"`} class="vital ${v.bad ? "bad" : ""}" data-go="${esc(v.tab)}"><div class="s">${esc(v.k)}</div><div class="b">${esc(v.v ?? "unknown")}</div>${v.sub ? `<div class="u">${esc(v.sub)}</div>` : ""}${v.goal ? `<div class="g">${esc(v.goal)}</div>` : ""}${pnlBtn ? `<a class="pill vpill" href="#tab=villas" data-go="villas" data-sec="villaPnl">See revenue and expenses</a>` : ""}</${tag}>`; }).join("");
+  const vitals = B.vitals || [];
+  $("vitals").innerHTML = vitals.map((v) => { const pnlBtn = /^Villa profit/.test(v.k || ""), tag = pnlBtn ? "div" : "button";
+    return `<${tag} ${pnlBtn ? `role="button" tabindex="0"` : `type="button"`} class="vital ${v.bad ? "bad" : ""}" data-go="${esc(v.tab)}"><div class="s">${esc(v.k)}</div><div class="b">${esc(v.v ?? "unknown")}</div>${v.sub ? `<div class="u">${esc(v.sub)}</div>` : ""}${v.goal ? `<div class="g">${esc(v.goal)}</div>` : ""}${pnlBtn ? `<a class="pill vpill" href="#tab=villas" data-go="villas" data-sec="villaPnl">See revenue and expenses</a>` : ""}</${tag}>`; }).join("") || `<p class="cap">No villa stats in this run.</p>`;
+  const vc = $("vitalsCount"); if (vc) { vc.textContent = vitals.length ? String(vitals.length) : ""; vc.hidden = !vitals.length; }
   // Board Room
   const bd = B.board || {}, tk = bd.take;
   $("boardSec").hidden = !tk && !(bd.scorecards || []).length;
@@ -896,7 +955,7 @@ $("aBtn").addEventListener("click", async () => {
   const p = $("aPlayer");
   if (A.url) { p.hidden = false; p.paused ? p.play().catch(() => {}) : p.pause(); return; }
   if (A.loading || !MCKEY) return;
-  A.loading = true; $("aBtn").disabled = true; $("aBtn").textContent = "🎧 Loading…";
+  A.loading = true; $("aBtn").disabled = true; pillLabel($("aBtn"), "Loading…");
   try {
     const r = await api("audio/latest");
     if (!r.ok) throw new Error(r.status === 404 ? "no brief found" : r.status === 503 ? "not set up yet" : `error ${r.status}`);
@@ -906,8 +965,8 @@ $("aBtn").addEventListener("click", async () => {
     A.url = URL.createObjectURL(blob.type ? blob : new Blob([blob], { type: "audio/mpeg" }));
     p.src = A.url; p.hidden = false;
     await p.play().catch(() => {});
-    $("aBtn").textContent = "🎧 Latest JARVIS brief";
-  } catch (e) { $("aBtn").textContent = "🎧 Play the latest JARVIS brief"; $("aLab").textContent = `Couldn't load the audio (${e.message}).`; }
+    pillLabel($("aBtn"), "Latest JARVIS brief");
+  } catch (e) { pillLabel($("aBtn"), "Play the latest JARVIS brief"); $("aLab").textContent = `Couldn't load the audio (${e.message}).`; }
   finally { A.loading = false; $("aBtn").disabled = false; }
 });
 // Daily Update button: only on click, ask the function (MC key in a header) for the daily-update link with its own
@@ -915,7 +974,7 @@ $("aBtn").addEventListener("click", async () => {
 $("duLink").addEventListener("click", async (e) => {
   if (!MCKEY) return;
   e.preventDefault();
-  const el = $("duLink"); el.textContent = "◆ Opening…";
+  const el = $("duLink"); pillLabel(el, "Opening…");
   try {
     const r = await api("link/daily");
     const j = r.ok ? await r.json() : {};
@@ -952,9 +1011,9 @@ function firstLoad() {
 $("mcErrRetry").addEventListener("click", () => { if (!MCKEY) return location.reload(); MC_OFF = false; firstLoad(); });
 // Phone setup: copies this device's key so it can be pasted into the home-screen app's first launch (stays on the device).
 $("phoneSetup").addEventListener("click", async () => {
-  const b = $("phoneSetup"), t = b.textContent;
-  try { await navigator.clipboard.writeText(MCKEY); b.textContent = "✓ Key copied, paste it on first launch"; } catch { b.textContent = "Couldn't copy here"; }
-  setTimeout(() => (b.textContent = t), 4000);
+  const b = $("phoneSetup"), lab = b.querySelector(".pill-label"), t = lab ? lab.textContent : b.textContent;
+  try { await navigator.clipboard.writeText(MCKEY); pillLabel(b, "Key copied, paste it on first launch"); } catch { pillLabel(b, "Couldn't copy here"); }
+  setTimeout(() => pillLabel(b, t), 4000);
 });
 // Live updates: a cheap version check every 6 s while the tab is visible; re-fetch only when something changed.
 setInterval(async () => {
