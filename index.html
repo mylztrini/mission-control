@@ -365,7 +365,59 @@ details.more2{margin-top:12px}details.more2 summary{cursor:pointer;font:700 13px
 #tabHelpdesk .na .rs span{font:700 15px var(--font-ui);padding:3px 12px;border-radius:999px}#tabHelpdesk .na .meta{font-size:15px;color:var(--text);margin-top:8px}
 #tabHelpdesk .na .lvl{font:800 15px var(--font-ui);padding:2px 10px;border-radius:6px;text-transform:uppercase;letter-spacing:.03em}
 @media (max-width:640px){#tabHelpdesk .kpi{flex:1 1 140px;padding:12px 14px}#tabHelpdesk .kpi .b{font-size:34px}#tabHelpdesk td{font-size:16px}#tabHelpdesk .hdc{grid-template-columns:repeat(2,minmax(0,1fr))}#tabHelpdesk .hdc .n{font-size:30px}}
+
+.mcnav{margin:0 0 14px;border:1px solid var(--line);border-radius:16px;background:var(--glass);box-shadow:var(--shadow);position:relative;min-width:0}
+.mcnav-row{display:flex;align-items:center;min-width:0}
+.mcnav .tabs{flex:1 1 auto;min-width:0;margin:0;border-bottom:0;gap:2px;padding:6px;flex-wrap:nowrap;overflow-x:auto;overscroll-behavior-x:contain}
+.mcnav .tabs button,.mcnav-item{display:inline-flex;align-items:center;gap:8px;border:0;border-radius:10px;background:transparent;color:var(--muted);font:600 13px var(--font-mono);letter-spacing:.04em;text-transform:uppercase;padding:10px 12px;text-decoration:none;white-space:nowrap;cursor:pointer;line-height:1.2}
+.mcnav .tabs button[aria-selected=true]{color:var(--accent-ink);background:color-mix(in oklab,var(--accent) 16%,transparent);box-shadow:inset 0 -2px 0 var(--accent)}
+.mcnav .tabs button:focus-visible,.mcnav-item:focus-visible,.nw-disclosure:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.mcnav-tools{display:flex;align-items:center;flex:0 0 auto;border-left:1px solid var(--line);padding:4px 6px;gap:2px}
+.mcnav-label{font:700 11px var(--font-mono);letter-spacing:.14em;text-transform:uppercase;color:var(--faint);padding:0 8px}
+.tools-menu{display:flex;align-items:center;gap:2px;min-width:0;flex-wrap:nowrap}
+.mcnav audio:not([hidden]){display:block;width:calc(100% - 16px);margin:0 8px 8px}
+.nw-h{margin:0}
+.nw-disclosure{width:100%;display:flex;align-items:center;gap:10px;text-align:left;font:700 13px var(--font-mono);letter-spacing:.12em;text-transform:uppercase;color:var(--accent-ink);background:transparent;border:0;border-radius:12px;padding:4px 2px;cursor:pointer;min-height:44px}
+.nw-disclosure .chev{transition:transform .18s ease}
+.nw-disclosure[aria-expanded="true"] .chev{transform:rotate(90deg)}
+.nw-hint{margin-left:auto;font:600 12.5px var(--font-ui);letter-spacing:0;text-transform:none;color:var(--muted)}
+#nwPanel[hidden]{display:none!important}
+@media (prefers-reduced-motion:reduce){.nw-disclosure .chev{transition:none}}
+@media (min-width:721px){
+#toolsBtn{display:none}
+.mcnav-row{overflow-x:auto;overscroll-behavior-x:contain}
+.mcnav .tabs{flex:0 0 auto;overflow:visible}
+}
+@media (max-width:720px){
+.mcnav{order:0;width:100%}
+.mcnav-label{display:none}
+#toolsBtn{display:inline-flex}
+.tools-menu{display:none}
+.mcnav.tools-open .tools-menu{display:flex;flex-direction:column;align-items:stretch;position:absolute;top:calc(100% + 6px);right:8px;z-index:40;min-width:min(280px,calc(100vw - 32px));padding:8px;border:1px solid var(--line);border-radius:14px;background:var(--surface);box-shadow:var(--shadow)}
+.mcnav.tools-open .tools-menu .mcnav-item{width:100%;justify-content:flex-start}
+}
 </style></head><body class="t-today"><main>
+<nav class="mcnav" aria-label="Mission Control">
+  <div class="mcnav-row">
+    <div class="tabs" role="tablist" aria-label="Sections"><button type="button" role="tab" data-tab="today" aria-selected="true"><svg class="nav-ico" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="3.25"/><path d="M12 3.5v1.8M12 18.7v1.8M3.5 12h1.8M18.7 12h1.8M6.1 6.1l1.3 1.3M16.6 16.6l1.3 1.3M17.9 6.1l-1.3 1.3M7.4 16.6l-1.3 1.3"/></svg><span class="tab-label">Today</span><span class="tcount red" id="todayTabCount" hidden></span></button><button type="button" role="tab" data-tab="villas" aria-selected="false"><svg class="nav-ico" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 21V10.5"/><path d="M12 11c-1.2-3.2-4.6-4.6-7.2-3.6 1.8.6 3.2 2.2 3.6 4.2"/><path d="M12 11c1.2-3.2 4.6-4.6 7.2-3.6-1.8.6-3.2 2.2-3.6 4.2"/><path d="M12 12.2c-2.6.2-4.4 1.6-5.4 3.6M12 12.2c2.6.2 4.4 1.6 5.4 3.6"/></svg><span class="tab-label">Villas</span></button><button type="button" role="tab" data-tab="money" aria-selected="false"><svg class="nav-ico" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><ellipse cx="12" cy="7" rx="7" ry="2.6"/><path d="M5 7v4.2c0 1.5 3.1 2.6 7 2.6s7-1.1 7-2.6V7"/><path d="M5 11.2v4.2c0 1.5 3.1 2.6 7 2.6s7-1.1 7-2.6v-4.2"/></svg><span class="tab-label">Money</span></button><button type="button" role="tab" data-tab="growth" aria-selected="false"><svg class="nav-ico" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M4 16.5 9.5 11l3.8 3.2L20 7"/><path d="M14.5 7H20v5.5"/></svg><span class="tab-label">Growth</span></button><button type="button" role="tab" data-tab="helpdesk" aria-selected="false"><svg class="nav-ico" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M4.5 13a7.5 7.5 0 0 1 15 0"/><path d="M4.5 13v3.2A2.2 2.2 0 0 0 6.7 18.4H8v-5.6H6.6"/><path d="M19.5 13v3.2a2.2 2.2 0 0 1-2.2 2.2H16v-5.6h1.4"/><path d="M12 18.4v1.2a1.8 1.8 0 0 0 1.8 1.8H16"/></svg><span class="tab-label">Si Helpdesk</span><span class="tcount hdcrit" id="hdTabCrit" hidden title="Critical tickets"></span><span class="tcount hdconc" id="hdTabConc" hidden title="Concerning tickets"></span></button><button type="button" role="tab" data-tab="org" aria-selected="false"><svg class="nav-ico" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="12" cy="5" r="2"/><circle cx="6" cy="18.5" r="2"/><circle cx="18" cy="18.5" r="2"/><path d="M12 7v3.2M12 10.2H7.2L6 16.5M12 10.2h4.8L18 16.5"/></svg><span class="tab-label">Org &amp; Systems</span><span class="tcount" id="orgTabCount" hidden></span></button><button type="button" role="tab" data-tab="activity" aria-selected="false"><svg class="nav-ico" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M13 3 5.5 13.5H12l-1 7.5L18.5 10H12l1-7z"/></svg><span class="tab-label">Activity</span></button><button type="button" role="tab" data-tab="routines" aria-selected="false"><svg class="nav-ico" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="8.25"/><path d="M12 7.4V12l3.2 2"/></svg><span class="tab-label">Routines</span><span class="tcount" id="rtTabCount" hidden></span></button></div>
+    <div class="mcnav-tools">
+      <span class="mcnav-label" id="toolsLabel">Tools</span>
+      <button type="button" class="mcnav-item" id="toolsBtn" aria-expanded="false" aria-controls="toolsMenu" aria-haspopup="true">
+        <svg class="nav-ico" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M4 7h16M4 12h16M4 17h10"/></svg>
+        <span>Tools</span>
+      </button>
+      <div id="toolsMenu" class="tools-menu" role="group" aria-labelledby="toolsLabel">
+        <a class="mcnav-item" id="duLink" href="https://dailyupdate.simplyintense.com/" rel="noreferrer"><svg class="nav-ico" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M7 3.5h7.2L19 8.2V20.5H7z"/><path d="M14 3.5V8.2H19"/><path d="M9.5 12.5h5M9.5 16h3.5"/></svg><span class="pill-label">Daily Update</span></a>
+        <a class="mcnav-item" id="villasSite" href="https://villas.tobago.ai" target="_blank" rel="noreferrer noopener" aria-label="Villas site, https://villas.tobago.ai"><svg class="nav-ico" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M4 11.2 12 4.5l8 6.7"/><path d="M6.5 10.2V19.5h11V10.2"/><path d="M10 19.5v-4.2h4V19.5"/></svg><span class="pill-label">Villas site</span></a>
+        <a class="mcnav-item" id="propertySite" href="https://property.tobago.ai" target="_blank" rel="noreferrer noopener" aria-label="Property site, https://property.tobago.ai"><svg class="nav-ico" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><rect x="5" y="3" width="14" height="18" rx="1.5"/><path d="M9 7h2M13 7h2M9 11h2M13 11h2M9 15h2M13 15h2"/><path d="M10 21v-3h4v3"/></svg><span class="pill-label">Property site</span></a>
+        <button class="mcnav-item" id="aBtn" type="button"><svg class="nav-ico" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="8.25"/><path class="solid" d="M10.2 8.9v6.2L15.6 12z"/></svg><span class="pill-label">Play the latest JARVIS brief</span></button>
+        <button class="mcnav-item" id="phoneSetup" type="button" hidden title="Copies the view key to this device's clipboard, for the home-screen app's first launch"><svg class="nav-ico" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="8" cy="15" r="3.25"/><path d="M10.6 13.2 19.5 4.5"/><path d="M16.5 4.5h3v3M15 8.5l2 2"/></svg><span class="pill-label">Copy key for phone app</span></button>
+        <span class="ab-lab" id="aLab"></span>
+        <audio id="aPlayer" controls preload="none" hidden></audio>
+      </div>
+    </div>
+  </div>
+</nav>
 <div class="shell">
 <div class="sh-left">
   <div class="greet">
@@ -382,17 +434,8 @@ details.more2{margin-top:12px}details.more2 summary{cursor:pointer;font:700 13px
       <div class="row"><button type="submit" id="kgGo">Open</button><label class="rm"><input type="checkbox" id="kgRemember" checked> Remember on this device</label></div>
       <p class="err" id="kgErr" hidden></p>
     </form>
-    <nav class="xbar" aria-label="Sites and tools">
-      <a class="pill" id="duLink" href="https://dailyupdate.simplyintense.com/" rel="noreferrer"><svg class="nav-ico" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M7 3.5h7.2L19 8.2V20.5H7z"/><path d="M14 3.5V8.2H19"/><path d="M9.5 12.5h5M9.5 16h3.5"/></svg><span class="pill-label">Daily Update</span></a>
-      <a class="pill" id="villasSite" href="https://villas.tobago.ai" target="_blank" rel="noreferrer noopener" aria-label="Villas site, https://villas.tobago.ai"><svg class="nav-ico" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M4 11.2 12 4.5l8 6.7"/><path d="M6.5 10.2V19.5h11V10.2"/><path d="M10 19.5v-4.2h4V19.5"/></svg><span class="pill-label">Villas site</span></a>
-      <a class="pill" id="propertySite" href="https://property.tobago.ai" target="_blank" rel="noreferrer noopener" aria-label="Property site, https://property.tobago.ai"><svg class="nav-ico" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><rect x="5" y="3" width="14" height="18" rx="1.5"/><path d="M9 7h2M13 7h2M9 11h2M13 11h2M9 15h2M13 15h2"/><path d="M10 21v-3h4v3"/></svg><span class="pill-label">Property site</span></a>
-      <button class="pill" id="aBtn" type="button"><svg class="nav-ico" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="8.25"/><path class="solid" d="M10.2 8.9v6.2L15.6 12z"/></svg><span class="pill-label">Play the latest JARVIS brief</span></button>
-      <button class="pill" id="phoneSetup" type="button" hidden title="Copies the view key to this device's clipboard, for the home-screen app's first launch"><svg class="nav-ico" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="8" cy="15" r="3.25"/><path d="M10.6 13.2 19.5 4.5"/><path d="M16.5 4.5h3v3M15 8.5l2 2"/></svg><span class="pill-label">Copy key for phone app</span></button>
-      <span class="ab-lab" id="aLab"></span>
-      <audio id="aPlayer" controls preload="none" hidden></audio>
-    </nav>
   </div>
-<nav class="tabs" role="tablist" aria-label="Sections"><button type="button" role="tab" data-tab="today" aria-selected="true"><svg class="nav-ico" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="3.25"/><path d="M12 3.5v1.8M12 18.7v1.8M3.5 12h1.8M18.7 12h1.8M6.1 6.1l1.3 1.3M16.6 16.6l1.3 1.3M17.9 6.1l-1.3 1.3M7.4 16.6l-1.3 1.3"/></svg><span class="tab-label">Today</span><span class="tcount red" id="todayTabCount" hidden></span></button><button type="button" role="tab" data-tab="villas" aria-selected="false"><svg class="nav-ico" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 21V10.5"/><path d="M12 11c-1.2-3.2-4.6-4.6-7.2-3.6 1.8.6 3.2 2.2 3.6 4.2"/><path d="M12 11c1.2-3.2 4.6-4.6 7.2-3.6-1.8.6-3.2 2.2-3.6 4.2"/><path d="M12 12.2c-2.6.2-4.4 1.6-5.4 3.6M12 12.2c2.6.2 4.4 1.6 5.4 3.6"/></svg><span class="tab-label">Villas</span></button><button type="button" role="tab" data-tab="money" aria-selected="false"><svg class="nav-ico" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><ellipse cx="12" cy="7" rx="7" ry="2.6"/><path d="M5 7v4.2c0 1.5 3.1 2.6 7 2.6s7-1.1 7-2.6V7"/><path d="M5 11.2v4.2c0 1.5 3.1 2.6 7 2.6s7-1.1 7-2.6v-4.2"/></svg><span class="tab-label">Money</span></button><button type="button" role="tab" data-tab="growth" aria-selected="false"><svg class="nav-ico" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M4 16.5 9.5 11l3.8 3.2L20 7"/><path d="M14.5 7H20v5.5"/></svg><span class="tab-label">Growth</span></button><button type="button" role="tab" data-tab="helpdesk" aria-selected="false"><svg class="nav-ico" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M4.5 13a7.5 7.5 0 0 1 15 0"/><path d="M4.5 13v3.2A2.2 2.2 0 0 0 6.7 18.4H8v-5.6H6.6"/><path d="M19.5 13v3.2a2.2 2.2 0 0 1-2.2 2.2H16v-5.6h1.4"/><path d="M12 18.4v1.2a1.8 1.8 0 0 0 1.8 1.8H16"/></svg><span class="tab-label">Si Helpdesk</span><span class="tcount hdcrit" id="hdTabCrit" hidden title="Critical tickets"></span><span class="tcount hdconc" id="hdTabConc" hidden title="Concerning tickets"></span></button><button type="button" role="tab" data-tab="org" aria-selected="false"><svg class="nav-ico" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="12" cy="5" r="2"/><circle cx="6" cy="18.5" r="2"/><circle cx="18" cy="18.5" r="2"/><path d="M12 7v3.2M12 10.2H7.2L6 16.5M12 10.2h4.8L18 16.5"/></svg><span class="tab-label">Org &amp; Systems</span><span class="tcount" id="orgTabCount" hidden></span></button><button type="button" role="tab" data-tab="activity" aria-selected="false"><svg class="nav-ico" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M13 3 5.5 13.5H12l-1 7.5L18.5 10H12l1-7z"/></svg><span class="tab-label">Activity</span></button><button type="button" role="tab" data-tab="routines" aria-selected="false"><svg class="nav-ico" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="8.25"/><path d="M12 7.4V12l3.2 2"/></svg><span class="tab-label">Routines</span><span class="tcount" id="rtTabCount" hidden></span></button></nav>
+
 <div class="big today-only t-move"><div class="onemove" id="oneMove" hidden></div></div>
 </div>
 <div class="sh-right">
@@ -506,6 +549,41 @@ function setVitalsOpen(open, persist) {
 }
 setVitalsOpen(ST.get("mcVitalsOpen") === "1", false);
 $("vitalsToggle").addEventListener("click", () => setVitalsOpen($("vitalsToggle").getAttribute("aria-expanded") !== "true", true));
+function toolsNarrow() { return window.matchMedia("(max-width: 720px)").matches; }
+function setToolsOpen(open) {
+  const nav = document.querySelector(".mcnav"), btn = $("toolsBtn"), menu = $("toolsMenu");
+  if (!nav || !btn || !menu) return;
+  if (!toolsNarrow()) { nav.classList.remove("tools-open"); btn.setAttribute("aria-expanded", "false"); return; }
+  nav.classList.toggle("tools-open", !!open);
+  btn.setAttribute("aria-expanded", open ? "true" : "false");
+  if (open) { const first = menu.querySelector("a,button:not([hidden])"); if (first) first.focus(); }
+}
+$("toolsBtn").addEventListener("click", () => setToolsOpen($("toolsBtn").getAttribute("aria-expanded") !== "true"));
+document.addEventListener("click", (e) => {
+  if (!toolsNarrow() || $("toolsBtn").getAttribute("aria-expanded") !== "true") return;
+  if (e.target.closest(".mcnav-tools")) return;
+  setToolsOpen(false);
+});
+document.addEventListener("keydown", (e) => {
+  if (e.key !== "Escape" || !toolsNarrow() || $("toolsBtn").getAttribute("aria-expanded") !== "true") return;
+  setToolsOpen(false);
+  $("toolsBtn").focus();
+});
+let toolsWasNarrow = toolsNarrow();
+window.addEventListener("resize", () => {
+  const narrow = toolsNarrow();
+  if (narrow === toolsWasNarrow) return;
+  toolsWasNarrow = narrow;
+  setToolsOpen(false);
+});
+function applyNetworthDisclosure() {
+  const btn = $("nwDisclosure"), panel = $("nwPanel"), hint = $("nwHint");
+  if (!btn || !panel) return;
+  const open = ST.get("mcNetworthOpen") === "1";
+  panel.hidden = !open;
+  btn.setAttribute("aria-expanded", open ? "true" : "false");
+  if (hint) hint.textContent = open ? "Hide" : "Show";
+}
 const pillLabel = (el, text) => { const s = el && el.querySelector(".pill-label"); if (s) s.textContent = text; else if (el) el.textContent = text; };
 const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 const MILES_VILLA_RATE = 7.8; // Miles villa rate 7.8: fallback only; the live figure comes from data (villa-rate.js on the box)
@@ -866,10 +944,11 @@ function renderBrain(force) {
   // Money
   const M = B.money || {}, nw = M.networth || {}, ag = M.agency || {};
   const BR = M.bank_rate && M.bank_rate.usd_ttd ? M.bank_rate.usd_ttd : MILES_BANK_RATE; // bank rate 6.75
+  const nwCap = nw.as_of ? `Finance snapshot, ${nw.as_of}. Business + personal, ${nw.currency || "TTD"}.` : "Finance writes a snapshot on the 1st of each month (business + personal).";
+  const nwBody = `<div class="blurbox ${NW.show ? "" : "blurred"}" id="nwBox"><div class="val">${nw.total != null ? `<div class="tt" style="font-size:34px">TT$${Number(nw.total).toLocaleString("en-US")}</div><div class="us">Business TT$${Number(nw.business || 0).toLocaleString("en-US")} · Personal TT$${Number(nw.personal || 0).toLocaleString("en-US")}</div>${(nw.lines || []).length ? ttab(["Item", "Value"], nw.lines.map((l) => `<tr><td>${esc(l.label)}</td><td>${esc(l.value)}</td></tr>`)) : ""}` : `<div class="tt" style="font-size:30px">TT$ ———,———</div><div class="us">${esc(nw.note || "Awaiting Finance's first snapshot.")}</div>`}</div></div>
+      <div class="row"><button class="btn" type="button" id="nwTog">${NW.show ? "🙈 Blur" : "👁 Show"}</button></div>`;
   $("tabMoney").innerHTML =
-    sec("Net worth", nw.as_of ? `Finance snapshot, ${nw.as_of}. Business + personal, ${nw.currency || "TTD"}.` : "Finance writes a snapshot on the 1st of each month (business + personal).",
-      `<div class="blurbox ${NW.show ? "" : "blurred"}" id="nwBox"><div class="val">${nw.total != null ? `<div class="tt" style="font-size:34px">TT$${Number(nw.total).toLocaleString("en-US")}</div><div class="us">Business TT$${Number(nw.business || 0).toLocaleString("en-US")} · Personal TT$${Number(nw.personal || 0).toLocaleString("en-US")}</div>${(nw.lines || []).length ? ttab(["Item", "Value"], nw.lines.map((l) => `<tr><td>${esc(l.label)}</td><td>${esc(l.value)}</td></tr>`)) : ""}` : `<div class="tt" style="font-size:30px">TT$ ———,———</div><div class="us">${esc(nw.note || "Awaiting Finance's first snapshot.")}</div>`}</div></div>
-      <div class="row"><button class="btn" type="button" id="nwTog">${NW.show ? "🙈 Blur" : "👁 Show"}</button></div>`)
+    `<section id="nwSec"><h2 class="nw-h"><button type="button" class="nw-disclosure" id="nwDisclosure" aria-expanded="false" aria-controls="nwPanel"><svg class="nav-ico chev" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M9 5.5 15.5 12 9 18.5"/></svg><span id="nwDisclosureLabel">Net worth</span><span class="nw-hint" id="nwHint">Show</span></button></h2><div id="nwPanel" role="region" aria-labelledby="nwDisclosureLabel" hidden><p class="cap">${esc(nwCap)}</p>${nwBody}</div></section>`
     + `<div class="grid2">`
     + sec("Cash landing by week", M.weeks_caption, ttab(["Week", "TT$", "US$", "Payments"], (M.weeks || []).map((w) => `<tr><td><b>${esc(w.label)}</b><div class="us">${esc(w.rng)}</div></td><td><b>${esc(w.tt)}</b></td><td>${esc(w.usd)}</td><td>${(w.items || []).length ? `<details><summary>${w.n}</summary>${w.items.map((i) => `<div class="us">${esc(i.when)} · ${esc(i.g)} (${esc(i.v)}, ${esc(i.src)}) ${esc(i.amt)}</div>`).join("")}</details>` : "0"}</td></tr>`)) + (M.beyond ? `<p class="cap">${esc(M.beyond.note)}: ${esc(M.beyond.usd)} across ${esc(M.beyond.n)} payments.</p>` : ""))
     + sec("Expected income by month", (M.months_caption || "") + ` TT$ = US$ × ${BR} (bank rate).`, ttab(["Month", "Total", "Airbnb (US$)", "Villa Direct (US$)"], (M.months || []).map((m) => `<tr><td><b>${esc(m.m)}</b></td><td><b>TT$${Math.round((+m.tot || 0) * BR * 1000).toLocaleString("en-US")}</b><div class="us">US$${esc(m.tot)}k</div></td><td>${esc(m.airbnb)}</td><td>${esc(m.direct)}</td></tr>`)))
@@ -885,11 +964,17 @@ function renderBrain(force) {
     + (PL ? sec("Ad spend plan, next 6 months", PL.note, ttab(["Month", "Posture", "Spend", "Why"], (PL.months || []).map((m) => `<tr><td><b>${esc(m.m)}</b></td><td>${esc(m.posture)}</td><td>${esc(m.spend)}</td><td>${esc(m.why)}</td></tr>`))) : "")
     + sec("Division goals", "", `<p>Sprint leads, SI Ventures deals and real-estate leads are tracked as KPIs on <a href="#" data-go="org" style="color:var(--accent-ink)">Org &amp; Systems</a>.</p>`);
   $("srcCap").textContent = `Bot chats + Asana (hourly), the Operational Brain engine (last run ${fmtRun(B.as_of)}; weekdays 7:35 AM AST: Hospitable, Gmail, Slack, Calendar, Meta Ads, receivables), org.json.`;
+  applyNetworthDisclosure();
 }
 document.addEventListener("keydown", (e) => { const v = e.target.closest && e.target.closest("div.vital[role=button]"); if (v && e.target === v && (e.key === "Enter" || e.key === " ")) { e.preventDefault(); v.click(); } });
 document.addEventListener("click", (e) => {
   const g = e.target.closest("[data-go]"); if (g) { e.preventDefault(); setTab(g.dataset.go, true); if (g.dataset.sec) { const t = $(g.dataset.sec); if (t) t.scrollIntoView({ behavior: "smooth", block: "start" }); } return; }
   if (e.target.closest("#stat")) { setTab("today", true); const wl = $("wlist"); if (wl) wl.closest("section").scrollIntoView({ behavior: "smooth", block: "start" }); return; }
+  if (e.target.closest("#nwDisclosure")) {
+    ST.set("mcNetworthOpen", $("nwDisclosure").getAttribute("aria-expanded") === "true" ? "0" : "1");
+    applyNetworthDisclosure();
+    return;
+  }
   if (e.target.closest("#nwTog")) { NW.show = !NW.show; renderBrain(true); }
 });
 
@@ -1130,7 +1215,7 @@ async function loadOrg() {
   } catch (e) { $("orgCap").textContent = "Couldn't load the org chart (" + e.message + ")."; }
   finally { O.loading = false; $("orgRefresh").disabled = false; $("orgRefresh").textContent = "↻ Refresh"; }
 }
-document.querySelector(".tabs").addEventListener("click", (e) => { const b = e.target.closest("button[data-tab]"); if (b) setTab(b.dataset.tab, true); });
+document.querySelector(".tabs").addEventListener("click", (e) => { const b = e.target.closest("button[data-tab]"); if (b) { setTab(b.dataset.tab, true); if (toolsNarrow()) setToolsOpen(false); } });
 $("orgView").addEventListener("click", (e) => { const b = e.target.closest("button[data-v]"); if (!b) return; O.view = b.dataset.v; ST.set("mcOrgView", O.view); renderOrg(); });
 $("orgRefresh").addEventListener("click", () => { loadOrg(); load(true).catch(() => {}); });
 $("orgBody").addEventListener("click", (e) => { const s = e.target.closest("button.seat"); if (!s) return; s.classList.toggle("open"); s.setAttribute("aria-expanded", String(s.classList.contains("open"))); });
