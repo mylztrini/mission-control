@@ -1,0 +1,11 @@
+{
+  "name": "mission-control",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "node --test test/ui.test.mjs"
+  },
+  "devDependencies": {
+    "puppeteer-core": "^24.15.0"
+  }
+}
