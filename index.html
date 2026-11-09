@@ -383,10 +383,19 @@ details.more2{margin-top:12px}details.more2 summary{cursor:pointer;font:700 13px
 .nw-hint{margin-left:auto;font:600 12.5px var(--font-ui);letter-spacing:0;text-transform:none;color:var(--muted)}
 #nwPanel[hidden]{display:none!important}
 @media (prefers-reduced-motion:reduce){.nw-disclosure .chev{transition:none}}
+.mcnav-side{display:flex;align-items:center;flex:0 0 auto;min-width:0}
 @media (min-width:721px){
 #toolsBtn{display:none}
-.mcnav-row{overflow-x:auto;overscroll-behavior-x:contain}
-.mcnav .tabs{flex:0 0 auto;overflow:visible}
+.mcnav-row{flex-wrap:wrap;overflow:visible;align-items:stretch}
+.mcnav .tabs{flex:1 1 100%;max-width:100%;overflow:visible;flex-wrap:wrap;padding:4px 6px}
+.mcnav .tabs button{padding:6px 10px}
+.mcnav-side{flex:1 1 100%;max-width:100%;flex-wrap:wrap;justify-content:flex-end;border-top:1px solid var(--line);min-width:0}
+.mcnav-side .blur-toggle{margin:2px 6px 2px 8px}
+.mcnav #aLab{flex:1 0 100%;text-align:right;padding:0 12px 4px}
+.mcnav #aLab:empty{display:none}
+.mcnav-tools{border-left:0;flex-wrap:wrap;min-width:0;max-width:100%}
+.mcnav-side .tools-menu{flex-wrap:wrap;min-width:0}
+.mcnav-side .mcnav-item{padding:8px 8px;gap:6px;letter-spacing:.01em}
 }
 @media (max-width:720px){
 .mcnav{order:0;width:100%}
@@ -423,6 +432,7 @@ body.mc-blur #keyGate::after,body.mc-blur #keyGate *::after{content:none !import
 <nav class="mcnav" aria-label="Mission Control">
   <div class="mcnav-row">
     <div class="tabs" role="tablist" aria-label="Sections"><button type="button" role="tab" data-tab="today" aria-selected="true"><svg class="nav-ico" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="3.25"/><path d="M12 3.5v1.8M12 18.7v1.8M3.5 12h1.8M18.7 12h1.8M6.1 6.1l1.3 1.3M16.6 16.6l1.3 1.3M17.9 6.1l-1.3 1.3M7.4 16.6l-1.3 1.3"/></svg><span class="tab-label">Today</span><span class="tcount red" id="todayTabCount" hidden></span></button><button type="button" role="tab" data-tab="villas" aria-selected="false"><svg class="nav-ico" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 21V10.5"/><path d="M12 11c-1.2-3.2-4.6-4.6-7.2-3.6 1.8.6 3.2 2.2 3.6 4.2"/><path d="M12 11c1.2-3.2 4.6-4.6 7.2-3.6-1.8.6-3.2 2.2-3.6 4.2"/><path d="M12 12.2c-2.6.2-4.4 1.6-5.4 3.6M12 12.2c2.6.2 4.4 1.6 5.4 3.6"/></svg><span class="tab-label">Villas</span></button><button type="button" role="tab" data-tab="money" aria-selected="false"><svg class="nav-ico" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><ellipse cx="12" cy="7" rx="7" ry="2.6"/><path d="M5 7v4.2c0 1.5 3.1 2.6 7 2.6s7-1.1 7-2.6V7"/><path d="M5 11.2v4.2c0 1.5 3.1 2.6 7 2.6s7-1.1 7-2.6v-4.2"/></svg><span class="tab-label">Money</span></button><button type="button" role="tab" data-tab="growth" aria-selected="false"><svg class="nav-ico" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M4 16.5 9.5 11l3.8 3.2L20 7"/><path d="M14.5 7H20v5.5"/></svg><span class="tab-label">Growth</span></button><button type="button" role="tab" data-tab="helpdesk" aria-selected="false"><svg class="nav-ico" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M4.5 13a7.5 7.5 0 0 1 15 0"/><path d="M4.5 13v3.2A2.2 2.2 0 0 0 6.7 18.4H8v-5.6H6.6"/><path d="M19.5 13v3.2a2.2 2.2 0 0 1-2.2 2.2H16v-5.6h1.4"/><path d="M12 18.4v1.2a1.8 1.8 0 0 0 1.8 1.8H16"/></svg><span class="tab-label">Si Helpdesk</span><span class="tcount hdcrit" id="hdTabCrit" hidden title="Critical tickets"></span><span class="tcount hdconc" id="hdTabConc" hidden title="Concerning tickets"></span></button><button type="button" role="tab" data-tab="org" aria-selected="false"><svg class="nav-ico" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="12" cy="5" r="2"/><circle cx="6" cy="18.5" r="2"/><circle cx="18" cy="18.5" r="2"/><path d="M12 7v3.2M12 10.2H7.2L6 16.5M12 10.2h4.8L18 16.5"/></svg><span class="tab-label">Org &amp; Systems</span><span class="tcount" id="orgTabCount" hidden></span></button><button type="button" role="tab" data-tab="activity" aria-selected="false"><svg class="nav-ico" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M13 3 5.5 13.5H12l-1 7.5L18.5 10H12l1-7z"/></svg><span class="tab-label">Activity</span></button><button type="button" role="tab" data-tab="routines" aria-selected="false"><svg class="nav-ico" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="8.25"/><path d="M12 7.4V12l3.2 2"/></svg><span class="tab-label">Routines</span><span class="tcount" id="rtTabCount" hidden></span></button></div>
+    <div class="mcnav-side">
     <button type="button" class="blur-toggle" id="blurMode" aria-pressed="false" aria-keyshortcuts="Shift+B" title="Blur mode (Shift+B). Hides amounts, names, emails, phone numbers, and private text for screenshots.">
       <svg class="nav-ico" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M3 12s3.5-6 9-6 9 6 9 6-3.5 6-9 6-9-6-9-6z"/><circle cx="12" cy="12" r="2.4"/><path d="M4 5.5 19 18.5"/></svg>
       <span class="blur-toggle-label">Blur mode</span>
@@ -444,6 +454,7 @@ body.mc-blur #keyGate::after,body.mc-blur #keyGate *::after{content:none !import
         <span class="ab-lab" id="aLab"></span>
         <audio id="aPlayer" controls preload="none" hidden></audio>
       </div>
+    </div>
     </div>
   </div>
 </nav>
