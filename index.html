@@ -399,10 +399,36 @@ details.more2{margin-top:12px}details.more2 summary{cursor:pointer;font:700 13px
 .sh-left .t-vitals{min-width:0;max-width:100%}
 .sh-left .vitals-toggle{width:auto;max-width:100%;min-height:40px;padding:8px 12px}
 .sh-left #tabToday,.sh-left .cols{min-width:0;max-width:100%}
-</style></head><body class="t-today"><main>
+/* Blur mode (Shift+B). Opt in on any new value with class="mc-sensitive" and
+   data-mc-sensitive="money|name|id|text|email|phone". Currency, emails, and phone
+   numbers in text are wrapped automatically. The mask replaces the glyphs, so a
+   screenshot cannot be sharpened back into the original characters. */
+.blur-toggle{flex:0 0 auto;display:inline-flex;align-items:center;gap:6px;margin:6px 4px;padding:6px 10px;border-radius:999px;border:1px solid var(--line);background:var(--surface);color:var(--text);font:700 12.5px/1.2 var(--font-ui);letter-spacing:0;text-transform:none;cursor:pointer;white-space:nowrap;min-height:32px}
+.blur-toggle .nav-ico{width:16px;height:16px}
+.blur-toggle .kbd{font:600 10px var(--font-mono);border:1px solid color-mix(in oklab,currentColor 45%,transparent);border-radius:4px;padding:0 4px;letter-spacing:0}
+.blur-toggle-state{font:700 11px var(--font-mono);letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.blur-toggle[aria-pressed="true"]{background:var(--accent);border-color:transparent;color:var(--btn-ink)}
+.blur-toggle[aria-pressed="true"] .blur-toggle-state{color:inherit}
+.blur-toggle:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+@media (max-width:720px){.blur-toggle{margin:4px 2px;padding:6px 8px}.blur-toggle .kbd{display:none}}
+body.mc-blur [data-mc-sensitive]{position:relative;color:transparent !important;-webkit-text-fill-color:transparent !important;text-shadow:none !important;user-select:none !important;-webkit-user-select:none !important;pointer-events:none !important;border-radius:.2em}
+body.mc-blur [data-mc-sensitive] *{color:transparent !important;-webkit-text-fill-color:transparent !important;text-shadow:none !important;user-select:none !important;-webkit-user-select:none !important}
+body.mc-blur [data-mc-sensitive]::after{content:"";position:absolute;inset:.06em 0;border-radius:.25em;background:color-mix(in oklab,var(--text) 78%,transparent);filter:blur(6px);pointer-events:none}
+body.mc-blur [data-mc-sensitive]::selection,body.mc-blur [data-mc-sensitive] *::selection{background:transparent;color:transparent}
+body.mc-blur svg text.mc-sensitive,body.mc-blur svg text[data-mc-sensitive]{fill:var(--text);stroke:transparent;filter:blur(10px)}
+body.mc-blur input.reply,body.mc-blur textarea{filter:blur(8px);pointer-events:none;user-select:none;color:transparent}
+body.mc-blur #keyGate,body.mc-blur #keyGate *{color:inherit !important;-webkit-text-fill-color:currentColor !important;filter:none !important;pointer-events:auto !important;user-select:auto !important}
+body.mc-blur #keyGate::after,body.mc-blur #keyGate *::after{content:none !important;display:none !important}
+</style></head><body class="t-today"><script>try{if(localStorage.getItem("mcBlurMode")==="1")document.body.classList.add("mc-blur")}catch(e){}</script><main>
 <nav class="mcnav" aria-label="Mission Control">
   <div class="mcnav-row">
     <div class="tabs" role="tablist" aria-label="Sections"><button type="button" role="tab" data-tab="today" aria-selected="true"><svg class="nav-ico" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="3.25"/><path d="M12 3.5v1.8M12 18.7v1.8M3.5 12h1.8M18.7 12h1.8M6.1 6.1l1.3 1.3M16.6 16.6l1.3 1.3M17.9 6.1l-1.3 1.3M7.4 16.6l-1.3 1.3"/></svg><span class="tab-label">Today</span><span class="tcount red" id="todayTabCount" hidden></span></button><button type="button" role="tab" data-tab="villas" aria-selected="false"><svg class="nav-ico" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 21V10.5"/><path d="M12 11c-1.2-3.2-4.6-4.6-7.2-3.6 1.8.6 3.2 2.2 3.6 4.2"/><path d="M12 11c1.2-3.2 4.6-4.6 7.2-3.6-1.8.6-3.2 2.2-3.6 4.2"/><path d="M12 12.2c-2.6.2-4.4 1.6-5.4 3.6M12 12.2c2.6.2 4.4 1.6 5.4 3.6"/></svg><span class="tab-label">Villas</span></button><button type="button" role="tab" data-tab="money" aria-selected="false"><svg class="nav-ico" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><ellipse cx="12" cy="7" rx="7" ry="2.6"/><path d="M5 7v4.2c0 1.5 3.1 2.6 7 2.6s7-1.1 7-2.6V7"/><path d="M5 11.2v4.2c0 1.5 3.1 2.6 7 2.6s7-1.1 7-2.6v-4.2"/></svg><span class="tab-label">Money</span></button><button type="button" role="tab" data-tab="growth" aria-selected="false"><svg class="nav-ico" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M4 16.5 9.5 11l3.8 3.2L20 7"/><path d="M14.5 7H20v5.5"/></svg><span class="tab-label">Growth</span></button><button type="button" role="tab" data-tab="helpdesk" aria-selected="false"><svg class="nav-ico" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M4.5 13a7.5 7.5 0 0 1 15 0"/><path d="M4.5 13v3.2A2.2 2.2 0 0 0 6.7 18.4H8v-5.6H6.6"/><path d="M19.5 13v3.2a2.2 2.2 0 0 1-2.2 2.2H16v-5.6h1.4"/><path d="M12 18.4v1.2a1.8 1.8 0 0 0 1.8 1.8H16"/></svg><span class="tab-label">Si Helpdesk</span><span class="tcount hdcrit" id="hdTabCrit" hidden title="Critical tickets"></span><span class="tcount hdconc" id="hdTabConc" hidden title="Concerning tickets"></span></button><button type="button" role="tab" data-tab="org" aria-selected="false"><svg class="nav-ico" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="12" cy="5" r="2"/><circle cx="6" cy="18.5" r="2"/><circle cx="18" cy="18.5" r="2"/><path d="M12 7v3.2M12 10.2H7.2L6 16.5M12 10.2h4.8L18 16.5"/></svg><span class="tab-label">Org &amp; Systems</span><span class="tcount" id="orgTabCount" hidden></span></button><button type="button" role="tab" data-tab="activity" aria-selected="false"><svg class="nav-ico" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M13 3 5.5 13.5H12l-1 7.5L18.5 10H12l1-7z"/></svg><span class="tab-label">Activity</span></button><button type="button" role="tab" data-tab="routines" aria-selected="false"><svg class="nav-ico" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="8.25"/><path d="M12 7.4V12l3.2 2"/></svg><span class="tab-label">Routines</span><span class="tcount" id="rtTabCount" hidden></span></button></div>
+    <button type="button" class="blur-toggle" id="blurMode" aria-pressed="false" aria-keyshortcuts="Shift+B" title="Blur mode (Shift+B). Hides amounts, names, emails, phone numbers, and private text for screenshots.">
+      <svg class="nav-ico" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M3 12s3.5-6 9-6 9 6 9 6-3.5 6-9 6-9-6-9-6z"/><circle cx="12" cy="12" r="2.4"/><path d="M4 5.5 19 18.5"/></svg>
+      <span class="blur-toggle-label">Blur mode</span>
+      <span class="blur-toggle-state" id="blurModeState">Off</span>
+      <span class="kbd">Shift+B</span>
+    </button>
     <div class="mcnav-tools">
       <span class="mcnav-label" id="toolsLabel">Tools</span>
       <button type="button" class="mcnav-item" id="toolsBtn" aria-expanded="false" aria-controls="toolsMenu" aria-haspopup="true">
@@ -589,6 +615,108 @@ function applyNetworthDisclosure() {
 }
 const pillLabel = (el, text) => { const s = el && el.querySelector(".pill-label"); if (s) s.textContent = text; else if (el) el.textContent = text; };
 const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+// Blur mode opt-in. kind is money, name, id, text, email, or phone.
+const sens = (html, kind = "text") => `<span class="mc-sensitive" data-mc-sensitive="${kind}">${html}</span>`;
+const SENS_RE = /(?:−|-)?(?:(?:TT|US|USD|TTD)\s?\$|\$|€|£)\s?-?\d[\d,]*(?:\.\d+)?|\b\d[\d,]*(?:\.\d+)?\s?(?:TTD|USD)\b|[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}|(\+\d{1,3}[\s.])?(?:\(\d{3}\)|\b\d{3}\b)[\s.-]\d{3}[\s.-]\d{4}\b/gi;
+const sensKind = (token) => token.includes("@") ? "email" : /[$€£]|TTD|USD/i.test(token) ? "money" : "phone";
+function wrapSensitiveText(root) {
+  const scope = root && root.nodeType === 1 ? root : document.body;
+  if (!scope) return;
+  const walker = document.createTreeWalker(scope, NodeFilter.SHOW_TEXT, {
+    acceptNode(node) {
+      const text = node.nodeValue;
+      if (!text || !/\S/.test(text)) return NodeFilter.FILTER_REJECT;
+      SENS_RE.lastIndex = 0;
+      if (!SENS_RE.test(text)) return NodeFilter.FILTER_REJECT;
+      const p = node.parentElement;
+      if (!p || p.closest("script, style, textarea, noscript, #keyGate, [data-mc-sensitive], .blur-toggle")) return NodeFilter.FILTER_REJECT;
+      return NodeFilter.FILTER_ACCEPT;
+    }
+  });
+  const nodes = [];
+  while (walker.nextNode()) nodes.push(walker.currentNode);
+  for (const node of nodes) {
+    const text = node.nodeValue;
+    SENS_RE.lastIndex = 0;
+    const frag = document.createDocumentFragment();
+    let last = 0, m;
+    while ((m = SENS_RE.exec(text))) {
+      if (m.index > last) frag.appendChild(document.createTextNode(text.slice(last, m.index)));
+      const span = document.createElement("span");
+      span.className = "mc-sensitive";
+      span.setAttribute("data-mc-sensitive", sensKind(m[0]));
+      span.textContent = m[0];
+      frag.appendChild(span);
+      last = m.index + m[0].length;
+    }
+    if (last < text.length) frag.appendChild(document.createTextNode(text.slice(last)));
+    if (node.parentNode) node.parentNode.replaceChild(frag, node);
+  }
+}
+function syncBlurChrome(on) {
+  document.querySelectorAll("[title], [data-mc-title], [aria-label], [data-mc-aria]").forEach((el) => {
+    if (on) {
+      if (!el.hasAttribute("data-mc-title") && el.hasAttribute("title")) {
+        const title = el.getAttribute("title") || "";
+        SENS_RE.lastIndex = 0;
+        const hide = el.matches("[data-mc-sensitive], .mc-title-hide") || !!el.closest("[data-mc-sensitive]") || SENS_RE.test(title);
+        SENS_RE.lastIndex = 0;
+        if (hide) { el.setAttribute("data-mc-title", title); el.removeAttribute("title"); }
+      }
+      if (!el.hasAttribute("data-mc-aria") && el.hasAttribute("aria-label")) {
+        const label = el.getAttribute("aria-label") || "";
+        SENS_RE.lastIndex = 0;
+        if (SENS_RE.test(label) || /\d+(?:\.\d+)?%/.test(label)) {
+          el.setAttribute("data-mc-aria", label);
+          el.setAttribute("aria-label", "Hidden while blur mode is on");
+        }
+        SENS_RE.lastIndex = 0;
+      }
+    } else {
+      if (el.hasAttribute("data-mc-title")) { el.setAttribute("title", el.getAttribute("data-mc-title")); el.removeAttribute("data-mc-title"); }
+      if (el.hasAttribute("data-mc-aria")) { el.setAttribute("aria-label", el.getAttribute("data-mc-aria")); el.removeAttribute("data-mc-aria"); }
+    }
+  });
+  document.querySelectorAll("input.reply, textarea").forEach((el) => {
+    if (el.closest("#keyGate")) return;
+    if (on) {
+      if (!el.hasAttribute("data-mc-ph")) el.setAttribute("data-mc-ph", el.getAttribute("placeholder") || "");
+      if (el.getAttribute("placeholder")) el.setAttribute("placeholder", "");
+    } else if (el.hasAttribute("data-mc-ph")) {
+      el.setAttribute("placeholder", el.getAttribute("data-mc-ph"));
+      el.removeAttribute("data-mc-ph");
+    }
+  });
+}
+function applyBlurMode(on, persist) {
+  document.body.classList.toggle("mc-blur", !!on);
+  const btn = $("blurMode");
+  if (btn) btn.setAttribute("aria-pressed", on ? "true" : "false");
+  const state = $("blurModeState");
+  if (state) state.textContent = on ? "On" : "Off";
+  if (persist) ST.set("mcBlurMode", on ? "1" : "0");
+  if (on) wrapSensitiveText(document.body);
+  syncBlurChrome(!!on);
+}
+$("blurMode").addEventListener("click", () => applyBlurMode($("blurMode").getAttribute("aria-pressed") !== "true", true));
+document.addEventListener("keydown", (e) => {
+  if (!(e.key === "B" || e.key === "b") || !e.shiftKey || e.metaKey || e.ctrlKey || e.altKey || e.repeat) return;
+  const t = e.target;
+  if (t && t.closest && t.closest("input, textarea, select, [contenteditable='true']")) return;
+  e.preventDefault();
+  applyBlurMode(!document.body.classList.contains("mc-blur"), true);
+});
+applyBlurMode(ST.get("mcBlurMode") === "1", false);
+let mcScanning = false;
+function mcScanSensitive() {
+  if (mcScanning) return;
+  mcScanning = true;
+  try {
+    wrapSensitiveText(document.body);
+    if (document.body.classList.contains("mc-blur")) syncBlurChrome(true);
+  } finally { mcScanning = false; }
+}
+new MutationObserver(() => { if (!mcScanning) mcScanSensitive(); }).observe(document.body, { subtree: true, childList: true, characterData: true });
 const MILES_VILLA_RATE = 7.8; // Miles villa rate 7.8: fallback only; the live figure comes from data (villa-rate.js on the box)
 const MILES_BANK_RATE = 6.75; // bank rate 6.75 for cash / payout / in-transit TT$ figures: fallback only; the live figure comes from data (villa-rate.js on the box)
 const CHAT = (id) => `grokbot://app/v1/agent?id=${encodeURIComponent(id)}`;
@@ -629,9 +757,9 @@ function renderWaiting() {
   const items = w.filter((i) => (showIgn || !ignored.has(i.key)) && !(sent.get(i.key) || {}).ok);
   $("wlist").innerHTML = items.length ? items.map((it) => {
     const k = esc(it.key), ig = ignored.has(it.key), bl = blurAll || hidden.has(it.key), s = sent.get(it.key);
-    return `<div class="item ${it.stale ? "stale" : ""} ${ig ? "ign" : ""} ${bl ? "blur" : ""} ${s && s.ok ? "sent" : ""}" data-k="${k}"><div class="nrow"><div class="num">${it.number ? "#" + it.number : ""}</div><div class="nbody">
+    return `<div class="item ${it.stale ? "stale" : ""} ${ig ? "ign" : ""} ${bl ? "blur" : ""} ${s && s.ok ? "sent" : ""}" data-k="${k}"><div class="nrow"><div class="num mc-sensitive" data-mc-sensitive="id">${it.number ? "#" + it.number : ""}</div><div class="nbody">
       <div class="meta">${it.src ? `<span class="src ${esc(it.src)}">${esc(it.src.toUpperCase())}</span>` : ""}${esc(it.bot)} · ${esc(it.when)}${it.stale ? " · <i>Asana only, may be stale</i>" : ""}<span class="badge">${esc(it.status || "")}</span></div>
-      <div class="txt">${esc(it.text)}</div>
+      <div class="txt mc-sensitive" data-mc-sensitive="text">${esc(it.text)}</div>
       <div class="row">
         ${String(it.botId || "").startsWith("brain:") ? (it.url ? `<a class="btn p" target="_blank" rel="noreferrer" href="${esc(it.url)}">Open</a>` : "") : `<a class="btn p" href="${CHAT(it.botId)}">Open</a>`}
         <button class="btn" data-eye title="${bl ? "Show" : "Blur for privacy"}" aria-label="${bl ? "Show item" : "Blur item"}">${bl ? "🙈" : "👁"}</button>
@@ -672,17 +800,17 @@ $("wlist").addEventListener("click", async (e) => {
 function renderStaffHead() {
   const s = D.staff || [], who = {};
   for (const i of s) who[i.who] = (who[i.who] || 0) + 1;
-  $("scap").textContent = `${s.length} Asana task${s.length === 1 ? "" : "s"} where a staff member's latest comment is waiting on you${s.length ? " (" + Object.entries(who).map(([k, v]) => `${k} ${v}`).join(", ") + ")" : ""}. FYIs are hidden. Send posts your reply to the task as a comment that @mentions them.`;
+  $("scap").innerHTML = `${s.length} Asana task${s.length === 1 ? "" : "s"} where a staff member's latest comment is waiting on you${s.length ? " (" + Object.entries(who).map(([k, v]) => `${sens(esc(k), "name")} ${v}`).join(", ") + ")" : ""}. FYIs are hidden. Send posts your reply to the task as a comment that @mentions them.`;
 }
 function renderStaff() {
   renderStaffHead();
   const items = (D.staff || []).filter((i) => !(sent.get(i.key) || {}).ok), blurAll = $("blurAll").checked;
   $("slist").innerHTML = items.length ? items.map((it) => {
     const k = esc(it.key), bl = blurAll || hidden.has(it.key), s = sent.get(it.key);
-    return `<div class="item ${bl ? "blur" : ""}" data-k="${k}"><div class="nrow"><div class="num">${it.number ? "#" + it.number : ""}</div><div class="nbody">
-      <div class="meta">${esc(it.who)} · ${esc(it.age)} ago · ${esc(it.project)}<span class="badge">${esc(it.status || "")}</span></div>
-      <div class="txt"><b>${esc(it.task_name)}</b></div>
-      <div class="txt">${esc(it.text.length > 260 ? it.text.slice(0, 260) + "…" : it.text)}${it.earlier ? ` <span class="meta">(+${it.earlier} earlier)</span>` : ""}</div>
+    return `<div class="item ${bl ? "blur" : ""}" data-k="${k}"><div class="nrow"><div class="num mc-sensitive" data-mc-sensitive="id">${it.number ? "#" + it.number : ""}</div><div class="nbody">
+      <div class="meta">${sens(esc(it.who), "name")} · ${esc(it.age)} ago · ${sens(esc(it.project), "name")}<span class="badge">${esc(it.status || "")}</span></div>
+      <div class="txt mc-sensitive" data-mc-sensitive="text"><b>${esc(it.task_name)}</b></div>
+      <div class="txt mc-sensitive" data-mc-sensitive="text">${esc(it.text.length > 260 ? it.text.slice(0, 260) + "…" : it.text)}${it.earlier ? ` <span class="meta">(+${it.earlier} earlier)</span>` : ""}</div>
       <div class="row">
         <a class="btn p" target="_blank" rel="noreferrer" href="${esc(it.url)}">Open in Asana</a>
         <button class="btn" data-eye title="${bl ? "Show" : "Blur for privacy"}" aria-label="${bl ? "Show item" : "Blur item"}">${bl ? "🙈" : "👁"}</button>
@@ -721,7 +849,7 @@ function renderOffice() {
     <h3 class="osub">Working now <span class="ocount">${working.length}</span></h3>
     ${working.length ? `<div class="owork">${working.map((b) => `<a class="obot" href="${CHAT(b.id)}" title="Open ${esc(b.name)}">
       ${av(b)}<div class="obody"><div class="oname"><span class="olive" aria-hidden="true"></span>${esc(b.name)}</div>
-      <div class="odoing">${esc(b.doing || "Working")}</div>
+      <div class="odoing mc-sensitive" data-mc-sensitive="text">${esc(b.doing || "Working")}</div>
       <div class="olast">Last active: ${esc(withZone(b.last))}</div></div></a>`).join("")}</div>`
       : `<p class="cap">No bot has worked in the last 4 hours.</p>`}
     <h3 class="osub">Idle <span class="ocount">${idle.length}</span></h3>
@@ -740,10 +868,10 @@ function renderRest() {
   });
   $("heat").innerHTML = s;
   $("bcap").textContent = D.brief.caption;
-  $("brief").innerHTML = D.brief.items.map((x) => `<li>${esc(x)}</li>`).join("");
+  $("brief").innerHTML = D.brief.items.map((x) => `<li class="mc-sensitive" data-mc-sensitive="text">${esc(x)}</li>`).join("");
   $("blinks").innerHTML = D.brief.links.map((l) => `<a class="lk" target="_blank" rel="noreferrer" href="${esc(l.href)}"><div class="t">${esc(l.title)}</div><div class="m">${esc([l.site, l.date].filter(Boolean).join(" · "))}</div></a>`).join("");
   $("tcap").textContent = D.captions.timeline;
-  $("timeline").innerHTML = D.done.map((d) => `<div class="tl"><div class="av" style="background:color-mix(in oklab,${colorFor(d.bot)} 30%,var(--surface));border:2px solid ${colorFor(d.bot)}">${esc(initials(d.bot))}</div><div style="min-width:0"><div class="meta">${esc(d.bot)} · ${esc(d.when)}</div><div>${esc(d.text)}</div></div></div>`).join("");
+  $("timeline").innerHTML = D.done.map((d) => `<div class="tl"><div class="av" style="background:color-mix(in oklab,${colorFor(d.bot)} 30%,var(--surface));border:2px solid ${colorFor(d.bot)}">${esc(initials(d.bot))}</div><div style="min-width:0"><div class="meta">${esc(d.bot)} · ${esc(d.when)}</div><div class="mc-sensitive" data-mc-sensitive="text">${esc(d.text)}</div></div></div>`).join("");
   $("rcap").textContent = D.captions.routines;
   $("routines").innerHTML = D.routines.map((r) => `<tr>${r.map((c) => `<td>${esc(c)}</td>`).join("")}</tr>`).join("");
   const w = D.waiting, chats = w.filter((i) => !i.stale).length;
@@ -773,12 +901,12 @@ function renderHelpdesk() {
   const frt = M.avg_first_response_hours_30d;
   const frtTxt = frt === null || frt === undefined ? null : frt >= 48 ? (Math.round(frt / 24 * 10) / 10) + " days" : frt + " hrs";
   const rows = (list, waitCol) => (list || []).map((t) => { const s = HD_ST[t.status] || [t.status, ""];
-    return `<tr><td><a class="tk" target="_blank" rel="noreferrer" href="${esc(t.link)}">#${esc(String(t.number))}</a></td><td>${esc(t.client)}</td><td>${esc(t.subject)}${t.priority === "urgent" || t.priority === "high" ? ` <span class="tag2 hot">${esc(t.priority)}</span>` : ""}</td><td><span class="tag2 ${s[1]}">${esc(s[0])}</span></td><td><b>${esc(hdAge(t.age_days))}</b></td>${waitCol ? `<td><b>${esc(hdAge(t.waiting_days))}</b></td>` : ""}</tr>`; });
+    return `<tr><td><a class="tk mc-sensitive" data-mc-sensitive="id" target="_blank" rel="noreferrer" href="${esc(t.link)}">#${esc(String(t.number))}</a></td><td>${sens(esc(t.client), "name")}</td><td>${sens(esc(t.subject), "text")}${t.priority === "urgent" || t.priority === "high" ? ` <span class="tag2 hot">${esc(t.priority)}</span>` : ""}</td><td><span class="tag2 ${s[1]}">${esc(s[0])}</span></td><td><b>${esc(hdAge(t.age_days))}</b></td>${waitCol ? `<td><b>${esc(hdAge(t.waiting_days))}</b></td>` : ""}</tr>`; });
   const head = (waitCol) => ["Ticket", "Client", "Subject", "Status", "Age"].concat(waitCol ? ["Waiting on us"] : []);
   const list = (title, cap, l, waitCol, empty) => sec(title, cap, l && l.length ? ttab(head(waitCol), rows(l, waitCol)) : `<p>${esc(empty)}</p>`);
   const naItem = (t) => { const c = t.level === "critical", s = HD_ST[t.status] || [t.status, ""];
-    return `<li class="${c ? "" : "a"}"><div class="top"><span class="lvl ${c ? "lv-c" : "lv-a"}">${c ? "Critical" : "Concerning"}</span><a class="tk" target="_blank" rel="noreferrer" href="${esc(t.link)}">#${esc(String(t.number))}</a><span class="cl">${esc(t.client)}${t.key_client ? " · key client" : ""}</span></div>`
-      + `<div class="sj">${esc(t.subject)}</div><div class="rs">${(t.reasons || []).map((r) => `<span class="${r.level === "critical" ? "lv-c" : "lv-a"}">${esc(r.text)}</span>`).join("")}</div>`
+    return `<li class="${c ? "" : "a"}"><div class="top"><span class="lvl ${c ? "lv-c" : "lv-a"}">${c ? "Critical" : "Concerning"}</span><a class="tk mc-sensitive" data-mc-sensitive="id" target="_blank" rel="noreferrer" href="${esc(t.link)}">#${esc(String(t.number))}</a><span class="cl">${sens(esc(t.client), "name")}${t.key_client ? " · key client" : ""}</span></div>`
+      + `<div class="sj mc-sensitive" data-mc-sensitive="text">${esc(t.subject)}</div><div class="rs">${(t.reasons || []).map((r) => `<span class="${r.level === "critical" ? "lv-c" : "lv-a"} mc-sensitive" data-mc-sensitive="text">${esc(r.text)}</span>`).join("")}</div>`
       + `<div class="meta">${esc(s[0])} · opened ${esc(hdAge(t.age_days))} ago${t.priority ? " · " + esc(t.priority) + " priority" : ""}</div></li>`; };
   const naPanel = !A ? "" : `<section class="na ${A.tickets.length ? "" : "calm"}"><h2>Needs attention</h2>`
     + `<div class="cnt"><span class="lv-c">${esc(String(nC))} critical</span><span class="lv-a">${esc(String(nA))} concerning</span></div>`
@@ -800,7 +928,7 @@ function renderHelpdesk() {
       + `</div>`
       + `<p style="margin-top:14px"><a class="pill" target="_blank" rel="noreferrer" href="https://helpdesk.getsi.media/admin/tickets">Open the helpdesk</a></p>`)
     + sec("Tickets by client", "Not closed or resolved, with new this week and all-time totals. Key clients are outlined.",
-      `<div class="hdc">${(H.by_client || []).map((c) => `<div class="${c.key ? "key" : ""}"><div class="nm">${esc(c.short && c.short !== c.name ? c.short + " · " + c.name : c.name)}</div><div class="n">${esc(String(c.active))}</div><div class="sm">${c.missing ? "No client set up with this name in the helpdesk" : `${esc(String(c.new_this_week))} new this week · ${esc(String(c.total))} all time`}</div></div>`).join("")}</div>`)
+      `<div class="hdc">${(H.by_client || []).map((c) => `<div class="${c.key ? "key" : ""}"><div class="nm">${sens(esc(c.short && c.short !== c.name ? c.short + " · " + c.name : c.name), "name")}</div><div class="n">${esc(String(c.active))}</div><div class="sm">${c.missing ? "No client set up with this name in the helpdesk" : `${esc(String(c.new_this_week))} new this week · ${esc(String(c.total))} all time`}</div></div>`).join("")}</div>`)
     + list("Key tickets · waiting on us longest", "Open or pending tickets where the customer sent the last message. Time since their last message.", K.waiting_on_us_longest, true, "Nothing is waiting on us.")
     + list("Key tickets · high or urgent priority", "", K.high_priority, false, "No open high or urgent tickets.")
     + list("Key tickets · oldest unresolved", "Open or pending, oldest first.", K.oldest_unresolved, false, "No unresolved tickets.");
@@ -850,7 +978,7 @@ function rtTip(btn, pin) {
   tip.innerHTML = `<h4>${esc(r.name)}</h4><div class="who">${esc(r.bot)}</div>
     <dl><dt>When</dt><dd>${esc(r.schedule || "not on record")} (AST)</dd><dt>Status</dt><dd>${RT_LBL[r.status] || esc(r.status)}</dd>
     <dt>Next run</dt><dd>${esc(r.next_run || (r.status === "enabled" ? "no set time" : "none"))}</dd><dt>Last run</dt><dd>${esc(r.last_run || "not on record")}</dd></dl>
-    ${r.stale ? `<p class="warn">● ${esc(r.stale)}</p>` : ""}<p class="sum${r.summary ? "" : " none"}">${esc(r.summary || "Summary not on record.")}</p>`;
+    ${r.stale ? `<p class="warn mc-sensitive" data-mc-sensitive="text">● ${esc(r.stale)}</p>` : ""}<p class="sum mc-sensitive${r.summary ? "" : " none"}" data-mc-sensitive="text">${esc(r.summary || "Summary not on record.")}</p>`;
   tip.hidden = false; RT.pin = pin ? btn : null; RT.cur = btn;
   const b = btn.getBoundingClientRect(), t = tip.getBoundingClientRect(), vw = innerWidth, vh = innerHeight;
   let x = Math.min(Math.max(8, b.left), vw - t.width - 8), y = b.bottom + 6;
@@ -891,80 +1019,80 @@ function renderBrain(force) {
   if (!B) { for (const id of ["tabVillas", "tabMoney", "tabGrowth"]) $(id).innerHTML = none(noData); return; }
   const om = B.onemove || {};
   $("oneMove").hidden = !om.head;
-  $("oneMove").innerHTML = `<div class="lab">Your one move today · from the ${esc(fmtRun(B.as_of))} run</div><div class="hd">${esc(om.head)}</div>${om.detail ? `<div class="dt">${esc(om.detail)}</div>` : ""}${om.why ? `<div class="why">Why: ${esc(om.why)}</div>` : ""}${om.advisor_line ? `<div class="adv">🎩 ${esc(om.advisor_line)}</div>` : ""}`;
+  $("oneMove").innerHTML = `<div class="lab">Your one move today · from the ${esc(fmtRun(B.as_of))} run</div><div class="hd mc-sensitive" data-mc-sensitive="text">${esc(om.head)}</div>${om.detail ? `<div class="dt mc-sensitive" data-mc-sensitive="text">${esc(om.detail)}</div>` : ""}${om.why ? `<div class="why">Why: ${sens(esc(om.why), "text")}</div>` : ""}${om.advisor_line ? `<div class="adv">🎩 ${sens(esc(om.advisor_line), "text")}</div>` : ""}`;
   const vitals = B.vitals || [];
   $("vitals").innerHTML = vitals.map((v) => { const pnlBtn = /^Villa profit/.test(v.k || ""), tag = pnlBtn ? "div" : "button";
-    return `<${tag} ${pnlBtn ? `role="button" tabindex="0"` : `type="button"`} class="vital ${v.bad ? "bad" : ""}" data-go="${esc(v.tab)}"><div class="s">${esc(v.k)}</div><div class="b">${esc(v.v ?? "unknown")}</div>${v.sub ? `<div class="u">${esc(v.sub)}</div>` : ""}${v.goal ? `<div class="g">${esc(v.goal)}</div>` : ""}${pnlBtn ? `<a class="pill vpill" href="#tab=villas" data-go="villas" data-sec="villaPnl">See revenue and expenses</a>` : ""}</${tag}>`; }).join("") || `<p class="cap">No villa stats in this run.</p>`;
+    return `<${tag} ${pnlBtn ? `role="button" tabindex="0"` : `type="button"`} class="vital ${v.bad ? "bad" : ""}" data-go="${esc(v.tab)}"><div class="s">${esc(v.k)}</div><div class="b mc-sensitive" data-mc-sensitive="money">${esc(v.v ?? "unknown")}</div>${v.sub ? `<div class="u mc-sensitive" data-mc-sensitive="text">${esc(v.sub)}</div>` : ""}${v.goal ? `<div class="g mc-sensitive" data-mc-sensitive="text">${esc(v.goal)}</div>` : ""}${pnlBtn ? `<a class="pill vpill" href="#tab=villas" data-go="villas" data-sec="villaPnl">See revenue and expenses</a>` : ""}</${tag}>`; }).join("") || `<p class="cap">No villa stats in this run.</p>`;
   const vc = $("vitalsCount"); if (vc) { vc.textContent = vitals.length ? String(vitals.length) : ""; vc.hidden = !vitals.length; }
   // Board Room
   const bd = B.board || {}, tk = bd.take;
   $("boardSec").hidden = !tk && !(bd.scorecards || []).length;
   $("boardCap").textContent = tk ? `${tk.date === (B.as_of || "").slice(0, 10) ? "Today's" : "Latest"} take (${tk.date}). The advisor whose lens fits the one move speaks; each "Do this" is logged and checked a week later.` : "No take yet.";
-  const sc = (bd.scorecards || []).map((c) => `<div class="scc"><span class="gr ${c.grade || "na"}">${esc(c.grade || "–")}</span><div class="an">${esc(c.advisor)}</div><div class="ms">${esc(c.measure)}</div><div class="vv">${esc(c.value || "Not graded yet")}</div><div class="nt">${esc(c.note || "")}</div></div>`).join("");
-  const lg = (bd.log || []).map((e) => `<li><span class="t">${esc(e.date)}</span>${esc(e.advisor)}: ${esc(e.do)} <span class="tag2 ${e.status === "open" ? (e.check_on <= new Date().toISOString().slice(0, 10) ? "hot" : "warn") : "ok"}">${e.status === "open" ? "check-back " + esc(e.check_on) : esc(e.status)}</span></li>`).join("");
+  const sc = (bd.scorecards || []).map((c) => `<div class="scc"><span class="gr ${c.grade || "na"}">${esc(c.grade || "–")}</span><div class="an">${esc(c.advisor)}</div><div class="ms">${esc(c.measure)}</div><div class="vv">${sens(esc(c.value || "Not graded yet"), "text")}</div><div class="nt">${sens(esc(c.note || ""), "text")}</div></div>`).join("");
+  const lg = (bd.log || []).map((e) => `<li><span class="t">${esc(e.date)}</span>${esc(e.advisor)}: ${sens(esc(e.do), "text")} <span class="tag2 ${e.status === "open" ? (e.check_on <= new Date().toISOString().slice(0, 10) ? "hot" : "warn") : "ok"}">${e.status === "open" ? "check-back " + esc(e.check_on) : esc(e.status)}</span></li>`).join("");
   $("board").innerHTML = (tk ? `<div class="who"><div class="avb">${esc(tk.ini || "")}</div><div><div class="nm">${esc(tk.advisor)}</div><div class="ln">${esc(tk.lens || "")}</div></div></div>
-    <div class="rd">${esc(tk.read || "")}</div>${tk.do ? `<div class="do"><b>DO THIS</b>${esc(tk.do)}</div>` : ""}${tk.life ? `<div class="life">On life: ${esc(tk.life)}</div>` : ""}` : "")
+    <div class="rd mc-sensitive" data-mc-sensitive="text">${esc(tk.read || "")}</div>${tk.do ? `<div class="do"><b>DO THIS</b>${sens(esc(tk.do), "text")}</div>` : ""}${tk.life ? `<div class="life">On life: ${sens(esc(tk.life), "text")}</div>` : ""}` : "")
     + `<details class="more2"><summary>Scorecards · ${esc(bd.month || "")} (A–F)</summary><div class="sc">${sc}</div></details>`
     + `<details class="more2"><summary>Follow-through log${(bd.due || []).length ? ` · ${(bd.due || []).length} due` : ""}</summary><ul class="lst">${lg || "<li>Nothing logged yet.</li>"}</ul></details>`;
   // Today: calendar, team, Asana
   const T = B.today || {};
   $("calCap").textContent = `Your calendar${T.sched_asof ? " · " + T.sched_asof : ""}${T.sched_note ? ". " + T.sched_note : ""}`;
-  $("cal").innerHTML = (T.sched || []).map((i) => `<li><span class="t">${esc(i.t)}</span>${i.url ? `<a href="${esc(i.url)}" target="_blank" rel="noreferrer" style="color:inherit">${esc(i.text)}</a>` : esc(i.text)}${i.tag ? `<span class="tag2">${esc(i.tag)}</span>` : ""}</li>`).join("") || "<li>Nothing on the calendar.</li>";
-  $("team").innerHTML = (T.staff || []).map((s) => `<span class="${s.on ? "on" : ""}">${s.on ? "● " : "○ "}${esc(s.name)}${s.note ? " · " + esc(s.note) : ""}</span>`).join("") || `<span>Unknown</span>`;
+  $("cal").innerHTML = (T.sched || []).map((i) => `<li><span class="t">${esc(i.t)}</span>${i.url ? `<a class="mc-sensitive" data-mc-sensitive="text" href="${esc(i.url)}" target="_blank" rel="noreferrer" style="color:inherit">${esc(i.text)}</a>` : sens(esc(i.text), "text")}${i.tag ? `<span class="tag2">${esc(i.tag)}</span>` : ""}</li>`).join("") || "<li>Nothing on the calendar.</li>";
+  $("team").innerHTML = (T.staff || []).map((s) => `<span class="${s.on ? "on" : ""}">${s.on ? "● " : "○ "}${sens(esc(s.name), "name")}${s.note ? " · " + sens(esc(s.note), "text") : ""}</span>`).join("") || `<span>Unknown</span>`;
   const AS = T.asana || {};
   $("asanaSec").hidden = !(AS.items || []).length;
   $("asanaCap").textContent = AS.caption || "";
-  $("asana").innerHTML = (AS.items || []).map((t) => `<li>${t.url ? `<a href="${esc(t.url)}" target="_blank" rel="noreferrer" style="color:inherit">${esc(t.text)}</a>` : esc(t.text)}${t.tag ? `<span class="tag2 ${t.overdue ? "hot" : "warn"}">${esc(t.tag)}</span>` : ""}${t.meta ? `<div class="us">${esc(t.meta)}</div>` : ""}</li>`).join("");
+  $("asana").innerHTML = (AS.items || []).map((t) => `<li>${t.url ? `<a class="mc-sensitive" data-mc-sensitive="text" href="${esc(t.url)}" target="_blank" rel="noreferrer" style="color:inherit">${esc(t.text)}</a>` : sens(esc(t.text), "text")}${t.tag ? `<span class="tag2 ${t.overdue ? "hot" : "warn"}">${esc(t.tag)}</span>` : ""}${t.meta ? `<div class="us mc-sensitive" data-mc-sensitive="text">${esc(t.meta)}</div>` : ""}</li>`).join("");
   // Villas
   const V = B.villas || {}, rev = V.revenue || [], m0 = rev[0];
   const PN = V.pnl || {}, PH = PN.headline, pf = V.profit;
-  const tt = (n) => n == null ? "?" : (n < 0 ? "−" : "") + "TT$" + Math.abs(Math.round(n)).toLocaleString("en-US");
+  const tt = (n) => sens(n == null ? "?" : (n < 0 ? "−" : "") + "TT$" + Math.abs(Math.round(n)).toLocaleString("en-US"), "money");
   const bas = (b) => b ? `<span class="tag2 ${b === "actual" ? "ok" : "warn"}">${esc(b)}</span>` : "";
   const VR = PN.rate && PN.rate.fixed ? PN.rate.usd_ttd : MILES_VILLA_RATE; // villa TT$ figures use Miles villa rate 7.8
   const fxl = PN.rate && PN.rate.fixed ? `US$1 = TT$${VR.toFixed(2)} (${esc(PN.rate.label)}, fixed; live market ${PN.rate.live_ref ? PN.rate.live_ref.usd_ttd.toFixed(4) : "?"} shown for reference only; the 6.75 bank rate is only for actual bank conversions)` : PN.rate ? `US$1 = TT$${PN.rate.usd_ttd.toFixed(4)} (${esc(PN.rate.source)}, ${esc(new Date(PN.rate.date).toLocaleString("en-US", { timeZone: "America/Port_of_Spain", month: "short", day: "numeric", year: "numeric", hour: "numeric", minute: "2-digit" }))} AST)${PN.rate.stale ? " · last good rate" : ""}` : "No exchange rate";
   const pnlRows = (PN.months || []).map((m) => { const o = m.overheads || {};
-    const brk = o.lines ? `<details><summary>${tt(o.tt)}</summary><div class="us">Mortgages ${tt(o.mortgages)} · Capex ${tt(o.capex)} · Other operating ${tt(o.opex)}${o.excluded_tt ? ` · excluded (Helen, contractor) ${tt(o.excluded_tt)}` : ""}</div>${o.lines.map((l) => `<div class="us">${esc(l.group)} · ${esc(l.label)}: ${tt(l.tt)}</div>`).join("")}</details>` : `${tt(o.tt)}<div class="us">${esc(o.note || "")}</div>`;
-    return `<tr><td><b>${esc(m.label)}</b>${m.partial ? ` <span class="tag2 warn" title="${esc(m.flags.join("; "))}">partial</span><div class="us">${esc(m.flags.join("; "))}</div>` : ""}</td><td>${m.revenue ? `${tt(m.revenue.tt)} ${bas(m.revenue.basis)}<div class="us">US$${Math.round(m.revenue.usd).toLocaleString("en-US")}</div>` : "–"}</td><td>${brk} ${bas(o.basis)}</td><td><b>${m.profit ? tt(m.profit.tt) : "–"}</b> ${m.profit ? bas(m.profit.basis) : ""}</td></tr>`; });
+    const brk = o.lines ? `<details><summary>${tt(o.tt)}</summary><div class="us">Mortgages ${tt(o.mortgages)} · Capex ${tt(o.capex)} · Other operating ${tt(o.opex)}${o.excluded_tt ? ` · ${sens("excluded (Helen, contractor)", "name")} ${tt(o.excluded_tt)}` : ""}</div>${o.lines.map((l) => `<div class="us">${sens(esc(l.group) + " · " + esc(l.label), "text")}: ${tt(l.tt)}</div>`).join("")}</details>` : `${tt(o.tt)}<div class="us">${sens(esc(o.note || ""), "text")}</div>`;
+    return `<tr><td><b>${esc(m.label)}</b>${m.partial ? ` <span class="tag2 warn mc-title-hide" title="${esc((m.flags || []).join("; "))}">partial</span><div class="us">${sens(esc((m.flags || []).join("; ")), "text")}</div>` : ""}</td><td>${m.revenue ? `${tt(m.revenue.tt)} ${bas(m.revenue.basis)}<div class="us">${sens("US$" + Math.round(m.revenue.usd).toLocaleString("en-US"), "money")}</div>` : "–"}</td><td>${brk} ${bas(o.basis)}</td><td><b>${m.profit ? tt(m.profit.tt) : "–"}</b> ${m.profit ? bas(m.profit.basis) : ""}</td></tr>`; });
   const ppct = pf ? Math.round(pf.tt / 120000 * 100) : null;
   $("tabVillas").innerHTML =
-    secId("villaPnl", "Villa profit vs the TT$120,000 monthly goal", PN.rules || "",
-      (pf ? `<div class="goal"><div class="kt" style="display:flex;justify-content:space-between;font-weight:700;flex-wrap:wrap;gap:6px"><span>${esc(pf.month)} profit: ${tt(pf.tt)} ${bas(pf.basis)}${pf.partial ? ` <span class="tag2 warn">partial</span>` : ""}</span><span>${ppct}% of the TT$120,000 monthly profit goal</span></div><div class="track"><i style="width:${Math.max(0, Math.min(100, ppct || 0))}%"></i></div><div class="us" style="margin-top:6px">Revenue ${tt(PH.revenue_tt)} (${esc(PH.revenue_basis)}) − overheads ${tt(PH.overheads_tt)} (${esc(PH.overheads_basis)})</div></div>` : none(PN.error || "Profit not available."))
+    secId("villaPnl", `Villa profit vs the ${sens("TT$120,000", "money")} monthly goal`, PN.rules || "",
+      (pf ? `<div class="goal"><div class="kt" style="display:flex;justify-content:space-between;font-weight:700;flex-wrap:wrap;gap:6px"><span>${esc(pf.month)} profit: ${tt(pf.tt)} ${bas(pf.basis)}${pf.partial ? ` <span class="tag2 warn">partial</span>` : ""}</span><span>${sens(String(ppct) + "%", "money")} of the ${sens("TT$120,000", "money")} monthly profit goal</span></div><div class="track"><i style="width:${Math.max(0, Math.min(100, ppct || 0))}%"></i></div><div class="us" style="margin-top:6px">Revenue ${tt(PH.revenue_tt)} (${esc(PH.revenue_basis)}) − overheads ${tt(PH.overheads_tt)} (${esc(PH.overheads_basis)})</div></div>` : none(PN.error || "Profit not available."))
       + (PN.months ? ttab(["Month", "Revenue (Hospitable)", "Overheads (cash flow sheet)", "Profit"], pnlRows) : "")
       + (PN.ytd ? `<p class="cap">${esc(PN.ytd.months)} (actual): revenue ${tt(PN.ytd.revenue_tt)} − overheads ${tt(PN.ytd.overheads_tt)} = profit ${tt(PN.ytd.profit_tt)}. Estimated month overheads = ${tt(PN.base.overheads_total_tt)} ÷ 10 = ${tt(PN.base.est_month_tt)}.</p>` : "")
-      + `<p class="cap">Rate: ${fxl}.${PN.sources ? ` Overheads: <a href="${esc(PN.sources.overheads.url)}" target="_blank" rel="noreferrer" style="color:var(--accent-ink)">${esc(PN.sources.overheads.title)} · ${esc(PN.sources.overheads.tab)}</a> (read ${esc(PN.sources.overheads.fetched_at)}). Revenue: ${esc(PN.sources.revenue.title)}.` : ""}</p>`)
+      + `<p class="cap">Rate: ${sens(fxl, "money")}.${PN.sources ? ` Overheads: <a href="${esc(PN.sources.overheads.url)}" target="_blank" rel="noreferrer" style="color:var(--accent-ink)">${esc(PN.sources.overheads.title)} · ${esc(PN.sources.overheads.tab)}</a> (read ${esc(PN.sources.overheads.fetched_at)}). Revenue: ${esc(PN.sources.revenue.title)}.` : ""}</p>`)
     + sec("Villa revenue by check-in month", V.revenue_caption,
-      ttab(["Month", "Total", "Airbnb", "Direct"], rev.map((r) => `<tr><td><b>${esc(r.month)}</b><div class="us">${esc(r.when || "")}</div></td><td><div class="tt">${esc(r.total_tt_lbl || "?")}</div><div class="us">${esc(r.total_usd_lbl || "")}</div></td><td>${esc(r.airbnb_usd)}<div class="us">US$ · ${esc(r.airbnb_n || "")}</div></td><td>${esc(r.direct_tt)}<div class="us">${esc(r.direct_n || "")}</div></td></tr>`))
-      + (V.top_villa ? `<p class="cap">Top villa: ${esc(V.top_villa)}</p>` : "") + `<p class="cap">The 4 owned villas only (Nest, Heart, Fairway, Casa). TT$ = US$ × ${VR} (Miles villa rate).</p>`)
+      ttab(["Month", "Total", "Airbnb", "Direct"], rev.map((r) => `<tr><td><b>${esc(r.month)}</b><div class="us">${esc(r.when || "")}</div></td><td><div class="tt">${sens(esc(r.total_tt_lbl || "?"), "money")}</div><div class="us">${sens(esc(r.total_usd_lbl || ""), "money")}</div></td><td>${sens(esc(r.airbnb_usd), "money")}<div class="us">US$ · ${esc(r.airbnb_n || "")}</div></td><td>${sens(esc(r.direct_tt), "money")}<div class="us">${esc(r.direct_n || "")}</div></td></tr>`))
+      + (V.top_villa ? `<p class="cap">Top villa: ${esc(V.top_villa)}</p>` : "") + `<p class="cap">The 4 owned villas only (Nest, Heart, Fairway, Casa). TT$ = US$ × ${sens(String(VR), "money")} (Miles villa rate).</p>`)
     + `<div class="grid2">`
-    + sec("Booked, next 30 days", V.occ_caption, (V.occupancy || []).map((o) => `<div class="ob"><b>${esc(o.villa)}</b><div class="bar"><i class="${o.warn ? "lo" : ""}" style="width:${o.pct}%"></i></div><b>${o.pct}%</b><div class="mo">${(o.months || []).map((m) => `${esc(m.m)} ${m.pct}%`).join(" · ")}${o.open_nts_90 != null ? ` · ${o.open_nts_90} open nights (90d)` : ""}</div></div>`).join("") + (V.next_move ? `<p class="cap" style="margin-top:12px">${esc(V.next_move)}</p>` : ""))
-    + sec("Next arrivals", "", `<ul class="lst">${(V.arrivals || []).map((a) => `<li><b>${esc(a.text)}</b><span class="tag2">${esc(a.chan)}</span><div class="us">${esc(a.g)}</div></li>`).join("") || "<li>None in the window.</li>"}</ul>`)
+    + sec("Booked, next 30 days", V.occ_caption, (V.occupancy || []).map((o) => `<div class="ob"><b>${esc(o.villa)}</b><div class="bar" role="img" aria-label="${esc(o.villa)} ${o.pct}% booked"><i class="${o.warn ? "lo" : ""}" style="width:${o.pct}%"></i></div><b class="mc-sensitive" data-mc-sensitive="money">${o.pct}%</b><div class="mo">${(o.months || []).map((m) => `${esc(m.m)} ${sens(m.pct + "%", "money")}`).join(" · ")}${o.open_nts_90 != null ? ` · ${sens(String(o.open_nts_90), "money")} open nights (90d)` : ""}</div></div>`).join("") + (V.next_move ? `<p class="cap" style="margin-top:12px">${esc(V.next_move)}</p>` : ""))
+    + sec("Next arrivals", "", `<ul class="lst">${(V.arrivals || []).map((a) => `<li><b>${sens(esc(a.text), "name")}</b><span class="tag2">${esc(a.chan)}</span><div class="us">${sens(esc(a.g), "name")}</div></li>`).join("") || "<li>None in the window.</li>"}</ul>`)
     + `</div><div class="grid2">`
-    + sec("Airbnb payouts in transit", "Booked Airbnb net not yet paid out. Airbnb pays about a day after each check-in.", V.airbnb ? `<div class="tt" style="font-size:30px">${esc(V.airbnb.total_tt)}</div><div class="us">${esc(V.airbnb.total_usd)} · ${esc(V.airbnb.n)} stays${V.airbnb.next ? ` · next: ${esc(V.airbnb.next.g)} (${esc(V.airbnb.next.v)}) ${esc(V.airbnb.next.ttd)} on ${esc(V.airbnb.next.payout)}` : ""}</div>` + ttab(["Month", "TT$", "US$", "Stays"], (V.airbnb.months || []).map((m) => `<tr><td>${esc(m.m)}</td><td><b>${esc(m.tt)}</b></td><td>${esc(m.usd)}</td><td>${esc(m.n)}</td></tr>`)) : none("No data."))
-    + sec("Villa Direct balances", V.direct && V.direct.efficiency ? V.direct.efficiency.sub : "", V.direct ? `<div class="tt" style="font-size:30px">${esc(V.direct.total_tt)}</div><div class="us">${esc(V.direct.total_usd)} · ${esc(V.direct.n_open)} open · collection ${esc(V.direct.efficiency ? V.direct.efficiency.pct : "?")}</div>` + ttab(["Guest", "Villa", "Check-in", "Balance", "Status"], (V.direct.bookings || []).map((b) => `<tr><td>${esc(b.g)}</td><td>${esc(b.v)}</td><td>${esc(b.ci)}</td><td><b>${esc(b.bal_tt)}</b><div class="us">${esc(b.bal_usd)}</div></td><td>${b.warn ? `<span class="tag2 warn">${esc(b.st)}</span>` : esc(b.st)}</td></tr>`)) : none("No data."))
+    + sec("Airbnb payouts in transit", "Booked Airbnb net not yet paid out. Airbnb pays about a day after each check-in.", V.airbnb ? `<div class="tt mc-sensitive" data-mc-sensitive="money" style="font-size:30px">${esc(V.airbnb.total_tt)}</div><div class="us mc-sensitive" data-mc-sensitive="text">${esc(V.airbnb.total_usd)} · ${esc(V.airbnb.n)} stays${V.airbnb.next ? ` · next: ${esc(V.airbnb.next.g)} (${esc(V.airbnb.next.v)}) ${esc(V.airbnb.next.ttd)} on ${esc(V.airbnb.next.payout)}` : ""}</div>` + ttab(["Month", "TT$", "US$", "Stays"], (V.airbnb.months || []).map((m) => `<tr><td>${esc(m.m)}</td><td><b>${sens(esc(m.tt), "money")}</b></td><td>${sens(esc(m.usd), "money")}</td><td>${esc(m.n)}</td></tr>`)) : none("No data."))
+    + sec("Villa Direct balances", V.direct && V.direct.efficiency ? V.direct.efficiency.sub : "", V.direct ? `<div class="tt mc-sensitive" data-mc-sensitive="money" style="font-size:30px">${esc(V.direct.total_tt)}</div><div class="us">${sens(esc(V.direct.total_usd), "money")} · ${esc(V.direct.n_open)} open · collection ${sens(esc(V.direct.efficiency ? V.direct.efficiency.pct : "?"), "money")}</div>` + ttab(["Guest", "Villa", "Check-in", "Balance", "Status"], (V.direct.bookings || []).map((b) => `<tr><td>${sens(esc(b.g), "name")}</td><td>${esc(b.v)}</td><td>${sens(esc(b.ci), "text")}</td><td><b>${sens(esc(b.bal_tt), "money")}</b><div class="us">${sens(esc(b.bal_usd), "money")}</div></td><td>${b.warn ? `<span class="tag2 warn">${esc(b.st)}</span>` : esc(b.st)}</td></tr>`)) : none("No data."))
     + `</div>`
-    + sec("Guest feedback and the fix list", V.feedback && V.feedback.caption, V.feedback ? `<div class="cards">${(V.feedback.villas || []).map((v) => `<div class="kpi"><div class="s">${esc(v.villa)}</div><div class="b">${esc(v.rating)}★</div><div class="us">${esc(v.n)} reviews · ${esc(v.top)}</div></div>`).join("")}</div>
-      <h3 class="osub" style="margin-top:18px">Open fixes <span class="ocount">${(V.feedback.fixes || []).length}</span></h3><ul class="lst">${(V.feedback.fixes || []).map((f) => `<li><b>${esc(f.villa)}</b>${f.sev === "crit" ? `<span class="tag2 hot">critical</span>` : `<span class="tag2 warn">${esc(f.sev || "")}</span>`} ${esc(f.issue)}<div class="us">${esc(f.meta || "")}</div></li>`).join("")}</ul>` : none("No data."));
+    + sec("Guest feedback and the fix list", V.feedback && V.feedback.caption, V.feedback ? `<div class="cards">${(V.feedback.villas || []).map((v) => `<div class="kpi"><div class="s">${esc(v.villa)}</div><div class="b">${esc(v.rating)}★</div><div class="us">${esc(v.n)} reviews · ${sens(esc(v.top), "text")}</div></div>`).join("")}</div>
+      <h3 class="osub" style="margin-top:18px">Open fixes <span class="ocount">${(V.feedback.fixes || []).length}</span></h3><ul class="lst">${(V.feedback.fixes || []).map((f) => `<li><b>${esc(f.villa)}</b>${f.sev === "crit" ? `<span class="tag2 hot">critical</span>` : `<span class="tag2 warn">${esc(f.sev || "")}</span>`} ${sens(esc(f.issue), "text")}<div class="us">${sens(esc(f.meta || ""), "text")}</div></li>`).join("")}</ul>` : none("No data."));
   // Money
   const M = B.money || {}, nw = M.networth || {}, ag = M.agency || {};
   const BR = M.bank_rate && M.bank_rate.usd_ttd ? M.bank_rate.usd_ttd : MILES_BANK_RATE; // bank rate 6.75
   const nwCap = nw.as_of ? `Finance snapshot, ${nw.as_of}. Business + personal, ${nw.currency || "TTD"}.` : "Finance writes a snapshot on the 1st of each month (business + personal).";
-  const nwBody = `<div class="blurbox ${NW.show ? "" : "blurred"}" id="nwBox"><div class="val">${nw.total != null ? `<div class="tt" style="font-size:34px">TT$${Number(nw.total).toLocaleString("en-US")}</div><div class="us">Business TT$${Number(nw.business || 0).toLocaleString("en-US")} · Personal TT$${Number(nw.personal || 0).toLocaleString("en-US")}</div>${(nw.lines || []).length ? ttab(["Item", "Value"], nw.lines.map((l) => `<tr><td>${esc(l.label)}</td><td>${esc(l.value)}</td></tr>`)) : ""}` : `<div class="tt" style="font-size:30px">TT$ ———,———</div><div class="us">${esc(nw.note || "Awaiting Finance's first snapshot.")}</div>`}</div></div>
+  const nwBody = `<div class="blurbox ${NW.show ? "" : "blurred"}" id="nwBox"><div class="val mc-sensitive" data-mc-sensitive="money">${nw.total != null ? `<div class="tt" style="font-size:34px">TT$${Number(nw.total).toLocaleString("en-US")}</div><div class="us">Business TT$${Number(nw.business || 0).toLocaleString("en-US")} · Personal TT$${Number(nw.personal || 0).toLocaleString("en-US")}</div>${(nw.lines || []).length ? ttab(["Item", "Value"], nw.lines.map((l) => `<tr><td>${esc(l.label)}</td><td>${esc(l.value)}</td></tr>`)) : ""}` : `<div class="tt" style="font-size:30px">TT$ ———,———</div>`}${nw.note ? `<div class="us">${esc(nw.note)}</div>` : (nw.total == null ? `<div class="us">Awaiting Finance's first snapshot.</div>` : "")}</div></div>
       <div class="row"><button class="btn" type="button" id="nwTog">${NW.show ? "🙈 Blur" : "👁 Show"}</button></div>`;
   $("tabMoney").innerHTML =
     `<section id="nwSec"><h2 class="nw-h"><button type="button" class="nw-disclosure" id="nwDisclosure" aria-expanded="false" aria-controls="nwPanel"><svg class="nav-ico chev" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M9 5.5 15.5 12 9 18.5"/></svg><span id="nwDisclosureLabel">Net worth</span><span class="nw-hint" id="nwHint">Show</span></button></h2><div id="nwPanel" role="region" aria-labelledby="nwDisclosureLabel" hidden><p class="cap">${esc(nwCap)}</p>${nwBody}</div></section>`
     + `<div class="grid2">`
-    + sec("Cash landing by week", M.weeks_caption, ttab(["Week", "TT$", "US$", "Payments"], (M.weeks || []).map((w) => `<tr><td><b>${esc(w.label)}</b><div class="us">${esc(w.rng)}</div></td><td><b>${esc(w.tt)}</b></td><td>${esc(w.usd)}</td><td>${(w.items || []).length ? `<details><summary>${w.n}</summary>${w.items.map((i) => `<div class="us">${esc(i.when)} · ${esc(i.g)} (${esc(i.v)}, ${esc(i.src)}) ${esc(i.amt)}</div>`).join("")}</details>` : "0"}</td></tr>`)) + (M.beyond ? `<p class="cap">${esc(M.beyond.note)}: ${esc(M.beyond.usd)} across ${esc(M.beyond.n)} payments.</p>` : ""))
-    + sec("Expected income by month", (M.months_caption || "") + ` TT$ = US$ × ${BR} (bank rate).`, ttab(["Month", "Total", "Airbnb (US$)", "Villa Direct (US$)"], (M.months || []).map((m) => `<tr><td><b>${esc(m.m)}</b></td><td><b>TT$${Math.round((+m.tot || 0) * BR * 1000).toLocaleString("en-US")}</b><div class="us">US$${esc(m.tot)}k</div></td><td>${esc(m.airbnb)}</td><td>${esc(m.direct)}</td></tr>`)))
+    + sec("Cash landing by week", M.weeks_caption, ttab(["Week", "TT$", "US$", "Payments"], (M.weeks || []).map((w) => `<tr><td><b>${esc(w.label)}</b><div class="us">${esc(w.rng)}</div></td><td><b>${sens(esc(w.tt), "money")}</b></td><td>${sens(esc(w.usd), "money")}</td><td>${(w.items || []).length ? `<details><summary>${w.n}</summary>${w.items.map((i) => `<div class="us">${sens(`${esc(i.when)} · ${esc(i.g)} (${esc(i.v)}, ${esc(i.src)}) ${esc(i.amt)}`, "text")}</div>`).join("")}</details>` : "0"}</td></tr>`)) + (M.beyond ? `<p class="cap">${esc(M.beyond.note)}: ${sens(esc(M.beyond.usd), "money")} across ${esc(M.beyond.n)} payments.</p>` : ""))
+    + sec("Expected income by month", M.months_caption || "", `<p class="cap">TT$ = US$ × ${sens(Number(BR).toFixed(2), "money")} (bank rate).</p>` + ttab(["Month", "Total", "Airbnb (US$)", "Villa Direct (US$)"], (M.months || []).map((m) => `<tr><td><b>${esc(m.m)}</b></td><td><b>${sens("TT$" + Math.round((+m.tot || 0) * BR * 1000).toLocaleString("en-US"), "money")}</b><div class="us">${sens("US$" + esc(m.tot) + "k", "money")}</div></td><td>${sens(esc(m.airbnb), "money")}</td><td>${sens(esc(m.direct), "money")}</td></tr>`)))
     + `</div><div class="grid2">`
-    + sec("Agency receivables", ag.asof ? `From Sunday's Receivables Update email (${ag.asof}).` : "", `<div class="cards"><div class="kpi"><div class="s">Owed</div><div class="b">${esc(ag.total || "?")}</div></div><div class="kpi"><div class="s">Overdue</div><div class="b need">${esc(ag.overdue || "?")}</div></div></div><p class="cap" style="margin-top:10px">${esc(ag.summary || "")}</p>` + ttab(["Invoice", "Client", "TT$", ""], (ag.invoices || []).map((i) => `<tr><td>${esc(i.num)}</td><td>${esc(i.client)}</td><td><b>${esc(i.amt)}</b></td><td>${i.bucket === "overdue" ? `<span class="tag2 hot">overdue</span>` : `<span class="tag2">${esc(i.bucket)}</span>`}</td></tr>`)))
-    + sec("Payables", M.payables && M.payables.note, `<div class="links">${((M.payables || {}).links || []).map((l) => `<a class="lk" target="_blank" rel="noreferrer" href="${esc(l.href)}"><div class="t">${esc(l.title)}</div><div class="m">Google Sheets</div></a>`).join("")}</div>`)
+    + sec("Agency receivables", ag.asof ? `From Sunday's Receivables Update email (${ag.asof}).` : "", `<div class="cards"><div class="kpi"><div class="s">Owed</div><div class="b mc-sensitive" data-mc-sensitive="money">${esc(ag.total || "?")}</div></div><div class="kpi"><div class="s">Overdue</div><div class="b need mc-sensitive" data-mc-sensitive="money">${esc(ag.overdue || "?")}</div></div></div><p class="cap mc-sensitive" data-mc-sensitive="text" style="margin-top:10px">${esc(ag.summary || "")}</p>` + ttab(["Invoice", "Client", "TT$", ""], (ag.invoices || []).map((i) => `<tr><td>${sens(esc(i.num), "id")}</td><td>${sens(esc(i.client), "name")}</td><td><b>${sens(esc(i.amt), "money")}</b></td><td>${i.bucket === "overdue" ? `<span class="tag2 hot">overdue</span>` : `<span class="tag2">${esc(i.bucket)}</span>`}</td></tr>`)))
+    + sec("Payables", "", `${M.payables && M.payables.note ? `<p class="cap mc-sensitive" data-mc-sensitive="text">${esc(M.payables.note)}</p>` : ""}<div class="links">${((M.payables || {}).links || []).map((l) => `<a class="lk" target="_blank" rel="noreferrer" href="${esc(l.href)}"><div class="t">${esc(l.title)}</div><div class="m">Google Sheets</div></a>`).join("")}</div>`)
     + `</div>`;
   // Growth
   const G = B.growth || {}, P = G.pipeline || {}, AD = G.ads, PL = G.ad_plan;
   $("tabGrowth").innerHTML =
-    sec(`Pipeline · ${esc(P.deals || "?")} active deals`, P.summary, `<ul class="lst">${(P.hot || []).map((d) => `<li><span class="tag2 ${d.warn ? "warn" : ""}">${esc(d.stage)}</span> <span class="us">${esc(d.who)}</span><div>${d.url ? `<a href="${esc(d.url)}" target="_blank" rel="noreferrer" style="color:inherit">${esc(d.text)}</a>` : esc(d.text)}</div></li>`).join("")}</ul>${P.next_move ? `<p class="cap" style="margin-top:10px"><b>Next move:</b> ${esc(P.next_move)}</p>` : ""}`)
-    + (AD ? sec(`Villa ads · ${esc(AD.account)}`, "", `<p class="cap">${esc(AD.window)}${AD.stale ? ` · <span class="stale-flag">stale: Meta Ads hasn't refreshed since this window</span>` : ""}</p><div class="cards">${(AD.kpis || []).map((k) => `<div class="kpi"><div class="s">${esc(k.k)}</div><div class="b">${esc(k.v)}</div><div class="us">${esc(k.sub)} · ${esc(k.delta)}</div></div>`).join("")}</div><p style="margin-top:12px">${esc(AD.story)}</p>` + ttab(["Campaign", "Status", "Spend", "Clicks", "CTR"], (AD.campaigns || []).map((c) => `<tr><td>${esc(c.name)}${c.tag ? `<div class="us">${esc(c.tag)}</div>` : ""}</td><td>${esc(c.status)}</td><td>${esc(c.spend)}</td><td>${esc(c.clicks)}</td><td>${esc(c.ctr)}</td></tr>`))) : "")
-    + (PL ? sec("Ad spend plan, next 6 months", PL.note, ttab(["Month", "Posture", "Spend", "Why"], (PL.months || []).map((m) => `<tr><td><b>${esc(m.m)}</b></td><td>${esc(m.posture)}</td><td>${esc(m.spend)}</td><td>${esc(m.why)}</td></tr>`))) : "")
+    sec(`Pipeline · ${esc(P.deals || "?")} active deals`, "", `<p class="cap mc-sensitive" data-mc-sensitive="text">${esc(P.summary || "")}</p><ul class="lst">${(P.hot || []).map((d) => `<li><span class="tag2 ${d.warn ? "warn" : ""}">${esc(d.stage)}</span> <span class="us">${sens(esc(d.who), "name")}</span><div>${d.url ? `<a class="mc-sensitive" data-mc-sensitive="text" href="${esc(d.url)}" target="_blank" rel="noreferrer" style="color:inherit">${esc(d.text)}</a>` : sens(esc(d.text), "text")}</div></li>`).join("")}</ul>${P.next_move ? `<p class="cap" style="margin-top:10px"><b>Next move:</b> ${sens(esc(P.next_move), "text")}</p>` : ""}`)
+    + (AD ? sec(`Villa ads · ${esc(AD.account)}`, "", `<p class="cap">${esc(AD.window)}${AD.stale ? ` · <span class="stale-flag">stale: Meta Ads hasn't refreshed since this window</span>` : ""}</p><div class="cards">${(AD.kpis || []).map((k) => `<div class="kpi"><div class="s">${esc(k.k)}</div><div class="b mc-sensitive" data-mc-sensitive="money">${esc(k.v)}</div><div class="us mc-sensitive" data-mc-sensitive="text">${esc(k.sub)} · ${esc(k.delta)}</div></div>`).join("")}</div><p class="mc-sensitive" data-mc-sensitive="text" style="margin-top:12px">${esc(AD.story)}</p>` + ttab(["Campaign", "Status", "Spend", "Clicks", "CTR"], (AD.campaigns || []).map((c) => `<tr><td>${esc(c.name)}${c.tag ? `<div class="us">${esc(c.tag)}</div>` : ""}</td><td>${esc(c.status)}</td><td>${sens(esc(c.spend), "money")}</td><td>${esc(c.clicks)}</td><td>${sens(esc(c.ctr), "money")}</td></tr>`))) : "")
+    + (PL ? sec("Ad spend plan, next 6 months", "", `${PL.note ? `<p class="cap mc-sensitive" data-mc-sensitive="text">${esc(PL.note)}</p>` : ""}` + ttab(["Month", "Posture", "Spend", "Why"], (PL.months || []).map((m) => `<tr><td><b>${esc(m.m)}</b></td><td>${esc(m.posture)}</td><td>${sens(esc(m.spend), "money")}</td><td>${sens(esc(m.why), "text")}</td></tr>`))) : "")
     + sec("Division goals", "", `<p>Sprint leads, SI Ventures deals and real-estate leads are tracked as KPIs on <a href="#" data-go="org" style="color:var(--accent-ink)">Org &amp; Systems</a>.</p>`);
   $("srcCap").textContent = `Bot chats + Asana (hourly), the Operational Brain engine (last run ${fmtRun(B.as_of)}; weekdays 7:35 AM AST: Hospitable, Gmail, Slack, Calendar, Meta Ads, receivables), org.json.`;
   applyNetworthDisclosure();
@@ -1162,10 +1290,10 @@ function seat(d, R, id, color, opts = {}) {
   return `<button type="button" class="seat ${lv} ${st === "waiting" ? "waiting" : ""}" style="--dc:${esc(color)}" aria-expanded="false">
     <div class="sn"><span class="dot st-${esc(st)}" aria-hidden="true"></span>${icon ? `<span aria-hidden="true">${icon}</span>` : ""}${esc(b.name)}${b.tag ? ` <span class="tag">${esc(b.tag)}</span>` : ""}</div>
     <div class="job">${esc(b.job)}</div>
-    <div class="num">${esc(b.num || "unknown")}</div>
+    <div class="num mc-sensitive" data-mc-sensitive="id">${esc(b.num || "unknown")}</div>
     <div class="meta2"><span class="stl ${st === "waiting" ? "waiting" : ""}">${st === "waiting" ? "WAITING ON MILES" : esc(st.toUpperCase())}</span><span>Last active: ${esc(b.last || "unknown")}${/AM|PM/.test(b.last || "") ? " AST" : ""}</span></div>
-    ${st === "waiting" && (b.asks || []).some((a) => !a.done) ? `<div class="needs"><b>NEEDS FROM MILES · answer in Today › Waiting on me</b><ul>${b.asks.filter((a) => !a.done).map((a) => `<li>${esc(a.text)}</li>`).join("")}</ul></div>` : ""}
-    <div class="more">Reports to: <b>${esc(R.reports(id))}</b> · Manages: <b>${m}</b>${b.flag ? `<div class="flag">⚑ ${esc(b.flag)}</div>` : ""}</div>
+    ${st === "waiting" && (b.asks || []).some((a) => !a.done) ? `<div class="needs"><b>NEEDS FROM MILES · answer in Today › Waiting on me</b><ul>${b.asks.filter((a) => !a.done).map((a) => `<li class="mc-sensitive" data-mc-sensitive="text">${esc(a.text)}</li>`).join("")}</ul></div>` : ""}
+    <div class="more">Reports to: <b>${esc(R.reports(id))}</b> · Manages: <b>${m}</b>${b.flag ? `<div class="flag">${sens("⚑ " + esc(b.flag), "text")}</div>` : ""}</div>
   </button>`;
 }
 function renderOrg() {
@@ -1179,7 +1307,7 @@ function renderOrg() {
   const kbars = d.pillars.map((p) => { const k = p.kpi, pc = kpiPct(k);
     return `<div class="kbar" style="--dc:${esc(p.color)}"><div class="kt"><span>${esc(p.icon)} ${esc(p.name)}</span><span class="prop ${p.proposed ? "" : "set"}">${p.proposed ? "PROPOSED" : "SET"}</span></div>
       <div class="kl">${esc(k.label)}</div><div class="track" role="img" aria-label="${pc}% of target"><i style="width:${pc}%"></i></div>
-      <div class="kv">${esc(kpiLine(k))}</div><div class="kc">Checked ${esc(k.checked || "unknown")} · ${esc(k.source || "unknown")} · Goal: ${esc(p.goal)}</div></div>`; }).join("");
+      <div class="kv">${sens(esc(kpiLine(k)), "money")}</div><div class="kc">Checked ${esc(k.checked || "unknown")} · ${esc(k.source || "unknown")} · Goal: ${sens(esc(p.goal), "text")}</div></div>`; }).join("");
   const cos = d.chief_of_staff;
   const divs = d.pillars.map((p) => {
     const head = p.head && p.head !== cos ? seat(d, R, p.head, p.color, { level: "head" })

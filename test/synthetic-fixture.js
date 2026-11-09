@@ -67,7 +67,24 @@ export const fixture = {
   captions: { timeline: "Synthetic timeline", routines: "Synthetic routines" },
   done: [{ bot: "Sample Bot", when: "1:00 PM", text: "Finished a synthetic item" }],
   routines: [["Sample routine", "Tomorrow 9:00", "Sample Bot"]],
-  helpdesk: null,
+  helpdesk: {
+    generated_at: "2026-11-08T12:00:00Z",
+    metrics: {
+      not_closed_or_resolved: 2,
+      open: 1,
+      pending: 1,
+      waiting_on_customer: 0,
+      waiting_on_us: 1,
+      new_this_week: 1,
+      resolved_this_week: 0,
+      oldest_open_days: 4,
+      avg_first_response_hours_30d: 5,
+      first_response_sample_30d: 3
+    },
+    attention: { critical: 0, concerning: 0, tickets: [], rules: "Synthetic rules." },
+    key_tickets: { waiting_on_us_longest: [], high_priority: [], oldest_unresolved: [] },
+    by_client: [{ name: "Example Client", short: "Example", active: 1, new_this_week: 1, total: 4, key: true, missing: false }]
+  },
   routines_all: null,
   brain: {
     as_of: "2026-11-08T11:35:00Z",
@@ -105,39 +122,95 @@ export const fixture = {
       asana: { items: [], caption: "" }
     },
     villas: {
-      revenue_caption: "Synthetic revenue",
+      revenue_caption: "Synthetic revenue TT$9,999",
       revenue: [{
         month: "Nov",
         when: "sample",
-        total_tt_lbl: "TT$1 sample",
-        total_usd_lbl: "US$1 sample",
-        airbnb_usd: "1",
+        total_tt_lbl: "TT$1,500",
+        total_usd_lbl: "US$200",
+        airbnb_usd: "US$200",
         airbnb_n: "1 stay",
-        direct_tt: "0",
-        direct_n: ""
+        direct_tt: "TT$0",
+        direct_n: "none"
       }],
       top_villa: "Sample Nest",
       occ_caption: "Synthetic occupancy",
       occupancy: [{ villa: "Sample Nest", pct: 40, warn: false, months: [{ m: "Nov", pct: 40 }], open_nts_90: 10 }],
       arrivals: [{ text: "Sample Guest · Sample Nest", chan: "fixture", g: "Not a real guest" }],
-      next_move: "Synthetic next move.",
-      airbnb: null,
-      direct: null,
+      next_move: "Synthetic next move. Mail sample.guest@example.com or call (868) 555-0199.",
+      airbnb: {
+        total_tt: "TT$6,600",
+        total_usd: "US$1,000",
+        n: 1,
+        next: { g: "Sample Guest", v: "Sample Nest", ttd: "TT$6,600", payout: "10 Nov" },
+        months: [{ m: "Nov", tt: "TT$6,600", usd: "US$1,000", n: "1" }]
+      },
+      direct: {
+        total_tt: "TT$3,300",
+        total_usd: "US$500",
+        n_open: 1,
+        efficiency: { sub: "Synthetic collection", pct: "80%" },
+        bookings: [{ g: "Jamie Example", v: "Sample Nest", ci: "12 Nov", bal_tt: "TT$3,300", bal_usd: "US$500", warn: true, st: "balance due" }]
+      },
       feedback: null,
-      pnl: { error: "Synthetic placeholder, not a real profit figure." },
-      profit: null
+      pnl: {
+        rules: "Synthetic rules only.",
+        headline: { revenue_tt: 20000, revenue_basis: "actual", overheads_tt: 7655, overheads_basis: "actual" },
+        rate: { fixed: true, usd_ttd: 7.8, label: "sample villa rate", live_ref: { usd_ttd: 6.8 } },
+        months: [{
+          label: "Nov",
+          partial: false,
+          revenue: { tt: 20000, usd: 2564, basis: "actual" },
+          overheads: { tt: 7655, basis: "actual", note: "Synthetic overheads" },
+          profit: { tt: 12345, basis: "actual" }
+        }]
+      },
+      profit: { month: "Nov", tt: 12345, basis: "actual", partial: false }
     },
     money: {
-      networth: { note: "Synthetic snapshot. Not a real balance." },
+      networth: {
+        as_of: "1 Nov 2026",
+        currency: "TTD",
+        total: 123456,
+        business: 80000,
+        personal: 43456,
+        note: "Synthetic snapshot. Not a real balance.",
+        lines: [
+          { label: "Sample operating account", value: "TT$80,000" },
+          { label: "Sample savings", value: "TT$43,456" }
+        ]
+      },
       weeks_caption: "Synthetic weeks",
-      weeks: [{ label: "Sample", rng: "fixture", tt: "TT$0", usd: "US$0", n: 0, items: [] }],
+      weeks: [{ label: "Sample", rng: "fixture", tt: "TT$8,500", usd: "US$1,250", n: 1, items: [{ when: "Mon", g: "Jamie Example", v: "Sample Nest", src: "Airbnb", amt: "US$1,250" }] }],
       months_caption: "Synthetic months",
-      months: [{ m: "Nov", tot: "0", airbnb: "0", direct: "0" }],
-      payables: { note: "Synthetic payables", links: [] },
-      agency: { total: "TT$0", overdue: "TT$0", summary: "Synthetic receivables.", invoices: [] }
+      months: [{ m: "Nov", tot: "1.2", airbnb: "1.0", direct: "0.2" }],
+      payables: { note: "Synthetic payables of TT$400.", links: [] },
+      agency: {
+        asof: "2 Nov 2026",
+        total: "TT$4,321",
+        overdue: "TT$1,111",
+        summary: "Synthetic receivables for Example Client.",
+        invoices: [{ num: "INV-1001", client: "Example Client", amt: "TT$4,321", bucket: "overdue" }]
+      }
     },
     growth: {
-      pipeline: { deals: "0", summary: "Synthetic pipeline.", hot: [] }
+      pipeline: {
+        deals: "1",
+        summary: "Synthetic pipeline for Example Client.",
+        hot: [{ stage: "Talking", warn: false, who: "Example Client", text: "Sample deal at TT$50,000.", url: "" }]
+      },
+      ads: {
+        account: "Sample Ads",
+        window: "1–7 Nov",
+        stale: false,
+        kpis: [{ k: "Spend", v: "TT$2,400", sub: "this week", delta: "+5%" }],
+        story: "Synthetic ad story for the sample account.",
+        campaigns: [{ name: "Sample campaign", tag: "", status: "On", spend: "TT$2,400", clicks: "120", ctr: "1.5%" }]
+      },
+      ad_plan: {
+        note: "Synthetic plan.",
+        months: [{ m: "Nov", posture: "Steady", spend: "TT$2,400", why: "Sample only" }]
+      }
     }
   }
 };

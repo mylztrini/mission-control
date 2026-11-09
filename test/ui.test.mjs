@@ -185,6 +185,12 @@ describe("Mission Control UI", { timeout: 120000 }, () => {
     assert.equal(html.includes(SYNTH_KEY), false);
     assert.equal(html.includes("mcVitalsOpen"), true);
     assert.equal(html.includes("mcNetworthOpen"), true);
+    assert.match(html, /id="blurMode"/);
+    assert.match(html, /Blur mode/);
+    assert.match(html, /aria-keyshortcuts="Shift\+B"/);
+    assert.match(html, /mcBlurMode/);
+    assert.match(html, /class="mc-sensitive"/);
+    assert.match(html, /data-mc-sensitive/);
     assert.equal(html.includes('class="xbar"'), false);
     assert.equal(html.includes('id="toolsMenu"'), true);
   });
@@ -654,6 +660,223 @@ describe("Mission Control UI", { timeout: 120000 }, () => {
       await page.screenshot({ path: path.join(ARTIFACTS, "followup_networth_collapsed.png") });
       await page.click("#nwDisclosure");
       await page.screenshot({ path: path.join(ARTIFACTS, "followup_networth_expanded.png") });
+      assert.equal(leaked.length, 0);
+      assert.deepEqual(errors, []);
+    } finally {
+      await context.close();
+    }
+  });
+
+  it("toggles blur mode, remembers it, and masks sensitive values including net worth", async () => {
+    const commands = [];
+    const leaked = [];
+    const { context, page, errors } = await openPage(browser, commands, leaked);
+    const shot = async (name) => {
+      fs.mkdirSync(ARTIFACTS, { recursive: true });
+      await page.evaluate(() => {
+        if (document.getElementById("syntheticBanner")) return;
+        const bar = document.createElement("div");
+        bar.id = "syntheticBanner";
+        bar.setAttribute("role", "note");
+        bar.textContent = "SYNTHETIC FIXTURE — not live Mission Control data";
+        bar.style.cssText = "position:sticky;top:0;z-index:80;background:#3a2a00;color:#ffe7a3;font:700 13px/1.3 Arial,sans-serif;text-align:center;padding:6px 10px";
+        document.body.prepend(bar);
+      });
+      await page.screenshot({ path: path.join(ARTIFACTS, name), fullPage: true });
+    };
+    const maskOf = (selector) => page.$eval(selector, (el) => {
+      const after = getComputedStyle(el, "::after");
+      return {
+        cls: el.classList.contains("mc-sensitive"),
+        kind: el.getAttribute("data-mc-sensitive"),
+        color: getComputedStyle(el).color,
+        after: after.content,
+        filter: after.filter
+      };
+    });
+    try {
+      await page.setViewport({ width: 1440, height: 900 });
+      await page.goto(base, { waitUntil: "domcontentloaded", timeout: 20000 });
+      await ready(page);
+
+      const fresh = await page.evaluate(() => ({
+        pressed: document.getElementById("blurMode").getAttribute("aria-pressed"),
+        state: document.getElementById("blurModeState").textContent,
+        shortcut: document.getElementById("blurMode").getAttribute("aria-keyshortcuts"),
+        label: document.getElementById("blurMode").innerText,
+        body: document.body.classList.contains("mc-blur"),
+        stored: localStorage.getItem("mcBlurMode"),
+        vitals: localStorage.getItem("mcVitalsOpen"),
+        net: localStorage.getItem("mcNetworthOpen")
+      }));
+      assert.equal(fresh.pressed, "false");
+      assert.equal(fresh.state, "Off");
+      assert.equal(fresh.shortcut, "Shift+B");
+      assert.match(fresh.label, /Blur mode/);
+      assert.match(fresh.label, /Shift\+B/);
+      assert.equal(fresh.body, false);
+      assert.equal(fresh.stored, null);
+      assert.equal(fresh.vitals, null);
+      assert.equal(fresh.net, null);
+
+      assert.equal((await maskOf("#vitals .b")).cls, true);
+      assert.equal((await maskOf("#vitals .b")).kind, "money");
+      assert.equal((await maskOf("#wlist .txt")).cls, true);
+      assert.equal((await maskOf("#wlist .txt")).kind, "text");
+      assert.notEqual((await maskOf("#vitals .b")).color, "rgba(0, 0, 0, 0)");
+      assert.equal((await maskOf("#vitals .b")).after, "none");
+      const vitalLabel = await page.$eval("#vitals .s", (el) => getComputedStyle(el).color);
+      assert.notEqual(vitalLabel, "rgba(0, 0, 0, 0)");
+
+      await page.focus("#wlist input.reply");
+      await page.keyboard.down("Shift");
+      await page.keyboard.press("KeyB");
+      await page.keyboard.up("Shift");
+      assert.equal(await page.$eval("#blurMode", (el) => el.getAttribute("aria-pressed")), "false");
+      await page.$eval("#wlist input.reply", (el) => el.blur());
+
+      await page.click('.tabs button[data-tab="money"]');
+      await page.waitForSelector("#nwDisclosure");
+      const collapsed = await page.evaluate(() => ({
+        expanded: document.getElementById("nwDisclosure").getAttribute("aria-expanded"),
+        hidden: document.getElementById("nwPanel").hidden,
+        hint: document.getElementById("nwHint").textContent,
+        cls: document.getElementById("nwBox").querySelector(".val").classList.contains("mc-sensitive")
+      }));
+      assert.equal(collapsed.expanded, "false");
+      assert.equal(collapsed.hidden, true);
+      assert.equal(collapsed.hint, "Show");
+      assert.equal(collapsed.cls, true);
+      await shot("blur_desktop_networth_collapsed.png");
+
+      await page.click("#blurMode");
+      assert.equal(await page.$eval("#nwPanel", (el) => el.hidden), true, "blur mode must not expand net worth");
+      await page.click("#blurMode");
+      assert.equal(await page.$eval("#blurMode", (el) => el.getAttribute("aria-pressed")), "false");
+      assert.equal(await page.$eval("#nwPanel", (el) => el.hidden), true);
+
+      await page.click("#nwDisclosure");
+      assert.equal(await page.$eval("#nwPanel", (el) => el.hidden), false);
+      assert.equal(await page.evaluate(() => localStorage.getItem("mcNetworthOpen")), "1");
+      await page.click("#nwTog");
+      await page.waitForFunction(() => document.getElementById("nwBox") && !document.getElementById("nwBox").classList.contains("blurred"));
+      const readable = await maskOf("#nwBox .val");
+      assert.equal(readable.cls, true);
+      assert.equal(readable.kind, "money");
+      assert.notEqual(readable.color, "rgba(0, 0, 0, 0)");
+      assert.match(await page.$eval("#nwPanel", (el) => el.innerText), /Synthetic snapshot/);
+      assert.match(await page.$eval("#nwPanel", (el) => el.innerText), /123,456/);
+      const owedLabel = await page.evaluate(() => getComputedStyle([...document.querySelectorAll("#tabMoney .kpi .s")].find((el) => el.textContent === "Owed")).color);
+      assert.notEqual(owedLabel, "rgba(0, 0, 0, 0)");
+
+      const detected = await page.evaluate(() => {
+        const cap = [...document.querySelectorAll("#tabVillas p.cap")].find((el) => el.textContent.includes("TT$9,999"));
+        const money = cap && [...cap.querySelectorAll("[data-mc-sensitive='money']")].find((el) => el.textContent === "TT$9,999");
+        const email = [...document.querySelectorAll("#tabVillas [data-mc-sensitive='email']")].map((el) => el.textContent);
+        const phone = [...document.querySelectorAll("#tabVillas [data-mc-sensitive='phone']")].map((el) => el.textContent);
+        const guest = [...document.querySelectorAll("#tabVillas [data-mc-sensitive='name']")].some((el) => el.textContent.includes("Jamie Example"));
+        const bar = document.querySelector("#tabVillas .ob .bar i").style.width;
+        const client = [...document.querySelectorAll("#tabHelpdesk [data-mc-sensitive='name']")].some((el) => el.textContent.includes("Example Client"));
+        const invoice = [...document.querySelectorAll("#tabMoney [data-mc-sensitive='id']")].some((el) => el.textContent.includes("INV-1001"));
+        return { money: money && money.classList.contains("mc-sensitive"), email, phone, guest, bar, client, invoice };
+      });
+      assert.equal(detected.money, true);
+      assert.ok(detected.email.includes("sample.guest@example.com"));
+      assert.ok(detected.phone.some((p) => p.includes("555-0199")));
+      assert.equal(detected.guest, true);
+      assert.equal(detected.bar, "40%");
+      assert.equal(detected.client, true);
+      assert.equal(detected.invoice, true);
+
+      await page.click('.tabs button[data-tab="today"]');
+      await page.click("#vitalsToggle");
+      await shot("blur_desktop_today_off.png");
+      await page.click('.tabs button[data-tab="money"]');
+      await page.evaluate(() => document.getElementById("nwSec").scrollIntoView());
+      await shot("blur_desktop_money_off.png");
+
+      await page.click("#blurMode");
+      const on = await page.evaluate(() => ({
+        pressed: document.getElementById("blurMode").getAttribute("aria-pressed"),
+        state: document.getElementById("blurModeState").textContent,
+        body: document.body.classList.contains("mc-blur"),
+        stored: localStorage.getItem("mcBlurMode"),
+        placeholder: document.querySelector("#slist input.reply").placeholder,
+        title: document.querySelector("#tabVillas .ob .bar").getAttribute("aria-label"),
+        vital: getComputedStyle(document.querySelector("#vitals .s")).color
+      }));
+      assert.equal(on.pressed, "true");
+      assert.equal(on.state, "On");
+      assert.equal(on.body, true);
+      assert.equal(on.stored, "1");
+      assert.equal(on.placeholder, "");
+      assert.equal(on.title, "Hidden while blur mode is on");
+      assert.notEqual(on.vital, "rgba(0, 0, 0, 0)");
+      const hiddenWorth = await maskOf("#nwBox .val");
+      assert.equal(hiddenWorth.color, "rgba(0, 0, 0, 0)");
+      assert.notEqual(hiddenWorth.after, "none");
+      assert.match(hiddenWorth.filter, /blur/);
+      const hiddenVital = await maskOf("#vitals .b");
+      assert.equal(hiddenVital.color, "rgba(0, 0, 0, 0)");
+      assert.match(hiddenVital.filter, /blur/);
+      const hiddenTask = await maskOf("#wlist .txt");
+      assert.equal(hiddenTask.color, "rgba(0, 0, 0, 0)");
+      assert.equal(await page.$eval("#nwDisclosureLabel", (el) => getComputedStyle(el).color) === "rgba(0, 0, 0, 0)", false);
+      await shot("blur_desktop_money_on.png");
+      await page.click('.tabs button[data-tab="today"]');
+      await shot("blur_desktop_today_on.png");
+
+      await page.reload({ waitUntil: "domcontentloaded" });
+      await ready(page);
+      assert.equal(await page.evaluate(() => localStorage.getItem("mcBlurMode")), "1");
+      assert.equal(await page.$eval("#blurMode", (el) => el.getAttribute("aria-pressed")), "true");
+      assert.equal(await page.evaluate(() => document.body.classList.contains("mc-blur")), true);
+      assert.equal((await maskOf("#vitals .b")).color, "rgba(0, 0, 0, 0)");
+      assert.equal(await page.$eval("#nwPanel", (el) => el.hidden), false);
+      assert.equal(await page.evaluate(() => localStorage.getItem("mcVitalsOpen")), "1");
+
+      await page.keyboard.down("Shift");
+      await page.keyboard.press("KeyB");
+      await page.keyboard.up("Shift");
+      const off = await page.evaluate(() => ({
+        pressed: document.getElementById("blurMode").getAttribute("aria-pressed"),
+        state: document.getElementById("blurModeState").textContent,
+        body: document.body.classList.contains("mc-blur"),
+        stored: localStorage.getItem("mcBlurMode"),
+        placeholder: document.querySelector("#slist input.reply").placeholder
+      }));
+      assert.equal(off.pressed, "false");
+      assert.equal(off.state, "Off");
+      assert.equal(off.body, false);
+      assert.equal(off.stored, "0");
+      assert.match(off.placeholder, /Sample Staff/);
+      assert.notEqual((await maskOf("#nwBox .val")).color, "rgba(0, 0, 0, 0)");
+      assert.equal((await maskOf("#vitals .b")).after, "none");
+
+      await page.reload({ waitUntil: "domcontentloaded" });
+      await ready(page);
+      assert.equal(await page.evaluate(() => localStorage.getItem("mcBlurMode")), "0");
+      assert.equal(await page.$eval("#blurMode", (el) => el.getAttribute("aria-pressed")), "false");
+      assert.equal(await page.evaluate(() => document.body.classList.contains("mc-blur")), false);
+
+      await page.setViewport({ width: 390, height: 844 });
+      await page.click('.tabs button[data-tab="today"]');
+      await shot("blur_mobile_today_off.png");
+      await page.click('.tabs button[data-tab="money"]');
+      if (await page.$eval("#nwBox", (el) => el.classList.contains("blurred"))) {
+        await page.click("#nwTog");
+        await page.waitForFunction(() => !document.getElementById("nwBox").classList.contains("blurred"));
+      }
+      await page.evaluate(() => document.getElementById("nwSec").scrollIntoView());
+      await shot("blur_mobile_money_off.png");
+      await page.click("#blurMode");
+      assert.equal(await page.$eval("#blurModeState", (el) => el.textContent), "On");
+      assert.equal((await maskOf("#nwBox .val")).color, "rgba(0, 0, 0, 0)");
+      await shot("blur_mobile_money_on.png");
+      await page.click('.tabs button[data-tab="today"]');
+      await shot("blur_mobile_today_on.png");
+
+      assert.equal(commands.length, 0);
       assert.equal(leaked.length, 0);
       assert.deepEqual(errors, []);
     } finally {
