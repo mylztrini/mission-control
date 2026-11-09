@@ -296,6 +296,17 @@ details.more2{margin-top:12px}details.more2 summary{cursor:pointer;font:700 13px
 .blurbox{position:relative}.blurbox.blurred .val{filter:blur(12px);user-select:none}
 .big .kpi .b{font-size:32px}
 .stale-flag{color:var(--warn);font-weight:700}
+.brain-stale{margin:0 0 12px;padding:10px 14px;border:1px solid var(--warn);border-radius:12px;background:color-mix(in oklab,var(--warn) 14%,var(--surface));color:var(--text);font:600 15px/1.4 var(--font-ui);overflow-wrap:anywhere}
+.brain-stale[hidden]{display:none!important}
+.brain-stale b{font-weight:800}
+.buckets{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin:10px 0 12px}
+.buckets .kpi{padding:10px 12px}.buckets .kpi .b{font-size:20px}
+.chase{margin:0 0 12px}
+.chase ul{margin:6px 0 0}
+.fix-resolved .fix-issue{text-decoration:line-through}
+#asanaBacklog[hidden]{display:none!important}
+@media (max-width:720px){.buckets{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.tblwrap{max-width:100%;overflow-x:auto}
 .tabpane{display:flex;flex-direction:column;gap:24px}.tabpane[hidden]{display:none}
 /* ---- Routines tab (Nov 1 2026, week grid): every bot's routines, data = D.routines_all (box: routines-snapshot.json -> export-routines.js) ---- */
 #tabRoutines{font-size:17px;line-height:1.5;color:var(--text);gap:14px}
@@ -458,6 +469,7 @@ body.mc-blur #keyGate::after,body.mc-blur #keyGate *::after{content:none !import
     </div>
   </div>
 </nav>
+<p id="brainStale" class="brain-stale" role="status" hidden></p>
 <div class="shell">
 <div class="sh-left">
   <div class="greet">
@@ -505,7 +517,7 @@ body.mc-blur #keyGate::after,body.mc-blur #keyGate *::after{content:none !import
   </section></div>
   <div class="right top">
     <section class="big"><h2>Today</h2><p class="cap" id="calCap"></p><ul class="lst" id="cal"></ul><div class="osub" style="margin-top:14px">Team today</div><div class="team2" id="team"></div></section>
-    <section class="big" id="asanaSec" hidden><h2>Overdue in Asana · important</h2><p class="cap" id="asanaCap"></p><ul class="lst" id="asana"></ul></section>
+    <section class="big" id="asanaSec" hidden><h2>Overdue in Asana · important</h2><p class="cap" id="asanaCap"></p><ul class="lst" id="asana"></ul><details class="more2" id="asanaBacklog" hidden><summary id="asanaBacklogSum">Asana backlog</summary><ul class="lst" id="asanaBacklogList"></ul></details></section>
   </div>
 </div>
 <div class="stack">
@@ -745,6 +757,7 @@ function tick() {
   $("hdrTime").textContent = now.toLocaleTimeString("en-US", { timeZone: "America/Port_of_Spain", hour: "numeric", minute: "2-digit" });
   const hr = +now.toLocaleString("en-US", { timeZone: "America/Port_of_Spain", hour: "numeric", hour12: false }) % 24;
   $("greet").textContent = `${hr < 12 ? "Morning" : hr < 17 ? "Afternoon" : "Evening"}, Miles. Here's who needs you.`;
+  if (D) renderBrainStale(now);
 }
 setInterval(tick, 1000); tick();
 
@@ -1016,8 +1029,124 @@ document.addEventListener("click", (e) => { const b = e.target.closest("#tabRout
 document.addEventListener("keydown", (e) => { if (e.key === "Escape") rtTip(null); });
 addEventListener("scroll", () => { if (RT.cur && document.contains(RT.cur)) rtTip(RT.cur, !!RT.pin); }, true);
 
-// ---- Operational Brain engine (merged Oct 31 2026): D.brain from the 7:35 AM weekday run (si.ai data.json). ----
-const fmtRun = (iso) => new Date(iso).toLocaleString("en-US", { timeZone: "America/Port_of_Spain", weekday: "short", month: "short", day: "numeric", hour: "numeric", minute: "2-digit" }) + " AST";
+// ---- Operational Brain engine (merged Oct 31 2026): D.brain from the weekday 7:00 AM run (si.ai data.json). ----
+// Parity pass 1 reads optional fields. Missing fields keep the previous cards. export-brain.js maps si.ai into this shape:
+//   brain.as_of                          ISO-8601, or "YYYY-MM-DD HH:MM AST" (already sent)
+//   brain.today.asana.items              important preview (unchanged, usually 5)
+//   brain.today.asana.backlog[]          full overdue + due-soon list, same item shape as items, plus optional id
+//   brain.villas.airbnb.bookings[]       {g, v, ci, payout, tt, usd}  (aliases: guest, villa, check_in, payout_date, ttd)
+//   brain.villas.direct.buckets          [{days:15|30|45|60, n, tt, usd}] or {"15":{n,tt,usd}, ...}
+//   brain.villas.direct.to_chase[]       same row shape as direct.bookings; or set chase:true on a booking
+//   brain.villas.direct.chase_label      optional heading, otherwise "Balances to chase"
+//   brain.villas.occupancy[].owner_nts_90
+//   brain.villas.feedback.fixes[]        existing fields plus id, resolved, resolved_at, resolved_note
+const AST_TZ = "America/Port_of_Spain";
+const BRAIN_WEEKDAYS = new Set(["Mon", "Tue", "Wed", "Thu", "Fri"]);
+function astParts(date) {
+  const fmt = new Intl.DateTimeFormat("en-US", { timeZone: AST_TZ, weekday: "short", year: "numeric", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit", hourCycle: "h23" });
+  const o = {};
+  for (const p of fmt.formatToParts(date)) if (p.type !== "literal") o[p.type] = p.value;
+  return o;
+}
+function parseAsOf(value) {
+  if (value == null || value === "") return null;
+  const s = String(value).trim();
+  const ast = s.match(/^(\d{4}-\d{2}-\d{2})[ T](\d{1,2}):(\d{2})(?::(\d{2}))?\s*AST$/i);
+  if (ast) {
+    const d = new Date(`${ast[1]}T${ast[2].padStart(2, "0")}:${ast[3]}:${ast[4] || "00"}-04:00`);
+    return Number.isNaN(d.getTime()) ? null : d;
+  }
+  const d = new Date(s);
+  return Number.isNaN(d.getTime()) ? null : d;
+}
+function fmtAsOf(date) {
+  const p = astParts(date);
+  const month = new Intl.DateTimeFormat("en-US", { timeZone: AST_TZ, month: "short" }).format(date);
+  let hour = Number(p.hour);
+  const ampm = hour >= 12 ? "PM" : "AM";
+  hour = hour % 12 || 12;
+  return `${p.weekday} ${month} ${Number(p.day)}, ${hour}:${p.minute} ${ampm} AST`;
+}
+// Weekday, and the clock is at or after 7:00 AM AST, and this run is older than that cutoff.
+function brainRunStatus(asOf, now = new Date()) {
+  const parts = astParts(now);
+  const weekday = BRAIN_WEEKDAYS.has(parts.weekday);
+  const due = new Date(`${parts.year}-${parts.month}-${parts.day}T07:00:00-04:00`);
+  const duePassed = weekday && now.getTime() >= due.getTime();
+  const when = parseAsOf(asOf);
+  return { missing: duePassed && (!when || when.getTime() < due.getTime()), when };
+}
+function renderBrainStale(now = new Date()) {
+  const el = $("brainStale");
+  if (!el) return;
+  const status = D && D.brain ? brainRunStatus(D.brain.as_of, now) : (D ? brainRunStatus(null, now) : { missing: false });
+  if (!status.missing) { el.hidden = true; delete el.dataset.sig; return; }
+  const from = status.when ? `Brain data is from ${fmtAsOf(status.when)}.` : "Brain data has no run time.";
+  const text = `${from} Today's 7:00 AM run is missing.`;
+  if (el.dataset.sig === text && !el.hidden) return;
+  el.dataset.sig = text;
+  el.hidden = false;
+  el.innerHTML = `<b>${esc(from)}</b> Today's 7:00 AM run is missing.`;
+}
+const pick = (obj, keys) => { for (const k of keys) if (obj && obj[k] != null && obj[k] !== "") return obj[k]; return ""; };
+function asanaNorm(t) {
+  if (!t || typeof t !== "object") return { text: String(t ?? ""), url: "", tag: "", overdue: false, meta: "", id: "" };
+  return {
+    text: pick(t, ["text", "name", "title"]),
+    url: pick(t, ["url", "link", "permalink"]),
+    tag: pick(t, ["tag", "status"]),
+    overdue: t.overdue === true || t.overdue === "true" || t.bucket === "overdue" || /overdue/i.test(String(pick(t, ["tag", "status"]))),
+    meta: pick(t, ["meta", "project", "detail"]),
+    id: pick(t, ["id", "gid"])
+  };
+}
+function asanaItem(raw) {
+  const t = asanaNorm(raw);
+  const meta = [t.meta, t.id ? "id " + t.id : ""].filter(Boolean).join(" · ");
+  return `<li>${t.url ? `<a class="mc-sensitive" data-mc-sensitive="text" href="${esc(t.url)}" target="_blank" rel="noreferrer" style="color:inherit">${esc(t.text)}</a>` : sens(esc(t.text), "text")}${t.tag ? `<span class="tag2 ${t.overdue ? "hot" : "warn"}">${esc(t.tag)}</span>` : ""}${meta ? `<div class="us mc-sensitive" data-mc-sensitive="text">${esc(meta)}</div>` : ""}</li>`;
+}
+function payoutNorm(b) {
+  return { g: pick(b, ["g", "guest", "guest_name"]), v: pick(b, ["v", "villa"]), ci: pick(b, ["ci", "check_in", "checkin"]), payout: pick(b, ["payout", "payout_on", "payout_date"]), tt: pick(b, ["tt", "ttd", "bal_tt", "amount_tt"]), usd: pick(b, ["usd", "bal_usd", "amount_usd"]) };
+}
+function bucketList(raw) {
+  if (raw == null) return null;
+  const rows = Array.isArray(raw) ? raw : (typeof raw === "object" ? Object.entries(raw).map(([k, v]) => Object.assign({ key: k }, v && typeof v === "object" ? v : { n: v })) : []);
+  const order = [15, 30, 45, 60];
+  return rows.map((b) => {
+    const hit = String(b.days ?? b.key ?? b.window ?? b.label ?? "").match(/\d+/);
+    const days = hit ? Number(hit[0]) : NaN;
+    return { days: Number.isFinite(days) ? days : null, label: b.label || (Number.isFinite(days) ? `${days} days` : pick(b, ["key", "name"]) || "Bucket"), n: pick(b, ["n", "count", "stays"]) || "0", tt: pick(b, ["tt", "ttd", "bal_tt", "amount_tt"]), usd: pick(b, ["usd", "bal_usd", "amount_usd"]) };
+  }).sort((a, b) => (order.indexOf(a.days) < 0 ? 99 : order.indexOf(a.days)) - (order.indexOf(b.days) < 0 ? 99 : order.indexOf(b.days)));
+}
+function directNorm(b) {
+  return { g: pick(b, ["g", "guest", "guest_name"]), v: pick(b, ["v", "villa"]), ci: pick(b, ["ci", "check_in", "checkin"]), bal_tt: pick(b, ["bal_tt", "tt", "ttd", "amount_tt"]), bal_usd: pick(b, ["bal_usd", "usd", "amount_usd"]), st: pick(b, ["st", "status"]), note: pick(b, ["note", "why"]), warn: !!(b && (b.warn || b.chase)) };
+}
+function chaseRows(direct) {
+  if (!direct) return null;
+  if (Array.isArray(direct.to_chase)) return direct.to_chase.map(directNorm);
+  if (Array.isArray(direct.chase)) return direct.chase.map(directNorm);
+  const flagged = (direct.bookings || []).filter((b) => b && (b.chase === true || b.to_chase === true));
+  return flagged.length ? flagged.map(directNorm) : null;
+}
+function ownerNights(o) {
+  const n = o.owner_nts_90 ?? o.owner_nts ?? o.owner_nights ?? o.owner_held_90;
+  return n == null || n === "" ? null : n;
+}
+function isResolved(f) {
+  const v = f && f.resolved;
+  return v === true || v === 1 || v === "1" || v === "true" || v === "yes";
+}
+function fixItem(f) {
+  const resolved = isResolved(f);
+  const id = pick(f, ["id", "fix_id"]);
+  const at = pick(f, ["resolved_at", "resolvedAt"]);
+  const note = pick(f, ["resolved_note", "resolvedNote"]);
+  const sev = !resolved && f.sev ? (f.sev === "crit" ? `<span class="tag2 hot">critical</span>` : `<span class="tag2 warn">${esc(f.sev)}</span>`) : "";
+  const mark = resolved ? `<span class="tag2 ok">✓ Resolved</span>` : sev;
+  const meta = [id ? sens(esc(id), "id") : "", f.meta ? sens(esc(f.meta), "text") : "", resolved && at ? esc(at) : "", resolved && note ? sens(esc(note), "text") : ""].filter(Boolean).join(" · ");
+  return `<li class="${resolved ? "fix-resolved" : "fix-open"}"><b>${esc(f.villa || "")}</b>${mark} <span class="fix-issue mc-sensitive" data-mc-sensitive="text">${esc(f.issue || f.text || "")}</span>${meta ? `<div class="us">${meta}</div>` : ""}</li>`;
+}
+const fmtRun = (iso) => { const d = parseAsOf(iso); return d ? d.toLocaleString("en-US", { timeZone: AST_TZ, weekday: "short", month: "short", day: "numeric", hour: "numeric", minute: "2-digit" }) + " AST" : "unknown"; };
 const NW = { show: false };
 const sec = (title, cap, body, extra = "") => `<section ${extra}><h2>${title}</h2>${cap ? `<p class="cap">${esc(cap)}</p>` : ""}${body}</section>`;
 const ttab = (head, rows) => `<div class="tblwrap"><table><thead><tr>${head.map((h) => `<th>${h}</th>`).join("")}</tr></thead><tbody>${rows.join("")}</tbody></table></div>`;
@@ -1025,9 +1154,10 @@ const secId = (id, title, cap, body) => sec(title, cap, body, `id="${id}"`);
 const none = (s) => `<p class="cap">${esc(s)}</p>`;
 function renderBrain(force) {
   const B = D.brain, sig = JSON.stringify(B || null) + NW.show;
-  if (!force && sig === renderBrain.sig) return; renderBrain.sig = sig;
+  if (!force && sig === renderBrain.sig) { renderBrainStale(); return; }
+  renderBrain.sig = sig;
   const noData = "Waiting for the first Operational Brain run (weekdays 7:35 AM AST).";
-  if (!B) { for (const id of ["tabVillas", "tabMoney", "tabGrowth"]) $(id).innerHTML = none(noData); return; }
+  if (!B) { for (const id of ["tabVillas", "tabMoney", "tabGrowth"]) $(id).innerHTML = none(noData); renderBrainStale(); return; }
   const om = B.onemove || {};
   $("oneMove").hidden = !om.head;
   $("oneMove").innerHTML = `<div class="lab">Your one move today · from the ${esc(fmtRun(B.as_of))} run</div><div class="hd mc-sensitive" data-mc-sensitive="text">${esc(om.head)}</div>${om.detail ? `<div class="dt mc-sensitive" data-mc-sensitive="text">${esc(om.detail)}</div>` : ""}${om.why ? `<div class="why">Why: ${sens(esc(om.why), "text")}</div>` : ""}${om.advisor_line ? `<div class="adv">🎩 ${sens(esc(om.advisor_line), "text")}</div>` : ""}`;
@@ -1051,9 +1181,21 @@ function renderBrain(force) {
   $("cal").innerHTML = (T.sched || []).map((i) => `<li><span class="t">${esc(i.t)}</span>${i.url ? `<a class="mc-sensitive" data-mc-sensitive="text" href="${esc(i.url)}" target="_blank" rel="noreferrer" style="color:inherit">${esc(i.text)}</a>` : sens(esc(i.text), "text")}${i.tag ? `<span class="tag2">${esc(i.tag)}</span>` : ""}</li>`).join("") || "<li>Nothing on the calendar.</li>";
   $("team").innerHTML = (T.staff || []).map((s) => `<span class="${s.on ? "on" : ""}">${s.on ? "● " : "○ "}${sens(esc(s.name), "name")}${s.note ? " · " + sens(esc(s.note), "text") : ""}</span>`).join("") || `<span>Unknown</span>`;
   const AS = T.asana || {};
-  $("asanaSec").hidden = !(AS.items || []).length;
+  const asanaPreview = AS.items || [];
+  const asanaBack = Array.isArray(AS.backlog) ? AS.backlog : null;
+  $("asanaSec").hidden = !asanaPreview.length && !(asanaBack || []).length;
   $("asanaCap").textContent = AS.caption || "";
-  $("asana").innerHTML = (AS.items || []).map((t) => `<li>${t.url ? `<a class="mc-sensitive" data-mc-sensitive="text" href="${esc(t.url)}" target="_blank" rel="noreferrer" style="color:inherit">${esc(t.text)}</a>` : sens(esc(t.text), "text")}${t.tag ? `<span class="tag2 ${t.overdue ? "hot" : "warn"}">${esc(t.tag)}</span>` : ""}${t.meta ? `<div class="us mc-sensitive" data-mc-sensitive="text">${esc(t.meta)}</div>` : ""}</li>`).join("");
+  $("asana").innerHTML = asanaPreview.map(asanaItem).join("");
+  const backEl = $("asanaBacklog");
+  if (backEl) {
+    const showBack = !!asanaBack;
+    backEl.hidden = !showBack;
+    if (!showBack) backEl.removeAttribute("open");
+    const overdueN = (asanaBack || []).filter((t) => asanaNorm(t).overdue).length;
+    const soonN = (asanaBack || []).length - overdueN;
+    $("asanaBacklogSum").textContent = asanaBack ? `Asana backlog · ${asanaBack.length}${overdueN ? ` · ${overdueN} overdue` : ""}${soonN ? ` · ${soonN} due soon` : ""}` : "Asana backlog";
+    $("asanaBacklogList").innerHTML = (asanaBack || []).map(asanaItem).join("") || `<li>No overdue or due-soon tasks in this run.</li>`;
+  }
   // Villas
   const V = B.villas || {}, rev = V.revenue || [], m0 = rev[0];
   const PN = V.pnl || {}, PH = PN.headline, pf = V.profit;
@@ -1065,6 +1207,18 @@ function renderBrain(force) {
     const brk = o.lines ? `<details><summary>${tt(o.tt)}</summary><div class="us">Mortgages ${tt(o.mortgages)} · Capex ${tt(o.capex)} · Other operating ${tt(o.opex)}${o.excluded_tt ? ` · ${sens("excluded (Helen, contractor)", "name")} ${tt(o.excluded_tt)}` : ""}</div>${o.lines.map((l) => `<div class="us">${sens(esc(l.group) + " · " + esc(l.label), "text")}: ${tt(l.tt)}</div>`).join("")}</details>` : `${tt(o.tt)}<div class="us">${sens(esc(o.note || ""), "text")}</div>`;
     return `<tr><td><b>${esc(m.label)}</b>${m.partial ? ` <span class="tag2 warn mc-title-hide" title="${esc((m.flags || []).join("; "))}">partial</span><div class="us">${sens(esc((m.flags || []).join("; ")), "text")}</div>` : ""}</td><td>${m.revenue ? `${tt(m.revenue.tt)} ${bas(m.revenue.basis)}<div class="us">${sens("US$" + Math.round(m.revenue.usd).toLocaleString("en-US"), "money")}</div>` : "–"}</td><td>${brk} ${bas(o.basis)}</td><td><b>${m.profit ? tt(m.profit.tt) : "–"}</b> ${m.profit ? bas(m.profit.basis) : ""}</td></tr>`; });
   const ppct = pf ? Math.round(pf.tt / 120000 * 100) : null;
+  const occHtml = (V.occupancy || []).map((o) => { const owner = ownerNights(o);
+    return `<div class="ob"><b>${esc(o.villa)}</b><div class="bar" role="img" aria-label="${esc(o.villa)} ${o.pct}% booked"><i class="${o.warn ? "lo" : ""}" style="width:${o.pct}%"></i></div><b class="mc-sensitive" data-mc-sensitive="money">${o.pct}%</b><div class="mo">${(o.months || []).map((m) => `${esc(m.m)} ${sens(m.pct + "%", "money")}`).join(" · ")}${o.open_nts_90 != null ? ` · ${sens(String(o.open_nts_90), "money")} open nights (90d)` : ""}${owner != null ? ` · <span class="owner-nts">${sens(esc(String(owner)), "money")} owner-held nights (90d)</span>` : ""}</div></div>`; }).join("");
+  const payouts = V.airbnb && Array.isArray(V.airbnb.bookings) ? V.airbnb.bookings.map(payoutNorm) : null;
+  const payoutFold = payouts ? `<details class="more2" id="airbnbPayouts"><summary>Each payout · ${payouts.length}</summary>${payouts.length ? ttab(["Guest", "Villa", "Check-in", "Payout", "TT$", "US$"], payouts.map((b) => `<tr><td>${sens(esc(b.g), "name")}</td><td>${esc(b.v)}</td><td>${sens(esc(b.ci), "text")}</td><td>${sens(esc(b.payout), "text")}</td><td><b>${sens(esc(b.tt), "money")}</b></td><td>${sens(esc(b.usd), "money")}</td></tr>`)) : `<p class="cap">No individual payouts in this run.</p>`}</details>` : "";
+  const buckets = V.direct ? bucketList(V.direct.buckets) : null;
+  const bucketHtml = buckets ? `<div class="buckets" id="directBuckets">${buckets.map((b) => `<div class="kpi"><div class="s">${esc(b.label)}</div><div class="b mc-sensitive" data-mc-sensitive="money">${esc(b.tt || "—")}</div><div class="us">${esc(b.n)} · ${sens(esc(b.usd || ""), "money")}</div></div>`).join("")}</div>` : "";
+  const chase = chaseRows(V.direct);
+  const chaseHtml = chase ? `<div class="warn chase" id="directChase"><b>${esc((V.direct && V.direct.chase_label) || "Balances to chase")}</b>${chase.length ? `<ul class="lst">${chase.map((b) => `<li><b>${sens(esc(b.g), "name")}</b> · ${esc(b.v)}<span class="tag2 warn">${esc(b.st || "to chase")}</span><div class="us">${sens(esc(b.ci), "text")} · ${sens(esc(b.bal_tt), "money")} · ${sens(esc(b.bal_usd), "money")}${b.note ? " · " + sens(esc(b.note), "text") : ""}</div></li>`).join("")}</ul>` : `<p class="cap" style="margin:6px 0 0">None in this run.</p>`}</div>` : "";
+  const fixes = (V.feedback && V.feedback.fixes) || [];
+  const openFixes = fixes.filter((f) => !isResolved(f)), doneFixes = fixes.filter(isResolved);
+  const fixHtml = V.feedback ? `<div class="cards">${(V.feedback.villas || []).map((v) => `<div class="kpi"><div class="s">${esc(v.villa)}</div><div class="b">${esc(v.rating)}★</div><div class="us">${esc(v.n)} reviews · ${sens(esc(v.top), "text")}</div></div>`).join("")}</div>
+      <h3 class="osub" style="margin-top:18px">Open fixes <span class="ocount">${openFixes.length}</span>${doneFixes.length ? ` · ${doneFixes.length} resolved` : ""}</h3><ul class="lst" id="fixList">${[...openFixes, ...doneFixes].map(fixItem).join("")}</ul><p class="cap"><a href="#tab=org" data-go="org" style="color:var(--accent-ink)">Maintenance seat</a> on Org &amp; Systems.</p>` : none("No data.");
   $("tabVillas").innerHTML =
     secId("villaPnl", `Villa profit vs the ${sens("TT$120,000", "money")} monthly goal`, PN.rules || "",
       (pf ? `<div class="goal"><div class="kt" style="display:flex;justify-content:space-between;font-weight:700;flex-wrap:wrap;gap:6px"><span>${esc(pf.month)} profit: ${tt(pf.tt)} ${bas(pf.basis)}${pf.partial ? ` <span class="tag2 warn">partial</span>` : ""}</span><span>${sens(String(ppct) + "%", "money")} of the ${sens("TT$120,000", "money")} monthly profit goal</span></div><div class="track"><i style="width:${Math.max(0, Math.min(100, ppct || 0))}%"></i></div><div class="us" style="margin-top:6px">Revenue ${tt(PH.revenue_tt)} (${esc(PH.revenue_basis)}) − overheads ${tt(PH.overheads_tt)} (${esc(PH.overheads_basis)})</div></div>` : none(PN.error || "Profit not available."))
@@ -1075,14 +1229,13 @@ function renderBrain(force) {
       ttab(["Month", "Total", "Airbnb", "Direct"], rev.map((r) => `<tr><td><b>${esc(r.month)}</b><div class="us">${esc(r.when || "")}</div></td><td><div class="tt">${sens(esc(r.total_tt_lbl || "?"), "money")}</div><div class="us">${sens(esc(r.total_usd_lbl || ""), "money")}</div></td><td>${sens(esc(r.airbnb_usd), "money")}<div class="us">US$ · ${esc(r.airbnb_n || "")}</div></td><td>${sens(esc(r.direct_tt), "money")}<div class="us">${esc(r.direct_n || "")}</div></td></tr>`))
       + (V.top_villa ? `<p class="cap">Top villa: ${esc(V.top_villa)}</p>` : "") + `<p class="cap">The 4 owned villas only (Nest, Heart, Fairway, Casa). TT$ = US$ × ${sens(String(VR), "money")} (Miles villa rate).</p>`)
     + `<div class="grid2">`
-    + sec("Booked, next 30 days", V.occ_caption, (V.occupancy || []).map((o) => `<div class="ob"><b>${esc(o.villa)}</b><div class="bar" role="img" aria-label="${esc(o.villa)} ${o.pct}% booked"><i class="${o.warn ? "lo" : ""}" style="width:${o.pct}%"></i></div><b class="mc-sensitive" data-mc-sensitive="money">${o.pct}%</b><div class="mo">${(o.months || []).map((m) => `${esc(m.m)} ${sens(m.pct + "%", "money")}`).join(" · ")}${o.open_nts_90 != null ? ` · ${sens(String(o.open_nts_90), "money")} open nights (90d)` : ""}</div></div>`).join("") + (V.next_move ? `<p class="cap" style="margin-top:12px">${esc(V.next_move)}</p>` : ""))
+    + sec("Booked, next 30 days", V.occ_caption, occHtml + (V.next_move ? `<p class="cap" style="margin-top:12px">${esc(V.next_move)}</p>` : ""))
     + sec("Next arrivals", "", `<ul class="lst">${(V.arrivals || []).map((a) => `<li><b>${sens(esc(a.text), "name")}</b><span class="tag2">${esc(a.chan)}</span><div class="us">${sens(esc(a.g), "name")}</div></li>`).join("") || "<li>None in the window.</li>"}</ul>`)
     + `</div><div class="grid2">`
-    + sec("Airbnb payouts in transit", "Booked Airbnb net not yet paid out. Airbnb pays about a day after each check-in.", V.airbnb ? `<div class="tt mc-sensitive" data-mc-sensitive="money" style="font-size:30px">${esc(V.airbnb.total_tt)}</div><div class="us mc-sensitive" data-mc-sensitive="text">${esc(V.airbnb.total_usd)} · ${esc(V.airbnb.n)} stays${V.airbnb.next ? ` · next: ${esc(V.airbnb.next.g)} (${esc(V.airbnb.next.v)}) ${esc(V.airbnb.next.ttd)} on ${esc(V.airbnb.next.payout)}` : ""}</div>` + ttab(["Month", "TT$", "US$", "Stays"], (V.airbnb.months || []).map((m) => `<tr><td>${esc(m.m)}</td><td><b>${sens(esc(m.tt), "money")}</b></td><td>${sens(esc(m.usd), "money")}</td><td>${esc(m.n)}</td></tr>`)) : none("No data."))
-    + sec("Villa Direct balances", V.direct && V.direct.efficiency ? V.direct.efficiency.sub : "", V.direct ? `<div class="tt mc-sensitive" data-mc-sensitive="money" style="font-size:30px">${esc(V.direct.total_tt)}</div><div class="us">${sens(esc(V.direct.total_usd), "money")} · ${esc(V.direct.n_open)} open · collection ${sens(esc(V.direct.efficiency ? V.direct.efficiency.pct : "?"), "money")}</div>` + ttab(["Guest", "Villa", "Check-in", "Balance", "Status"], (V.direct.bookings || []).map((b) => `<tr><td>${sens(esc(b.g), "name")}</td><td>${esc(b.v)}</td><td>${sens(esc(b.ci), "text")}</td><td><b>${sens(esc(b.bal_tt), "money")}</b><div class="us">${sens(esc(b.bal_usd), "money")}</div></td><td>${b.warn ? `<span class="tag2 warn">${esc(b.st)}</span>` : esc(b.st)}</td></tr>`)) : none("No data."))
+    + sec("Airbnb payouts in transit", "Booked Airbnb net not yet paid out. Airbnb pays about a day after each check-in.", V.airbnb ? `<div class="tt mc-sensitive" data-mc-sensitive="money" style="font-size:30px">${esc(V.airbnb.total_tt)}</div><div class="us mc-sensitive" data-mc-sensitive="text">${esc(V.airbnb.total_usd)} · ${esc(V.airbnb.n)} stays${V.airbnb.next ? ` · next: ${esc(V.airbnb.next.g)} (${esc(V.airbnb.next.v)}) ${esc(V.airbnb.next.ttd)} on ${esc(V.airbnb.next.payout)}` : ""}</div>` + ttab(["Month", "TT$", "US$", "Stays"], (V.airbnb.months || []).map((m) => `<tr><td>${esc(m.m)}</td><td><b>${sens(esc(m.tt), "money")}</b></td><td>${sens(esc(m.usd), "money")}</td><td>${esc(m.n)}</td></tr>`)) + payoutFold : none("No data."))
+    + sec("Villa Direct balances", V.direct && V.direct.efficiency ? V.direct.efficiency.sub : "", V.direct ? `<div class="tt mc-sensitive" data-mc-sensitive="money" style="font-size:30px">${esc(V.direct.total_tt)}</div><div class="us">${sens(esc(V.direct.total_usd), "money")} · ${esc(V.direct.n_open)} open · collection ${sens(esc(V.direct.efficiency ? V.direct.efficiency.pct : "?"), "money")}</div>` + bucketHtml + chaseHtml + ttab(["Guest", "Villa", "Check-in", "Balance", "Status"], (V.direct.bookings || []).map((b) => `<tr><td>${sens(esc(b.g), "name")}</td><td>${esc(b.v)}</td><td>${sens(esc(b.ci), "text")}</td><td><b>${sens(esc(b.bal_tt), "money")}</b><div class="us">${sens(esc(b.bal_usd), "money")}</div></td><td>${b.warn ? `<span class="tag2 warn">${esc(b.st)}</span>` : esc(b.st)}</td></tr>`)) : none("No data."))
     + `</div>`
-    + sec("Guest feedback and the fix list", V.feedback && V.feedback.caption, V.feedback ? `<div class="cards">${(V.feedback.villas || []).map((v) => `<div class="kpi"><div class="s">${esc(v.villa)}</div><div class="b">${esc(v.rating)}★</div><div class="us">${esc(v.n)} reviews · ${sens(esc(v.top), "text")}</div></div>`).join("")}</div>
-      <h3 class="osub" style="margin-top:18px">Open fixes <span class="ocount">${(V.feedback.fixes || []).length}</span></h3><ul class="lst">${(V.feedback.fixes || []).map((f) => `<li><b>${esc(f.villa)}</b>${f.sev === "crit" ? `<span class="tag2 hot">critical</span>` : `<span class="tag2 warn">${esc(f.sev || "")}</span>`} ${sens(esc(f.issue), "text")}<div class="us">${sens(esc(f.meta || ""), "text")}</div></li>`).join("")}</ul>` : none("No data."));
+    + sec("Guest feedback and the fix list", V.feedback && V.feedback.caption, fixHtml);
   // Money
   const M = B.money || {}, nw = M.networth || {}, ag = M.agency || {};
   const BR = M.bank_rate && M.bank_rate.usd_ttd ? M.bank_rate.usd_ttd : MILES_BANK_RATE; // bank rate 6.75
@@ -1107,6 +1260,7 @@ function renderBrain(force) {
     + sec("Division goals", "", `<p>Sprint leads, SI Ventures deals and real-estate leads are tracked as KPIs on <a href="#" data-go="org" style="color:var(--accent-ink)">Org &amp; Systems</a>.</p>`);
   $("srcCap").textContent = `Bot chats + Asana (hourly), the Operational Brain engine (last run ${fmtRun(B.as_of)}; weekdays 7:35 AM AST: Hospitable, Gmail, Slack, Calendar, Meta Ads, receivables), org.json.`;
   applyNetworthDisclosure();
+  renderBrainStale();
 }
 document.addEventListener("keydown", (e) => { const v = e.target.closest && e.target.closest("div.vital[role=button]"); if (v && e.target === v && (e.key === "Enter" || e.key === " ")) { e.preventDefault(); v.click(); } });
 document.addEventListener("click", (e) => {
