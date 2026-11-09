@@ -5,7 +5,7 @@ import fs from "node:fs";
 import http from "node:http";
 import path from "node:path";
 import { describe, it, before, after } from "node:test";
-import { fixture, orgFixture, SYNTH_KEY } from "./synthetic-fixture.js";
+import { fixture, orgFixture, parityFixture, SYNTH_KEY } from "./synthetic-fixture.js";
 
 const ROOT = path.resolve(import.meta.dirname, "..");
 const ARTIFACTS = "/opt/cursor/artifacts";
@@ -42,7 +42,7 @@ function startServer() {
   return new Promise((resolve) => server.listen(0, "127.0.0.1", () => resolve(server)));
 }
 
-function installMock(page, commands, leaked) {
+function installMock(page, commands, leaked, data = fixture) {
   return page.setRequestInterception(true).then(() => {
     page.on("request", (req) => {
       const url = req.url();
@@ -78,8 +78,8 @@ function installMock(page, commands, leaked) {
         req.respond({ status: 200, contentType: "application/json", headers, body: JSON.stringify({ ok: true }) }).catch(() => {});
         return;
       }
-      const body = url.endsWith("/data") ? fixture
-        : url.endsWith("/version") ? { version: fixture.version }
+      const body = url.endsWith("/data") ? data
+        : url.endsWith("/version") ? { version: data.version }
         : url.endsWith("/org") ? orgFixture
         : url.endsWith("/audio/meta") ? { label: "Synthetic audio label" }
         : null;
@@ -92,17 +92,33 @@ function installMock(page, commands, leaked) {
   });
 }
 
-async function openPage(browser, commands, leaked) {
+async function openPage(browser, commands, leaked, opts = {}) {
   const context = await browser.createBrowserContext();
   const page = await context.newPage();
   const errors = [];
   page.on("pageerror", (err) => errors.push(String(err)));
   await page.emulateMediaFeatures([{ name: "prefers-color-scheme", value: "light" }]);
-  await page.setViewport({ width: 1440, height: 900 });
+  await page.setViewport({ width: opts.width || 1440, height: opts.height || 900 });
+  if (opts.now) {
+    await page.evaluateOnNewDocument((iso) => {
+      const fixed = Date.parse(iso);
+      const NativeDate = Date;
+      function MCDate(...args) {
+        if (!new.target) return args.length ? NativeDate(...args) : new NativeDate(fixed).toString();
+        return args.length ? new NativeDate(...args) : new NativeDate(fixed);
+      }
+      MCDate.now = () => fixed;
+      MCDate.parse = NativeDate.parse;
+      MCDate.UTC = NativeDate.UTC;
+      MCDate.prototype = NativeDate.prototype;
+      Object.setPrototypeOf(MCDate, NativeDate);
+      window.Date = MCDate;
+    }, opts.now);
+  }
   await page.evaluateOnNewDocument((key) => {
     localStorage.setItem("mcKey", key);
   }, SYNTH_KEY);
-  await installMock(page, commands, leaked);
+  await installMock(page, commands, leaked, opts.data || fixture);
   return { context, page, errors };
 }
 
@@ -945,6 +961,256 @@ describe("Mission Control UI", { timeout: 120000 }, () => {
 
       assert.equal(commands.length, 0);
       assert.equal(leaked.length, 0);
+      assert.deepEqual(errors, []);
+    } finally {
+      await context.close();
+    }
+  });
+
+  it("shows parity pass 1 from optional brain fields and warns only after a missed weekday 7 AM run", async () => {
+    const shot = async (page, name) => {
+      fs.mkdirSync(ARTIFACTS, { recursive: true });
+      await page.evaluate(() => {
+        if (document.getElementById("syntheticBanner")) return;
+        const bar = document.createElement("div");
+        bar.id = "syntheticBanner";
+        bar.setAttribute("role", "note");
+        bar.textContent = "SYNTHETIC FIXTURE — not live Mission Control data";
+        bar.style.cssText = "position:sticky;top:0;z-index:80;background:#3a2a00;color:#ffe7a3;font:700 13px/1.3 Arial,sans-serif;text-align:center;padding:6px 10px";
+        document.body.prepend(bar);
+      });
+      await page.screenshot({ path: path.join(ARTIFACTS, name), fullPage: true });
+    };
+    const banner = (page) => page.evaluate(() => {
+      const el = document.getElementById("brainStale");
+      return { hidden: el.hidden, text: el.textContent.replace(/\s+/g, " ").trim() };
+    });
+
+    const commands = [];
+    const leaked = [];
+    const baseCase = await openPage(browser, commands, leaked);
+    try {
+      await baseCase.page.goto(base, { waitUntil: "domcontentloaded", timeout: 20000 });
+      await ready(baseCase.page);
+      const absent = await baseCase.page.evaluate(() => ({
+        stale: document.getElementById("brainStale").hidden,
+        backlog: document.getElementById("asanaBacklog").hidden,
+        owner: document.querySelectorAll("#tabVillas .owner-nts").length,
+        payouts: !!document.getElementById("airbnbPayouts"),
+        buckets: !!document.getElementById("directBuckets"),
+        chase: !!document.getElementById("directChase"),
+        resolved: document.querySelectorAll("#tabVillas .fix-resolved").length,
+        vitals: document.getElementById("vitals").hidden,
+        daily: document.getElementById("duLink").getAttribute("href")
+      }));
+      assert.equal(absent.stale, true);
+      assert.equal(absent.backlog, true);
+      assert.equal(absent.owner, 0);
+      assert.equal(absent.payouts, false);
+      assert.equal(absent.buckets, false);
+      assert.equal(absent.chase, false);
+      assert.equal(absent.resolved, 0);
+      assert.equal(absent.vitals, true);
+      assert.equal(absent.daily, "https://dailyupdate.simplyintense.com/");
+      await baseCase.page.click('.tabs button[data-tab="money"]');
+      await baseCase.page.waitForSelector("#nwPanel");
+      assert.equal(await baseCase.page.$eval("#nwPanel", (el) => el.hidden), true);
+      assert.deepEqual(baseCase.errors, []);
+    } finally {
+      await baseCase.context.close();
+    }
+
+    const quiet = [
+      ["2026-11-07T16:00:00Z", true],
+      ["2026-11-09T10:30:00Z", true],
+      ["2026-11-09T11:00:00Z", false]
+    ];
+    for (const [now, hidden] of quiet) {
+      const commandsQ = [];
+      const leakedQ = [];
+      const opened = await openPage(browser, commandsQ, leakedQ, { now, data: parityFixture() });
+      try {
+        await opened.page.goto(base, { waitUntil: "domcontentloaded", timeout: 20000 });
+        await ready(opened.page);
+        assert.equal((await banner(opened.page)).hidden, hidden, now);
+        assert.deepEqual(opened.errors, []);
+        assert.equal(leakedQ.length, 0);
+      } finally {
+        await opened.context.close();
+      }
+    }
+
+    const fresh = structuredClone(parityFixture());
+    fresh.brain.as_of = "2026-11-09T11:25:00Z";
+    const commandsF = [];
+    const leakedF = [];
+    const freshPage = await openPage(browser, commandsF, leakedF, { now: "2026-11-09T12:00:00Z", data: fresh });
+    try {
+      await freshPage.page.goto(base, { waitUntil: "domcontentloaded", timeout: 20000 });
+      await ready(freshPage.page);
+      assert.equal((await banner(freshPage.page)).hidden, true);
+      assert.deepEqual(freshPage.errors, []);
+    } finally {
+      await freshPage.context.close();
+    }
+
+    const commandsP = [];
+    const leakedP = [];
+    const { context, page, errors } = await openPage(browser, commandsP, leakedP, { now: "2026-11-09T21:00:00Z", data: parityFixture() });
+    try {
+      await page.setViewport({ width: 1440, height: 900 });
+      await page.goto(base, { waitUntil: "domcontentloaded", timeout: 20000 });
+      await ready(page);
+      const stale = await banner(page);
+      assert.equal(stale.hidden, false);
+      assert.equal(stale.text, "Brain data is from Sun Nov 8, 7:25 AM AST. Today's 7:00 AM run is missing.");
+      const folded = await page.evaluate(() => {
+        const preview = document.getElementById("asana").innerText;
+        const back = document.getElementById("asanaBacklog");
+        return {
+          vitalsHidden: document.getElementById("vitals").hidden,
+          expanded: document.getElementById("vitalsToggle").getAttribute("aria-expanded"),
+          previewHasBacklogOnly: preview.includes("Synthetic backlog overdue"),
+          previewCount: document.querySelectorAll("#asana li").length,
+          backHidden: back.hidden,
+          backOpen: back.open,
+          summary: document.getElementById("asanaBacklogSum").textContent
+        };
+      });
+      assert.equal(folded.vitalsHidden, true);
+      assert.equal(folded.expanded, "false");
+      assert.equal(folded.previewHasBacklogOnly, false);
+      assert.equal(folded.previewCount, 2);
+      assert.equal(folded.backHidden, false);
+      assert.equal(folded.backOpen, false);
+      assert.match(folded.summary, /Asana backlog · 4/);
+      assert.match(folded.summary, /2 overdue/);
+      assert.match(folded.summary, /2 due soon/);
+      await page.click("#asanaBacklog summary");
+      assert.match(await page.$eval("#asanaBacklogList", (el) => el.innerText), /Synthetic backlog overdue/);
+      assert.match(await page.$eval("#asanaBacklogList", (el) => el.innerText), /SYN-4/);
+
+      await page.click('.tabs button[data-tab="villas"]');
+      const villas = await page.evaluate(() => {
+        const row = (name) => [...document.querySelectorAll("#tabVillas .ob")].find((el) => el.querySelector("b") && el.querySelector("b").textContent === name);
+        const nest = row("Sample Nest");
+        const heart = row("Sample Heart");
+        const labels = [...document.querySelectorAll("#directBuckets .s")].map((el) => el.textContent);
+        const resolved = document.querySelector("#fixList .fix-resolved .fix-issue");
+        const open = document.querySelector("#fixList .fix-open .fix-issue");
+        return {
+          nestOwner: nest.querySelector(".owner-nts").textContent,
+          heartOwner: !!heart.querySelector(".owner-nts"),
+          heartOpen: heart.textContent.includes("open nights"),
+          payoutsOpen: document.getElementById("airbnbPayouts").open,
+          payoutSummary: document.querySelector("#airbnbPayouts summary").textContent,
+          payoutText: document.getElementById("airbnbPayouts").textContent,
+          labels,
+          chase: document.getElementById("directChase").innerText,
+          resolved: resolved.textContent,
+          resolvedStrike: getComputedStyle(resolved).textDecorationLine,
+          resolvedMark: document.querySelector("#fixList .fix-resolved .tag2.ok").textContent,
+          openStrike: getComputedStyle(open).textDecorationLine,
+          openMark: document.querySelector("#fixList .fix-open .tag2").textContent,
+          note: document.querySelector("#fixList .fix-resolved").innerText,
+          seat: !!document.querySelector('#tabVillas a[data-go="org"]')
+        };
+      });
+      assert.match(villas.nestOwner, /6/);
+      assert.match(villas.nestOwner, /owner-held nights \(90d\)/);
+      assert.equal(villas.heartOwner, false);
+      assert.equal(villas.heartOpen, true);
+      assert.equal(villas.payoutsOpen, false);
+      assert.match(villas.payoutSummary, /Each payout · 2/);
+      assert.match(villas.payoutText, /Alex Example/);
+      assert.match(villas.payoutText, /28 Nov/);
+      assert.match(villas.payoutText, /29 Nov/);
+      assert.match(villas.payoutText, /TT\$1,560/);
+      assert.deepEqual(villas.labels, ["15 days", "30 days", "45 days", "60 days"]);
+      assert.match(villas.chase, /Balances to chase/);
+      assert.match(villas.chase, /Casey Example/);
+      assert.match(villas.chase, /TT\$2,200/);
+      assert.equal(villas.resolved, "Synthetic resolved latch");
+      assert.match(villas.resolvedStrike, /line-through/);
+      assert.match(villas.resolvedMark, /Resolved/);
+      assert.equal(villas.openStrike.includes("line-through"), false);
+      assert.match(villas.openMark, /critical/);
+      assert.match(villas.note, /FX-DONE/);
+      assert.match(villas.note, /2 Nov 2026/);
+      assert.match(villas.note, /latch replaced/);
+      assert.equal(villas.seat, true);
+      await page.click("#airbnbPayouts summary");
+      await page.click("#blurMode");
+      const masked = await page.evaluate(() => {
+        const color = (el) => getComputedStyle(el).color;
+        const guest = [...document.querySelectorAll("#airbnbPayouts [data-mc-sensitive='name']")].find((el) => el.textContent.includes("Alex Example"));
+        const days = [...document.querySelectorAll("#directBuckets .s")].find((el) => el.textContent === "15 days");
+        const mark = document.querySelector("#fixList .fix-resolved .tag2.ok");
+        const bannerEl = document.getElementById("brainStale");
+        return {
+          pressed: document.getElementById("blurMode").getAttribute("aria-pressed"),
+          guest: color(guest),
+          days: color(days),
+          mark: color(mark),
+          banner: color(bannerEl),
+          bannerText: bannerEl.textContent.includes("today's run is missing") || bannerEl.textContent.includes("Today's 7:00 AM run is missing")
+        };
+      });
+      assert.equal(masked.pressed, "true");
+      assert.equal(masked.guest, "rgba(0, 0, 0, 0)");
+      assert.notEqual(masked.days, "rgba(0, 0, 0, 0)");
+      assert.notEqual(masked.mark, "rgba(0, 0, 0, 0)");
+      assert.notEqual(masked.banner, "rgba(0, 0, 0, 0)");
+      assert.equal(masked.bannerText, true);
+      await page.click('.tabs button[data-tab="money"]');
+      await page.waitForSelector("#nwPanel");
+      assert.equal(await page.$eval("#nwPanel", (el) => el.hidden), true);
+      assert.equal(await page.evaluate(() => localStorage.getItem("mcNetworthOpen")), null);
+      assert.equal(await page.$eval("#blurMode", (el) => el.getAttribute("aria-pressed")), "true");
+      await page.click('.tabs button[data-tab="today"]');
+
+      const desk = await page.evaluate(() => ({
+        overflow: document.documentElement.scrollWidth - document.documentElement.clientWidth,
+        nav: document.querySelector(".mcnav").getBoundingClientRect().top
+      }));
+      assert.ok(desk.overflow <= 1, `desktop overflow ${desk.overflow}`);
+      assert.ok(desk.nav < 40);
+      await page.evaluate(() => window.scrollTo(0, 0));
+      await shot(page, "parity_desktop_blur_today.png");
+      await page.click('.tabs button[data-tab="villas"]');
+      await page.evaluate(() => window.scrollTo(0, 0));
+      await shot(page, "parity_desktop_blur_villas.png");
+
+      await page.setViewport({ width: 390, height: 844 });
+      await page.evaluate(() => new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve))));
+      await page.click('.tabs button[data-tab="today"]');
+      await page.evaluate(() => window.scrollTo(0, 0));
+      const phone = await page.evaluate(() => {
+        const task = document.getElementById("wlist").closest("section").getBoundingClientRect().top;
+        const board = document.getElementById("boardSec").getBoundingClientRect().top;
+        return {
+          overflow: document.documentElement.scrollWidth - document.documentElement.clientWidth,
+          task,
+          board,
+          vh: window.innerHeight,
+          nav: document.querySelector(".mcnav").getBoundingClientRect().top,
+          banner: document.getElementById("brainStale").getBoundingClientRect().height
+        };
+      });
+      assert.ok(phone.overflow <= 1, `phone overflow ${phone.overflow}`);
+      assert.ok(phone.nav < 80);
+      assert.ok(phone.task < phone.board);
+      assert.ok(phone.task < phone.vh, `tasks start at ${phone.task}`);
+      assert.ok(phone.banner > 20);
+      await shot(page, "parity_phone_blur_today.png");
+      await page.click('.tabs button[data-tab="villas"]');
+      await page.evaluate(() => window.scrollTo(0, 0));
+      const phoneVillas = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
+      assert.ok(phoneVillas <= 1, `phone villas overflow ${phoneVillas}`);
+      await shot(page, "parity_phone_blur_villas.png");
+
+      assert.equal(commandsP.length, 0);
+      assert.equal(leakedP.length, 0);
       assert.deepEqual(errors, []);
     } finally {
       await context.close();

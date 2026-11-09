@@ -3,6 +3,18 @@
 
 export const SYNTH_KEY = "synthetic-fixture-key-not-a-secret";
 
+// A run time on today's calendar date, after the weekday 7:00 AM AST cutoff,
+// so the default page does not show the stale banner. The parity test supplies an older as_of.
+function astTodayAtEight() {
+  const ymd = new Intl.DateTimeFormat("en-CA", {
+    timeZone: "America/Port_of_Spain",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit"
+  }).format(new Date());
+  return `${ymd}T08:00:00-04:00`;
+}
+
 const hours = Array.from({ length: 24 }, (_, i) => String(i).padStart(2, "0"));
 
 export const fixture = {
@@ -87,7 +99,7 @@ export const fixture = {
   },
   routines_all: null,
   brain: {
-    as_of: "2026-11-08T11:35:00Z",
+    as_of: astTodayAtEight(),
     onemove: {
       head: "Synthetic one move",
       detail: "Example detail only.",
@@ -214,6 +226,53 @@ export const fixture = {
     }
   }
 };
+
+// Optional parity fields. Invented labels only. Older exports omit these and the page keeps the previous cards.
+export function parityFixture() {
+  const d = structuredClone(fixture);
+  d.version = "synthetic-parity-1";
+  d.brain.as_of = "2026-11-08 07:25 AST";
+  d.brain.today.asana = {
+    caption: "Synthetic important preview.",
+    items: [
+      { text: "Synthetic important overdue", url: "https://example.invalid/asana/1", tag: "9d overdue", overdue: true, meta: "Sample project" },
+      { text: "Synthetic important due soon", url: "https://example.invalid/asana/2", tag: "due in 2d", overdue: false, meta: "Sample project" }
+    ],
+    backlog: [
+      { text: "Synthetic important overdue", url: "https://example.invalid/asana/1", tag: "9d overdue", overdue: true, meta: "Sample project", id: "SYN-1" },
+      { text: "Synthetic important due soon", url: "https://example.invalid/asana/2", tag: "due in 2d", overdue: false, meta: "Sample project", id: "SYN-2" },
+      { text: "Synthetic backlog overdue", url: "https://example.invalid/asana/3", tag: "4d overdue", overdue: true, meta: "Sample backlog", id: "SYN-3" },
+      { name: "Synthetic backlog due soon", link: "https://example.invalid/asana/4", status: "due tomorrow", bucket: "soon", project: "Sample backlog", gid: "SYN-4" }
+    ]
+  };
+  d.brain.villas.occupancy = [
+    { villa: "Sample Nest", pct: 40, warn: false, months: [{ m: "Nov", pct: 40 }], open_nts_90: 10, owner_nts_90: 6 },
+    { villa: "Sample Heart", pct: 70, warn: false, months: [{ m: "Nov", pct: 70 }], open_nts_90: 4 }
+  ];
+  d.brain.villas.airbnb.bookings = [
+    { g: "Sample Guest", v: "Sample Nest", ci: "12 Nov", payout: "13 Nov", tt: "TT$6,600", usd: "US$1,000" },
+    { guest: "Alex Example", villa: "Sample Fairway", check_in: "28 Nov", payout_date: "29 Nov", ttd: "TT$1,560", usd: "US$200" }
+  ];
+  d.brain.villas.direct.buckets = {
+    "45": { n: 1, tt: "TT$2,200", usd: "US$282" },
+    "15": { n: 1, tt: "TT$1,100", usd: "US$141" },
+    "60": { n: 0, tt: "TT$0", usd: "US$0" },
+    "30": { n: 0, tt: "TT$0", usd: "US$0" }
+  };
+  d.brain.villas.direct.to_chase = [
+    { g: "Casey Example", v: "Sample Nest", ci: "18 Nov", bal_tt: "TT$2,200", bal_usd: "US$282", st: "balance due", note: "Synthetic chase only" }
+  ];
+  d.brain.villas.direct.chase_label = "Balances to chase";
+  d.brain.villas.feedback = {
+    caption: "Synthetic ratings",
+    villas: [{ villa: "Sample Nest", rating: "4.8", n: 3, top: "Sample praise" }],
+    fixes: [
+      { id: "FX-OPEN", villa: "Sample Nest", sev: "crit", issue: "Synthetic open leak", meta: "reported in a sample review", resolved: false },
+      { id: "FX-DONE", villa: "Sample Heart", sev: "med", issue: "Synthetic resolved latch", meta: "sample review", resolved: true, resolved_at: "2 Nov 2026", resolved_note: "Sample note: latch replaced" }
+    ]
+  };
+  return d;
+}
 
 export const orgFixture = {
   pillars: [],
