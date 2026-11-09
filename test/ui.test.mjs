@@ -577,6 +577,73 @@ describe("Mission Control UI", { timeout: 120000 }, () => {
     }
   });
 
+  it("fits every desktop tab, Blur mode, and Tools on screen at 1280px", async () => {
+    const commands = [];
+    const leaked = [];
+    const { context, page, errors } = await openPage(browser, commands, leaked);
+    try {
+      await page.goto(base, { waitUntil: "domcontentloaded", timeout: 20000 });
+      await ready(page);
+      for (const width of [1280, 1366, 1440, 1920]) {
+        await page.setViewport({ width, height: 900 });
+        await page.evaluate(() => new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve))));
+        const fit = await page.evaluate(() => {
+          const nav = document.querySelector(".mcnav");
+          const row = document.querySelector(".mcnav-row");
+          const box = nav.getBoundingClientRect();
+          const fully = (el) => {
+            const b = el.getBoundingClientRect();
+            return b.width > 8 && b.left >= box.left - 1 && b.right <= box.right + 1 && b.top >= box.top - 1 && b.bottom <= box.bottom + 1;
+          };
+          const tabs = [...document.querySelectorAll(".tabs button[data-tab]")];
+          const tools = ["duLink", "villasSite", "propertySite", "aBtn", "phoneSetup"].map((id) => document.getElementById(id));
+          return {
+            rowOver: row.scrollWidth - row.clientWidth,
+            navOver: nav.scrollWidth - nav.clientWidth,
+            pageOver: document.documentElement.scrollWidth - document.documentElement.clientWidth,
+            tabs: tabs.map((el) => el.querySelector(".tab-label").textContent),
+            tabsIn: tabs.every(fully),
+            blurIn: fully(document.getElementById("blurMode")),
+            blurLabel: document.getElementById("blurMode").innerText,
+            toolsIn: tools.every(fully),
+            selected: tabs.filter((el) => el.getAttribute("aria-selected") === "true").map((el) => el.dataset.tab)
+          };
+        });
+        assert.ok(fit.rowOver <= 1, `${width}px nav row scrolls by ${fit.rowOver}px`);
+        assert.ok(fit.navOver <= 1, `${width}px nav scrolls by ${fit.navOver}px`);
+        assert.ok(fit.pageOver <= 1, `${width}px page overflows by ${fit.pageOver}px`);
+        assert.deepEqual(fit.tabs, ["Today", "Villas", "Money", "Growth", "Si Helpdesk", "Org & Systems", "Activity", "Routines"]);
+        assert.equal(fit.tabsIn, true, `${width}px hides a tab`);
+        assert.equal(fit.blurIn, true, `${width}px hides Blur mode`);
+        assert.match(fit.blurLabel, /Blur mode/);
+        assert.match(fit.blurLabel, /Shift\+B/);
+        assert.equal(fit.toolsIn, true, `${width}px hides a Tools link`);
+        assert.deepEqual(fit.selected, ["today"]);
+      }
+      fs.mkdirSync(ARTIFACTS, { recursive: true });
+      const banner = () => page.evaluate(() => {
+        if (document.getElementById("syntheticBanner")) return;
+        const bar = document.createElement("div");
+        bar.id = "syntheticBanner";
+        bar.textContent = "SYNTHETIC FIXTURE — not live Mission Control data";
+        bar.style.cssText = "position:sticky;top:0;z-index:80;background:#3a2a00;color:#ffe7a3;font:700 13px/1.3 Arial,sans-serif;text-align:center;padding:6px 10px";
+        document.body.prepend(bar);
+      });
+      await page.setViewport({ width: 1280, height: 800 });
+      await banner();
+      await page.screenshot({ path: path.join(ARTIFACTS, "nav_1280_after.png") });
+      await page.setViewport({ width: 1440, height: 800 });
+      await page.screenshot({ path: path.join(ARTIFACTS, "nav_1440_after.png") });
+      await page.setViewport({ width: 390, height: 844 });
+      await page.screenshot({ path: path.join(ARTIFACTS, "nav_mobile_after.png") });
+      assert.equal(commands.length, 0);
+      assert.equal(leaked.length, 0);
+      assert.deepEqual(errors, []);
+    } finally {
+      await context.close();
+    }
+  });
+
   it("collapses net worth on a fresh visit without changing villa stats", async () => {
     const commands = [];
     const leaked = [];
