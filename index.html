@@ -538,7 +538,7 @@ body.mc-blur #keyGate::after,body.mc-blur #keyGate *::after{content:none !import
 <div class="og-h">Systems</div>
 <div class="stack" style="margin-top:0">
     <section><h2>Upcoming routines</h2><p class="cap" id="rcap"></p><div class="tblwrap"><table><thead><tr><th>Routine</th><th>Next run (AST)</th><th>Owner</th></tr></thead><tbody id="routines"></tbody></table></div></section>
-    <section><h2>Data sources</h2><p class="cap" id="srcCap">Bot chats + Asana (hourly), the Operational Brain engine (weekdays 7:35 AM AST: Hospitable, Gmail, Slack, Calendar, Meta Ads, receivables), org.json.</p></section>
+    <section><h2>Data sources</h2><p class="cap" id="srcCap">Bot chats + Asana (hourly), Cashbot (agency receivables), the Operational Brain engine (weekdays 7:35 AM AST: Hospitable, Gmail, Slack, Calendar, Meta Ads), org.json.</p></section>
 </div>
 </div>
 </main>
@@ -628,8 +628,8 @@ const pillLabel = (el, text) => { const s = el && el.querySelector(".pill-label"
 const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 // Blur mode opt-in. kind is money, name, id, text, email, or phone.
 const sens = (html, kind = "text") => `<span class="mc-sensitive" data-mc-sensitive="${kind}">${html}</span>`;
-const SENS_RE = /(?:−|-)?(?:(?:TT|US|USD|TTD)\s?\$|\$|€|£)\s?-?\d[\d,]*(?:\.\d+)?|\b\d[\d,]*(?:\.\d+)?\s?(?:TTD|USD)\b|[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}|(\+\d{1,3}[\s.])?(?:\(\d{3}\)|\b\d{3}\b)[\s.-]\d{3}[\s.-]\d{4}\b/gi;
-const sensKind = (token) => token.includes("@") ? "email" : /[$€£]|TTD|USD/i.test(token) ? "money" : "phone";
+const SENS_RE = /(?:−|-)?(?:(?:TT|US|USD|TTD|BDS|BBD)\s?\$|\$|€|£)\s?-?\d[\d,]*(?:\.\d+)?|\b\d[\d,]*(?:\.\d+)?\s?(?:TTD|USD|BBD|BDS)\b|[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}|(\+\d{1,3}[\s.])?(?:\(\d{3}\)|\b\d{3}\b)[\s.-]\d{3}[\s.-]\d{4}\b/gi;
+const sensKind = (token) => token.includes("@") ? "email" : /[$€£]|TTD|USD|BBD|BDS/i.test(token) ? "money" : "phone";
 function wrapSensitiveText(root) {
   const scope = root && root.nodeType === 1 ? root : document.body;
   if (!scope) return;
@@ -1023,6 +1023,40 @@ const sec = (title, cap, body, extra = "") => `<section ${extra}><h2>${title}</h
 const ttab = (head, rows) => `<div class="tblwrap"><table><thead><tr>${head.map((h) => `<th>${h}</th>`).join("")}</tr></thead><tbody>${rows.join("")}</tbody></table></div>`;
 const secId = (id, title, cap, body) => sec(title, cap, body, `id="${id}"`);
 const none = (s) => `<p class="cap">${esc(s)}</p>`;
+// Agency receivables: Cashbot is the source of truth. The pre-Cashbot shape (total/overdue/invoices, all TT$) still renders for older fixtures.
+function agencySection(ag) {
+  const oldInvoices = (ag.invoices || []).map((i) => `<tr><td>${sens(esc(i.num), "id")}</td><td>${sens(esc(i.client), "name")}</td><td><b>${sens(esc(i.amt), "money")}</b></td><td>${i.bucket === "overdue" ? `<span class="tag2 hot">overdue</span>` : `<span class="tag2">${esc(i.bucket || "")}</span>`}</td></tr>`);
+  const legacy = `<div class="cards"><div class="kpi"><div class="s">Owed</div><div class="b mc-sensitive" data-mc-sensitive="money">${esc(ag.total || "?")}</div></div><div class="kpi"><div class="s">Overdue</div><div class="b need mc-sensitive" data-mc-sensitive="money">${esc(ag.overdue || "?")}</div></div></div><p class="cap mc-sensitive" data-mc-sensitive="text" style="margin-top:10px">${esc(ag.summary || "")}</p>` + ttab(["Invoice", "Client", "TT$", ""], oldInvoices);
+  const cap = ag.source === "Cashbot" ? (ag.caption || `From Cashbot${ag.asof ? `, ${ag.asof}` : ""}. Currencies are shown separately; there is no combined FX total.`)
+    : (ag.asof ? `From Sunday's Receivables Update email (${ag.asof}).` : "");
+  if (ag.source !== "Cashbot" && !(ag.companies && ag.companies.length)) {
+    return sec("Agency receivables", cap, legacy);
+  }
+  const coCards = (ag.companies || []).map((c) => {
+    const aging = (c.aging_rows || []).map((r) => `<tr><td>${esc(r.label)}</td><td><b>${sens(esc(r.amt), "money")}</b></td></tr>`);
+    const inv = (c.invoices || []).map((i) => {
+      const num = i.url ? `<a href="${esc(i.url)}" target="_blank" rel="noreferrer">${sens(esc(i.num), "id")}</a>` : sens(esc(i.num), "id");
+      const age = i.bucket === "overdue" ? `${i.days_overdue != null ? i.days_overdue + "d " : ""}overdue` : (i.bucket || "");
+      return `<tr><td>${num}</td><td>${sens(esc(i.client || ""), "name")}</td><td><b>${sens(esc(i.amt), "money")}</b></td><td>${esc(i.due || "")}</td><td>${i.bucket === "overdue" ? `<span class="tag2 hot">${esc(age)}</span>` : `<span class="tag2">${esc(age)}</span>`}</td></tr>`;
+    });
+    return `<div style="margin-top:16px"><h3 style="margin:0 0 8px;font:700 16px var(--font-display)">${esc(c.company)}${c.company_legal_name ? ` <span class="us">${esc(c.company_legal_name)}</span>` : ""}</h3>
+      <div class="cards">
+        <div class="kpi"><div class="s">Outstanding</div><div class="b mc-sensitive" data-mc-sensitive="money">${esc(c.outstanding_lbl || "?")}</div><div class="us">${c.open_count ?? "?"} open</div></div>
+        <div class="kpi"><div class="s">Overdue</div><div class="b need mc-sensitive" data-mc-sensitive="money">${esc(c.overdue_lbl || "?")}</div><div class="us">${c.overdue_count ?? "?"} overdue</div></div>
+        <div class="kpi"><div class="s">Not yet due</div><div class="b mc-sensitive" data-mc-sensitive="money">${esc(c.not_yet_due_lbl || "?")}</div></div>
+      </div>
+      ${aging.length ? `<p class="cap" style="margin-top:10px">Aging</p>` + ttab(["Bucket", "Amount"], aging) : ""}
+      ${inv.length ? ttab(["Invoice", "Client", "Amount", "Due", ""], inv) : ""}
+    </div>`;
+  }).join("");
+  const chase = (ag.who_to_chase || []).map((w) => `<tr><td>${esc(w.company)}</td><td>${sens(esc(w.client || ""), "name")}</td><td>${w.contact_email ? sens(esc(w.contact_email), "email") : `<span class="us">no email in Cashbot</span>`}</td><td><b>${sens(esc(w.overdue_lbl), "money")}</b></td><td>${esc((w.invoices || []).join(", "))}</td><td>${w.oldest_days_overdue != null ? `${w.oldest_days_overdue}d` : ""}</td><td>${esc(w.last_payment_date || "")}</td></tr>`);
+  const excl = (ag.excluded || []).map((e) => `<tr><td>${esc(e.label)}</td><td>${esc(e.company)}</td><td>${sens(esc(e.amount_lbl), "money")}</td><td>${e.count ?? ""}</td></tr>`);
+  const body = `<p class="cap mc-sensitive" data-mc-sensitive="text" style="margin-top:0">${esc(ag.summary || "")}</p>`
+    + (chase.length ? `<h3 style="margin:16px 0 8px;font:700 16px var(--font-display)">Who to chase</h3>` + ttab(["Company", "Client", "Contact", "Overdue", "Invoices", "Oldest", "Last payment"], chase) : "")
+    + coCards
+    + (excl.length ? `<h3 style="margin:16px 0 8px;font:700 16px var(--font-display)">Not counted as open</h3><p class="cap">${esc(ag.excluded_note || "Drafts, credits and intercompany are not counted as open.")}</p>` + ttab(["Kind", "Company", "Amount", ""], excl) : "");
+  return sec("Agency receivables", cap, body);
+}
 function renderBrain(force) {
   const B = D.brain, sig = JSON.stringify(B || null) + NW.show;
   if (!force && sig === renderBrain.sig) return; renderBrain.sig = sig;
@@ -1095,7 +1129,7 @@ function renderBrain(force) {
     + sec("Cash landing by week", M.weeks_caption, ttab(["Week", "TT$", "US$", "Payments"], (M.weeks || []).map((w) => `<tr><td><b>${esc(w.label)}</b><div class="us">${esc(w.rng)}</div></td><td><b>${sens(esc(w.tt), "money")}</b></td><td>${sens(esc(w.usd), "money")}</td><td>${(w.items || []).length ? `<details><summary>${w.n}</summary>${w.items.map((i) => `<div class="us">${sens(`${esc(i.when)} · ${esc(i.g)} (${esc(i.v)}, ${esc(i.src)}) ${esc(i.amt)}`, "text")}</div>`).join("")}</details>` : "0"}</td></tr>`)) + (M.beyond ? `<p class="cap">${esc(M.beyond.note)}: ${sens(esc(M.beyond.usd), "money")} across ${esc(M.beyond.n)} payments.</p>` : ""))
     + sec("Expected income by month", M.months_caption || "", `<p class="cap">TT$ = US$ × ${sens(Number(BR).toFixed(2), "money")} (bank rate).</p>` + ttab(["Month", "Total", "Airbnb (US$)", "Villa Direct (US$)"], (M.months || []).map((m) => `<tr><td><b>${esc(m.m)}</b></td><td><b>${sens("TT$" + Math.round((+m.tot || 0) * BR * 1000).toLocaleString("en-US"), "money")}</b><div class="us">${sens("US$" + esc(m.tot) + "k", "money")}</div></td><td>${sens(esc(m.airbnb), "money")}</td><td>${sens(esc(m.direct), "money")}</td></tr>`)))
     + `</div><div class="grid2">`
-    + sec("Agency receivables", ag.asof ? `From Sunday's Receivables Update email (${ag.asof}).` : "", `<div class="cards"><div class="kpi"><div class="s">Owed</div><div class="b mc-sensitive" data-mc-sensitive="money">${esc(ag.total || "?")}</div></div><div class="kpi"><div class="s">Overdue</div><div class="b need mc-sensitive" data-mc-sensitive="money">${esc(ag.overdue || "?")}</div></div></div><p class="cap mc-sensitive" data-mc-sensitive="text" style="margin-top:10px">${esc(ag.summary || "")}</p>` + ttab(["Invoice", "Client", "TT$", ""], (ag.invoices || []).map((i) => `<tr><td>${sens(esc(i.num), "id")}</td><td>${sens(esc(i.client), "name")}</td><td><b>${sens(esc(i.amt), "money")}</b></td><td>${i.bucket === "overdue" ? `<span class="tag2 hot">overdue</span>` : `<span class="tag2">${esc(i.bucket)}</span>`}</td></tr>`)))
+    + agencySection(ag)
     + sec("Payables", "", `${M.payables && M.payables.note ? `<p class="cap mc-sensitive" data-mc-sensitive="text">${esc(M.payables.note)}</p>` : ""}<div class="links">${((M.payables || {}).links || []).map((l) => `<a class="lk" target="_blank" rel="noreferrer" href="${esc(l.href)}"><div class="t">${esc(l.title)}</div><div class="m">Google Sheets</div></a>`).join("")}</div>`)
     + `</div>`;
   // Growth
@@ -1105,7 +1139,7 @@ function renderBrain(force) {
     + (AD ? sec(`Villa ads · ${esc(AD.account)}`, "", `<p class="cap">${esc(AD.window)}${AD.stale ? ` · <span class="stale-flag">stale: Meta Ads hasn't refreshed since this window</span>` : ""}</p><div class="cards">${(AD.kpis || []).map((k) => `<div class="kpi"><div class="s">${esc(k.k)}</div><div class="b mc-sensitive" data-mc-sensitive="money">${esc(k.v)}</div><div class="us mc-sensitive" data-mc-sensitive="text">${esc(k.sub)} · ${esc(k.delta)}</div></div>`).join("")}</div><p class="mc-sensitive" data-mc-sensitive="text" style="margin-top:12px">${esc(AD.story)}</p>` + ttab(["Campaign", "Status", "Spend", "Clicks", "CTR"], (AD.campaigns || []).map((c) => `<tr><td>${esc(c.name)}${c.tag ? `<div class="us">${esc(c.tag)}</div>` : ""}</td><td>${esc(c.status)}</td><td>${sens(esc(c.spend), "money")}</td><td>${esc(c.clicks)}</td><td>${sens(esc(c.ctr), "money")}</td></tr>`))) : "")
     + (PL ? sec("Ad spend plan, next 6 months", "", `${PL.note ? `<p class="cap mc-sensitive" data-mc-sensitive="text">${esc(PL.note)}</p>` : ""}` + ttab(["Month", "Posture", "Spend", "Why"], (PL.months || []).map((m) => `<tr><td><b>${esc(m.m)}</b></td><td>${esc(m.posture)}</td><td>${sens(esc(m.spend), "money")}</td><td>${sens(esc(m.why), "text")}</td></tr>`))) : "")
     + sec("Division goals", "", `<p>Sprint leads, SI Ventures deals and real-estate leads are tracked as KPIs on <a href="#" data-go="org" style="color:var(--accent-ink)">Org &amp; Systems</a>.</p>`);
-  $("srcCap").textContent = `Bot chats + Asana (hourly), the Operational Brain engine (last run ${fmtRun(B.as_of)}; weekdays 7:35 AM AST: Hospitable, Gmail, Slack, Calendar, Meta Ads, receivables), org.json.`;
+  $("srcCap").textContent = `Bot chats + Asana (hourly), Cashbot (agency receivables), the Operational Brain engine (last run ${fmtRun(B.as_of)}; weekdays 7:35 AM AST: Hospitable, Gmail, Slack, Calendar, Meta Ads), org.json.`;
   applyNetworthDisclosure();
 }
 document.addEventListener("keydown", (e) => { const v = e.target.closest && e.target.closest("div.vital[role=button]"); if (v && e.target === v && (e.key === "Enter" || e.key === " ")) { e.preventDefault(); v.click(); } });
