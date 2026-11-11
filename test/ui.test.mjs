@@ -1085,19 +1085,29 @@ describe("Mission Control UI", { timeout: 120000 }, () => {
       assert.ok(info.bands.some((b) => /Red/i.test(b)));
       assert.ok(info.bands.some((b) => /Critical/i.test(b)));
       assert.ok(info.headers.some((h) => /Plan closing/i.test(h)));
+      assert.ok(info.headers.some((h) => /Actual closing/i.test(h)));
+      assert.ok(info.headers.some((h) => /^Variance$/i.test(h)));
       assert.ok(info.headers.some((h) => /MODELLED/i.test(h) && /expected bookings/i.test(h)));
       assert.ok(info.headers.some((h) => /MODELLED/i.test(h) && /current bookings only/i.test(h)));
-      assert.equal(info.rows.length, 6);
-      assert.ok(info.rows.every((r) => /Nov|Dec|Jan|Feb|Mar|Apr/.test(r[0])));
-      assert.equal(info.rows.some((r) => /Oct/.test(r[0])), false);
+      assert.equal(info.rows.length, 7);
+      assert.ok(info.rows.every((r) => /Oct|Nov|Dec|Jan|Feb|Mar|Apr/.test(r[0])));
+      const oct = info.rows.find((r) => /Oct/.test(r[0]));
+      assert.ok(oct, `missing October row in ${JSON.stringify(info.rows)}`);
+      assert.match(oct[0], /Actual/i);
+      assert.match(oct[1], /TT\$410,000/);
+      assert.match(oct[2], /TT\$520,000/);
+      assert.match(oct[3], /\+TT\$110,000/);
       const apr = info.rows.find((r) => /Apr/.test(r[0]));
       assert.ok(apr, `missing April row in ${JSON.stringify(info.rows)}`);
       assert.match(apr[1], /TT\$240,000/);
       assert.match(apr[1], /RED/i);
-      assert.match(apr[2], /TT\$410,000/);
-      assert.match(apr[2], /MODELLED/);
-      assert.match(apr[3], /TT\$200,000/);
-      assert.match(apr[3], /MODELLED/);
+      assert.match(apr[2], /–|—|-/);
+      assert.equal(/TT\$0\b/.test(apr[2]), false);
+      assert.match(apr[3], /–|—|-/);
+      assert.match(apr[4], /TT\$410,000/);
+      assert.match(apr[4], /MODELLED/);
+      assert.match(apr[5], /TT\$200,000/);
+      assert.match(apr[5], /MODELLED/);
       assert.ok(info.lines >= 3, `expected plan + two modelled lines, got ${info.lines}`);
       assert.match(info.text, /Fixed deposits never count as usable cash/i);
       assert.match(info.text, /US\$12,000/);
@@ -1231,20 +1241,22 @@ describe("Mission Control UI", { timeout: 120000 }, () => {
         const nullCells = [...pane.querySelectorAll(".cash-tbl td")].filter((td) => /null/i.test(td.textContent)).length;
         return { headers, rows, text, lines, nullCells };
       });
-      assert.deepEqual(info.headers, ["Month", "Plan closing", "Rebased (MODELLED)"]);
-      assert.equal(info.rows.length, 6);
-      assert.equal(info.rows.some((r) => /Oct/.test(r[0])), false);
-      assert.ok(info.rows[0][0].includes("Nov"));
-      assert.match(info.rows[0][1], /TT\$454,000/);
-      assert.match(info.rows[0][1], /GREEN/i);
-      assert.match(info.rows[0][2], /TT\$613,000/);
-      assert.match(info.rows[0][2], /MODELLED/);
+      assert.deepEqual(info.headers, ["Month", "Plan closing", "Actual closing", "Variance", "Rebased (MODELLED)"]);
+      assert.equal(info.rows.length, 7);
+      assert.ok(info.rows[0][0].includes("Oct"));
+      assert.match(info.rows[0][1], /TT\$450,000/);
+      const nov = info.rows.find((r) => /Nov/.test(r[0]));
+      assert.match(nov[1], /TT\$454,000/);
+      assert.match(nov[1], /GREEN/i);
+      assert.match(nov[2], /–|—|-/);
+      assert.match(nov[4], /TT\$613,000/);
+      assert.match(nov[4], /MODELLED/);
       const apr = info.rows.find((r) => /Apr/.test(r[0]));
       assert.match(apr[1], /TT\$299,000/);
       assert.match(apr[1], /RED/i);
-      assert.match(apr[2], /TT\$458,000/);
-      assert.match(apr[2], /GREEN/i);
-      assert.match(apr[2], /MODELLED/);
+      assert.match(apr[4], /TT\$458,000/);
+      assert.match(apr[4], /GREEN/i);
+      assert.match(apr[4], /MODELLED/);
       assert.equal(info.nullCells, 0);
       assert.ok(info.lines >= 2, `expected plan + rebased lines, got ${info.lines}`);
       assert.match(info.text, /TT\$500,000/);
@@ -1254,6 +1266,80 @@ describe("Mission Control UI", { timeout: 120000 }, () => {
       assert.match(info.text, /Cashbot/);
       assert.match(info.text, /TTPCU/);
       assert.equal(/null/i.test(info.text), false);
+      assert.deepEqual(errors, []);
+    } finally {
+      await context.close();
+    }
+  });
+
+  it("shows trailing months, current month-to-date, and leaves missing actuals blank", async () => {
+    const commands = [];
+    const leaked = [];
+    const { context, page, errors } = await openPage(browser, commands, leaked);
+    try {
+      await page.goto(base, { waitUntil: "domcontentloaded", timeout: 20000 });
+      await ready(page);
+      await page.evaluate(() => {
+        D.cash_forecast = {
+          as_of: "2026-11-10",
+          latest_balances_date: "2026-11-10",
+          bands_ttd_usable: { GREEN: ">450000", AMBER: "300000-450000", RED: "175000-300000", CRITICAL: "<175000", basis: "usable cash, fixed deposits excluded" },
+          current_position: {
+            date: "2026-11-10",
+            usable_cash: 646000,
+            status: "GREEN",
+            last_month_end: { date: "2026-10-29", usable_cash: 770000, status: "GREEN", plan_usable: 610000, variance: 160000 }
+          },
+          months: [
+            { month: "2026-08", label: "Aug-26", plan: { closing_usable: 400000, status: "AMBER" }, latest_actual: null, rebased: { label: "MODELLED", closing_usable: 400000, status: "AMBER" } },
+            { month: "2026-09", label: "Sep-26", plan: { closing_usable: 420000, status: "AMBER" }, latest_actual: null, rebased: { label: "MODELLED", closing_usable: 420000, status: "AMBER" } },
+            { month: "2026-10", label: "Oct-26", plan: { closing_usable: 610000, status: "GREEN" }, latest_actual: { closing_usable: 770000, status: "GREEN", variance_vs_plan: 160000, balance_date: "2026-10-29", kind: "month_end" }, rebased: { label: "MODELLED", closing_usable: 770000, status: "GREEN" } },
+            { month: "2026-11", label: "Nov-26", plan: { closing_usable: 460000, status: "GREEN" }, latest_actual: { closing_usable: 646000, status: "GREEN", variance_vs_plan: 186000, balance_date: "2026-11-10", kind: "mid_month" }, rebased: { label: "MODELLED", closing_usable: 620000, status: "GREEN" } },
+            { month: "2026-12", label: "Dec-26", plan: { closing_usable: 500000, status: "GREEN" }, latest_actual: null, rebased: { label: "MODELLED", closing_usable: 660000, status: "GREEN" } }
+          ]
+        };
+        renderCash();
+      });
+      await page.click('.tabs button[data-tab="cash"]');
+      const info = await page.evaluate(() => {
+        const pane = document.getElementById("tabCash");
+        const headers = [...pane.querySelectorAll(".cash-tbl thead th")].map((th) => th.textContent.trim());
+        const rows = [...pane.querySelectorAll(".cash-tbl tbody tr")].map((tr) => [...tr.children].map((td) => td.innerText.replace(/\s+/g, " ").trim()));
+        const text = pane.innerText;
+        const legend = [...pane.querySelectorAll(".cash-legend li")].map((li) => li.textContent);
+        const midDots = pane.querySelectorAll("svg.cash-chart circle[fill='none']").length;
+        const zeroActuals = rows.filter((r) => /^TT\$0\b/.test(r[2]) || r[2] === "TT$0").length;
+        return { headers, rows, text, legend, midDots, zeroActuals };
+      });
+      assert.deepEqual(info.headers, ["Month", "Plan closing", "Actual closing", "Variance", "Rebased (MODELLED)"]);
+      assert.equal(info.rows.length, 5);
+      assert.ok(info.rows[0][0].includes("Aug"));
+      assert.ok(info.rows[1][0].includes("Sep"));
+      assert.ok(info.rows[2][0].includes("Oct"));
+      assert.ok(info.rows[3][0].includes("Nov"));
+      assert.ok(info.rows[4][0].includes("Dec"));
+      assert.match(info.rows[0][2], /–|—|-/);
+      assert.match(info.rows[1][2], /–|—|-/);
+      assert.equal(info.zeroActuals, 0);
+      assert.match(info.rows[2][0], /Actual/i);
+      assert.match(info.rows[2][1], /TT\$610,000/);
+      assert.match(info.rows[2][2], /TT\$770,000/);
+      assert.match(info.rows[2][3], /\+TT\$160,000/);
+      assert.match(info.rows[3][0], /month-to-date/i);
+      assert.match(info.rows[3][2], /TT\$646,000/);
+      assert.match(info.rows[3][3], /\+TT\$186,000/);
+      assert.match(info.rows[3][3], /MTD/i);
+      assert.match(info.rows[3][4], /TT\$620,000/);
+      assert.match(info.rows[3][4], /MODELLED/);
+      assert.match(info.rows[4][2], /–|—|-/);
+      assert.match(info.text, /Plan vs actual vs modelled/i);
+      assert.ok(info.legend.some((l) => /Actual \(month-end\)/i.test(l)));
+      assert.ok(info.legend.some((l) => /month-to-date/i.test(l)));
+      assert.ok(info.legend.some((l) => /Plan/i.test(l)));
+      assert.ok(info.legend.some((l) => /MODELLED/i.test(l)));
+      assert.ok(info.midDots >= 1, "expected an open month-to-date marker on the chart");
+      assert.equal(commands.length, 0);
+      assert.equal(leaked.length, 0);
       assert.deepEqual(errors, []);
     } finally {
       await context.close();

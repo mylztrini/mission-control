@@ -302,7 +302,12 @@ h1{font-size:28px}
 #tabCash .rag.AMBER{background:color-mix(in oklab,var(--warn) 20%,transparent);color:var(--warn)}
 #tabCash .rag.RED{background:color-mix(in oklab,var(--crit) 18%,transparent);color:var(--crit)}
 #tabCash .rag.CRITICAL{background:color-mix(in oklab,var(--crit) 32%,transparent);color:var(--crit);box-shadow:inset 0 0 0 1px var(--crit)}
-#tabCash .modelled-tag{display:inline-block;font:700 10px var(--font-mono);letter-spacing:.08em;text-transform:uppercase;color:var(--accent-ink);background:var(--accent-bg);border-radius:6px;padding:1px 6px;margin-left:6px;vertical-align:middle}
+#tabCash .modelled-tag,#tabCash .actual-tag,#tabCash .mtd-tag{display:inline-block;font:700 10px var(--font-mono);letter-spacing:.08em;text-transform:uppercase;border-radius:6px;padding:1px 6px;margin-left:6px;vertical-align:middle}
+#tabCash .modelled-tag{color:var(--accent-ink);background:var(--accent-bg)}
+#tabCash .actual-tag{color:var(--good);background:color-mix(in srgb, var(--good) 16%, transparent)}
+#tabCash .mtd-tag{color:var(--warn);background:color-mix(in srgb, var(--warn) 16%, transparent)}
+#tabCash .cash-tbl .var.up{color:var(--good)}
+#tabCash .cash-tbl .var.down{color:var(--crit)}
 #tabCash .bands{display:flex;flex-wrap:wrap;gap:8px 14px;margin:8px 0 0;padding:0;list-style:none}
 #tabCash .bands li{display:flex;align-items:center;gap:8px;font-size:14px;color:var(--muted)}
 #tabCash .sw{width:12px;height:12px;border-radius:3px;flex:0 0 auto}
@@ -1002,11 +1007,14 @@ function cashChartSvg(rows, bands, series) {
   const lo = 0;
   const x = (i) => padL + (rows.length <= 1 ? (w - padL - padR) / 2 : i * (w - padL - padR) / (rows.length - 1));
   const y = (v) => padT + (1 - (Number(v) - lo) / (hi - lo)) * (h - padT - padB);
-  const line = (key, color, dash) => {
+  const line = (key, color, dash, open) => {
     const pts = rows.map((r, i) => r[key] == null ? null : `${x(i).toFixed(1)},${y(r[key]).toFixed(1)}`).filter(Boolean).join(" ");
-    if (!pts) return "";
-    const dots = rows.map((r, i) => r[key] == null ? "" : `<circle cx="${x(i).toFixed(1)}" cy="${y(r[key]).toFixed(1)}" r="3.2" fill="${color}"></circle>`).join("");
-    return `<polyline fill="none" stroke="${color}" stroke-width="2.5" ${dash ? `stroke-dasharray="${dash}"` : ""} points="${pts}"></polyline>${dots}`;
+    const dots = rows.map((r, i) => r[key] == null ? "" : (open
+      ? `<circle cx="${x(i).toFixed(1)}" cy="${y(r[key]).toFixed(1)}" r="5" fill="none" stroke="${color}" stroke-width="2.2"></circle>`
+      : `<circle cx="${x(i).toFixed(1)}" cy="${y(r[key]).toFixed(1)}" r="3.2" fill="${color}"></circle>`)).join("");
+    if (!pts && !dots) return "";
+    const poly = pts ? `<polyline fill="none" stroke="${color}" stroke-width="2.5" ${dash ? `stroke-dasharray="${dash}"` : ""} points="${pts}"></polyline>` : "";
+    return poly + dots;
   };
   const thresh = [
     [bands.green, "var(--good)", "Green"],
@@ -1023,7 +1031,7 @@ function cashChartSvg(rows, bands, series) {
     const ty = (yy - 8 < padT) ? yy + 10 : yy - 8;
     return `<text class="mc-sensitive" data-mc-sensitive="money" x="${padL - 6}" y="${ty.toFixed(1)}" text-anchor="end" fill="var(--faint)" font-size="9" font-family="var(--font-mono)">${esc(ttCash(Math.round(v)))}</text>`;
   }).join("");
-  return `<svg class="cash-chart" viewBox="0 0 ${w} ${h}" role="img" aria-label="Plan versus modelled usable cash and band thresholds">${guides}${yTicks}${series.map((s) => line(s.key, s.color, s.dash)).join("")}${ticks}</svg>`;
+  return `<svg class="cash-chart" viewBox="0 0 ${w} ${h}" role="img" aria-label="Plan versus actual versus modelled usable cash and band thresholds">${guides}${yTicks}${series.map((s) => line(s.key, s.color, s.dash, s.open)).join("")}${ticks}</svg>`;
 }
 const SHEET_ICO = `<svg class="sheet-ico nav-ico" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><rect x="4.5" y="3.5" width="15" height="17" rx="1.6"/><path d="M8 8h8M8 12h8M8 16h5"/></svg>`;
 function sheetsLinks() {
@@ -1059,10 +1067,18 @@ function renderCash() {
   const bands = parseCashBands(C.bands_ttd_usable);
   const balMonth = String(pos.date || C.latest_balances_date || "").slice(0, 7);
   const endMonth = String((pos.last_month_end && pos.last_month_end.date) || "").slice(0, 7);
+  const cashKind = (m) => {
+    const act = (m && m.latest_actual) || {};
+    if (act.kind === "mid_month") return "mid";
+    if (act.kind === "month_end") return "end";
+    if (act.closing_usable == null) return null;
+    if (endMonth && m.month > endMonth) return "mid";
+    return "end";
+  };
   const windowMonths = (C.months || []).filter((m) => {
-    if (endMonth) return m.month > endMonth;
-    return (balMonth && m.month > balMonth) || m.modelled_reforecast || (m.rebased && m.rebased.closing_usable != null);
-  });
+    const plan = m.plan || {}, act = m.latest_actual || {}, reb = m.rebased || {}, mod = m.modelled_reforecast || {};
+    return plan.closing_usable != null || act.closing_usable != null || reb.closing_usable != null || mod.fill_case_closing_usable != null || mod.booked_only_floor_closing_usable != null;
+  }).slice().sort((a, b) => String(a.month).localeCompare(String(b.month)));
   const balDate = cashDate(pos.date || C.latest_balances_date);
   const asof = C.as_of ? `as of ${cashDate(C.as_of)}` : "";
   const lastEnd = pos.last_month_end || {};
@@ -1079,29 +1095,48 @@ function renderCash() {
     if (amt == null && !status) return `<td class="empty">–</td>`;
     return `<td>${amt == null ? `<span class="empty">–</span>` : `<div class="amt">${sens(esc(ttCash(amt)), "money")}</div>`}${ragPill(status)}${modelled ? ` <span class="modelled-tag">MODELLED</span>` : ""}</td>`;
   };
+  const varCell = (planAmt, actAmt, variance, mid) => {
+    if (planAmt == null || actAmt == null) return `<td class="empty">–</td>`;
+    const v = variance != null ? variance : (actAmt - planAmt);
+    const lab = (v > 0 ? "+" : v < 0 ? "−" : "") + ttCash(Math.abs(v));
+    const cls = v > 0 ? "var up" : v < 0 ? "var down" : "var";
+    return `<td><div class="amt ${cls}">${sens(esc(lab), "money")}</div>${mid ? ` <span class="mtd-tag">MTD</span>` : ""}</td>`;
+  };
   const hasRebased = windowMonths.some((m) => m.rebased && m.rebased.closing_usable != null);
   const hasFill = windowMonths.some((m) => m.modelled_reforecast && (m.modelled_reforecast.fill_case_closing_usable != null || m.modelled_reforecast.booked_only_floor_closing_usable != null));
-  const heads = ["Month", "Plan closing"];
+  const hasActual = windowMonths.some((m) => m.latest_actual && m.latest_actual.closing_usable != null && cashKind(m) === "end");
+  const hasMid = windowMonths.some((m) => m.latest_actual && m.latest_actual.closing_usable != null && cashKind(m) === "mid");
+  const heads = ["Month", "Plan closing", "Actual closing", "Variance"];
   if (hasRebased) heads.push("Rebased (MODELLED)");
   if (hasFill) heads.push("MODELLED · expected bookings", "MODELLED · current bookings only");
   const body = windowMonths.map((m) => {
-    const plan = m.plan || {}, mod = m.modelled_reforecast || {}, reb = m.rebased || {};
-    let cells = `<td><b>${esc(cashMonthLabel(m.month, m.label))}</b></td>${cellPair(plan.closing_usable, plan.status, false)}`;
+    const plan = m.plan || {}, mod = m.modelled_reforecast || {}, reb = m.rebased || {}, act = m.latest_actual || {};
+    const kind = cashKind(m);
+    const mid = kind === "mid";
+    const tags = mid ? ` <span class="mtd-tag">month-to-date</span>` : (kind === "end" ? ` <span class="actual-tag">Actual</span>` : "");
+    let cells = `<td><b>${esc(cashMonthLabel(m.month, m.label))}</b>${tags}</td>${cellPair(plan.closing_usable, plan.status, false)}`;
+    cells += cellPair(act.closing_usable, act.status, false);
+    cells += varCell(plan.closing_usable, act.closing_usable, act.variance_vs_plan, mid);
     if (hasRebased) cells += cellPair(reb.closing_usable, reb.status, true);
     if (hasFill) cells += cellPair(mod.fill_case_closing_usable, mod.fill_case_status, true) + cellPair(mod.booked_only_floor_closing_usable, mod.booked_only_floor_status, true);
     return `<tr>${cells}</tr>`;
   }).join("");
   const chartRows = windowMonths.map((m) => {
-    const plan = m.plan || {}, mod = m.modelled_reforecast || {}, reb = m.rebased || {};
+    const plan = m.plan || {}, mod = m.modelled_reforecast || {}, reb = m.rebased || {}, act = m.latest_actual || {};
+    const kind = cashKind(m);
     return {
       label: cashMonthLabel(m.month, m.label),
       plan: plan.closing_usable,
+      actual: kind === "end" ? act.closing_usable : null,
+      mid: kind === "mid" ? act.closing_usable : null,
       rebased: reb.closing_usable,
       fill: mod.fill_case_closing_usable,
       booked: mod.booked_only_floor_closing_usable
     };
   });
   const series = [{ key: "plan", color: "var(--muted)", dash: "6 4", label: "Plan" }];
+  if (hasActual) series.push({ key: "actual", color: "var(--good)", label: "Actual (month-end)" });
+  if (hasMid) series.push({ key: "mid", color: "var(--warn)", open: true, label: "Actual (month-to-date)" });
   if (hasRebased) series.push({ key: "rebased", color: "var(--accent)", label: "Rebased (MODELLED)" });
   if (hasFill) {
     series.push({ key: "fill", color: "var(--accent)", label: "MODELLED · expected bookings" });
@@ -1155,8 +1190,8 @@ function renderCash() {
   const lastEndCap = lastEnd.date ? `Last month-end ${esc(cashDate(lastEnd.date))}` : "Fixed deposits are not usable";
   const lastEndVal = lastEnd.usable_cash != null ? sens(esc(ttCash(lastEnd.usable_cash)), "money") : (planAtEnd != null ? sens(esc(ttCash(planAtEnd)), "money") : "unknown");
   const tableCap = hasRebased
-    ? "Rebased (MODELLED) adds October's gap to the updated plan. These figures are not a new signed plan. NIB is shown as upside only."
-    : "MODELLED figures start from the last actual balances and apply the plan, with villa pacing. They are not the signed master plan.";
+    ? "Plan is the signed path. Actual is the month-end close, or month-to-date when tagged. Rebased (MODELLED) adds the last closed month's gap to the updated plan and is not a new signed plan. NIB is shown as upside only. Missing actuals are left blank, not zero."
+    : "Plan is the signed path. Actual is the month-end close, or month-to-date when tagged. MODELLED figures start from the last actual balances and apply the plan, with villa pacing. They are not the signed master plan. Missing actuals are left blank, not zero.";
   const fx = C.fx_basis ? `<p class="cap">${esc(C.fx_basis)}</p>` : "";
   el.innerHTML =
     sheetsRow()
@@ -1168,7 +1203,7 @@ function renderCash() {
       + (more.length ? `<p class="cap">${more.join(" ")}</p>` : "")
       + `<p class="cap">${esc(bands.basis)}. Bands apply to usable cash only.</p>`
       + `<ul class="bands">${bandItems}</ul>`)
-    + sec((() => { const a = windowMonths[0], b = windowMonths[windowMonths.length - 1]; const rng = a && b ? `, ${cashMonthLabel(a.month, a.label)}–${cashMonthLabel(b.month, b.label)}` : ""; return "Plan vs modelled" + rng; })(), tableCap,
+    + sec((() => { const a = windowMonths[0], b = windowMonths[windowMonths.length - 1]; const rng = a && b ? `, ${cashMonthLabel(a.month, a.label)}–${cashMonthLabel(b.month, b.label)}` : ""; return "Plan vs actual vs modelled" + rng; })(), tableCap,
       `<div class="tblwrap"><table class="cash-tbl"><thead><tr>${heads.map((h) => `<th>${h}</th>`).join("")}</tr></thead><tbody>${body}</tbody></table></div>`
       + (assumed.length ? `<ul class="cash-notes">${assumed.slice(0, 3).map((a) => `<li>${esc(a)}</li>`).join("")}</ul>` : "")
       + cashChartSvg(chartRows, bands, series)
