@@ -106,6 +106,15 @@ ol{margin:0;padding-left:22px}ol li{margin:4px 0}
 .links{display:flex;flex-wrap:wrap;gap:10px;margin-top:12px}.lk{flex:1 1 220px;border:1px solid var(--bd);border-radius:12px;padding:10px 14px;text-decoration:none;color:inherit;background:var(--surface-2)}
 .lk .t{font-weight:600}.lk .m{font-size:13px;color:var(--muted)}
 .tl{display:flex;gap:12px;padding:10px 0;border-top:1px solid var(--bd2)}.tl:first-child{border-top:none}
+.hbadge{display:inline-block;margin-left:6px;padding:0 8px;border-radius:999px;font-size:11.5px;font-weight:700;border:1px solid var(--warn);color:var(--warn);background:color-mix(in oklab,var(--warn) 12%,transparent)}.hbadge:empty{display:none}
+.hbadge.assigned{border-color:var(--accent);color:var(--accent-ink);background:var(--accent-bg)}
+.item.held{opacity:.82}
+.dec{display:inline-block;padding:0 8px;border-radius:999px;font-size:12px;font-weight:700;border:1px solid var(--line);margin-right:6px}
+.dec.completed{color:var(--good);border-color:var(--good)}.dec.ignored_forever,.dec.ignored{color:var(--muted)}.dec.hold,.dec.parked{color:var(--warn);border-color:var(--warn)}.dec.assigned,.dec.reviewed,.dec.hidden_until_comment{color:var(--accent-ink);border-color:var(--accent)}
+.tl .av.dec-av{font-size:15px}
+#archWrap{margin-top:4px}#archWrap>summary{cursor:pointer;font-weight:700;color:var(--accent-ink);padding:6px 0}
+#archQ{width:100%;max-width:420px;margin:10px 0;padding:8px 12px;border-radius:10px;border:1px solid var(--line);background:var(--surface);color:var(--text);font:inherit}
+.arow{padding:9px 0;border-top:1px solid var(--bd2)}.arow:first-child{border-top:none}.arow .an{font-weight:800;margin-right:8px}
 .av{flex:0 0 34px;height:34px;border-radius:50%;display:grid;place-items:center;color:var(--text);font-size:13px;font-weight:700}
 table{width:100%;border-collapse:collapse;font-size:14.5px}th{text-align:left;color:var(--muted);font-weight:600;font-size:12px;font-family:var(--font-mono);letter-spacing:.1em;text-transform:uppercase;padding:6px 8px;border-bottom:1px solid var(--bd)}
 td{padding:8px;border-bottom:1px solid var(--bd2);vertical-align:top}
@@ -606,6 +615,7 @@ body.mc-blur #keyGate::after,body.mc-blur #keyGate *::after{content:none !import
 <div id="tabHelpdesk" class="big tabpane" hidden></div>
 <div id="tabActivity" class="tabpane" hidden>
     <section><h2>Activity timeline</h2><p class="cap" id="tcap"></p><div id="timeline"></div></section>
+    <section><details id="archWrap"><summary id="archSum">Resolved / Archive</summary><p class="cap">Every item that left the list, newest first, by its ID. Type a number (176 or #176) for that item, or words to search titles and notes.</p><input id="archQ" type="search" placeholder="Search by #ID or words" autocomplete="off" aria-label="Search resolved items"><div id="archList"></div></details></section>
     <section><h2>Bot activity by hour, last 7 days</h2><p class="cap" id="hcap"></p><div class="hm" id="heat"></div></section>
 </div>
 <div id="tabRoutines" class="big tabpane" hidden></div>
@@ -832,6 +842,13 @@ async function post(body) {
   let j = {}; try { j = await r.json(); } catch (_e) {}
   return j;
 }
+// Triage decisions (Nov 11 2026): hold / parked / assigned items stay listed with a badge; hold and parked don't count as waiting.
+const DEC_LBL = { completed: "Completed", ignored_forever: "Ignored for good", ignored: "Ignored", hidden_until_comment: "Hidden until they comment", hold: "On hold", parked: "Parked", assigned: "Assigned", reviewed: "Reviewed", reopened: "Reopened", removed: "Removed" };
+const decLabel = (d) => d.decision === "assigned" && d.assignee ? `Assigned to ${String(d.assignee).replace(/\s*\(.*\)$/, "")}` : DEC_LBL[d.decision] || d.decision;
+const parkedOf = (it) => !!(it.hold && (it.hold.decision === "hold" || it.hold.decision === "parked"));
+const holdLabel = (it) => (it.hold ? decLabel(it.hold) : "");
+const holdTitle = (it) => (it.hold ? [decLabel(it.hold), it.hold.note, it.hold.by, it.hold.at ? hdWhen(it.hold.at) : ""].filter(Boolean).join(" · ") : "");
+const needsYou = () => (D.waiting || []).filter((i) => !parkedOf(i));
 function renderWaitingHead() {
   const w = D.waiting, chats = w.filter((i) => !i.stale).length, also = w.filter((i) => !i.stale && i.card).length;
   const sl = w.filter((i) => String(i.botId || "").startsWith("brain:")).length;
@@ -846,8 +863,8 @@ function renderWaiting() {
   const items = w.filter((i) => (showIgn || !ignored.has(i.key)) && !(sent.get(i.key) || {}).ok);
   $("wlist").innerHTML = items.length ? items.map((it) => {
     const k = esc(it.key), ig = ignored.has(it.key), bl = blurAll || hidden.has(it.key), s = sent.get(it.key);
-    return `<div class="item ${it.stale ? "stale" : ""} ${ig ? "ign" : ""} ${bl ? "blur" : ""} ${s && s.ok ? "sent" : ""}" data-k="${k}"><div class="nrow"><div class="num mc-sensitive" data-mc-sensitive="id">${it.number ? "#" + it.number : ""}</div><div class="nbody">
-      <div class="meta">${it.src ? `<span class="src ${esc(it.src)}">${esc(it.src.toUpperCase())}</span>` : ""}${esc(it.bot)} · ${esc(it.when)}${it.stale ? " · <i>Asana only, may be stale</i>" : ""}<span class="badge">${esc(it.status || "")}</span></div>
+    return `<div class="item ${it.stale ? "stale" : ""} ${ig ? "ign" : ""} ${bl ? "blur" : ""} ${s && s.ok ? "sent" : ""} ${parkedOf(it) ? "held" : ""}" data-k="${k}"><div class="nrow"><div class="num mc-sensitive" data-mc-sensitive="id">${it.number ? "#" + it.number : ""}</div><div class="nbody">
+      <div class="meta">${it.src ? `<span class="src ${esc(it.src)}">${esc(it.src.toUpperCase())}</span>` : ""}${esc(it.bot)} · ${esc(it.when)}${it.stale ? " · <i>Asana only, may be stale</i>" : ""}<span class="hbadge ${it.hold ? esc(it.hold.decision) : ""}" title="${esc(holdTitle(it))}">${esc(holdLabel(it))}</span><span class="badge">${esc(it.status || "")}</span></div>
       <div class="txt mc-sensitive" data-mc-sensitive="text">${esc(it.text)}</div>
       <div class="row">
         ${String(it.botId || "").startsWith("brain:") ? (it.url ? `<a class="btn p" target="_blank" rel="noreferrer" href="${esc(it.url)}">Open</a>` : "") : `<a class="btn p" href="${CHAT(it.botId)}">Open</a>`}
@@ -896,8 +913,8 @@ function renderStaff() {
   const items = (D.staff || []).filter((i) => !(sent.get(i.key) || {}).ok), blurAll = $("blurAll").checked;
   $("slist").innerHTML = items.length ? items.map((it) => {
     const k = esc(it.key), bl = blurAll || hidden.has(it.key), s = sent.get(it.key);
-    return `<div class="item ${bl ? "blur" : ""}" data-k="${k}"><div class="nrow"><div class="num mc-sensitive" data-mc-sensitive="id">${it.number ? "#" + it.number : ""}</div><div class="nbody">
-      <div class="meta">${sens(esc(it.who), "name")} · ${esc(it.age)} ago · ${sens(esc(it.project), "name")}<span class="badge">${esc(it.status || "")}</span></div>
+    return `<div class="item ${bl ? "blur" : ""} ${parkedOf(it) ? "held" : ""}" data-k="${k}"><div class="nrow"><div class="num mc-sensitive" data-mc-sensitive="id">${it.number ? "#" + it.number : ""}</div><div class="nbody">
+      <div class="meta">${sens(esc(it.who), "name")} · ${esc(it.age)} ago · ${sens(esc(it.project), "name")}<span class="hbadge ${it.hold ? esc(it.hold.decision) : ""}" title="${esc(holdTitle(it))}">${esc(holdLabel(it))}</span><span class="badge">${esc(it.status || "")}</span></div>
       <div class="txt mc-sensitive" data-mc-sensitive="text"><b>${esc(it.task_name)}</b></div>
       <div class="txt mc-sensitive" data-mc-sensitive="text">${esc(it.text.length > 260 ? it.text.slice(0, 260) + "…" : it.text)}${it.earlier ? ` <span class="meta">(+${it.earlier} earlier)</span>` : ""}</div>
       <div class="row">
@@ -1295,6 +1312,32 @@ function renderAds() {
       + (notes.length ? `<ul class="ads-notes">${notes.map((n) => `<li>${esc(n)}</li>`).join("")}</ul>` : ""));
 }
 
+// Activity timeline = Asana done entries + triage decisions (mc_events), newest first. Undated canvas entries go last.
+function timelineEntries() {
+  const dated = [], undated = [];
+  for (const d of D.done || []) (d.at ? dated : undated).push({ ...d, t: Date.parse(d.at) });
+  for (const e of D.decisions || []) dated.push({ dec: e, t: Date.parse(e.at) });
+  dated.sort((a, b) => b.t - a.t);
+  return [...dated, ...undated];
+}
+function decRow(e) {
+  const who = e.by || "JARVIS";
+  return `<div class="tl"><div class="av dec-av" style="background:color-mix(in oklab,${colorFor("JARVIS")} 30%,var(--surface));border:2px solid ${colorFor("JARVIS")}" aria-hidden="true">✓</div><div style="min-width:0">
+    <div class="meta">Triage · ${esc(who)} · ${esc(hdWhen(e.at))}</div>
+    <div><span class="dec ${esc(e.decision)}">${esc(decLabel(e))}</span> <b class="mc-sensitive" data-mc-sensitive="id">${e.n ? "#" + e.n : ""}</b> <span class="mc-sensitive" data-mc-sensitive="text">${esc(e.title || "(no title on record)")}</span></div>
+    ${e.note ? `<div class="meta mc-sensitive" data-mc-sensitive="text">${esc(e.note)}</div>` : ""}</div></div>`;
+}
+function renderArchive() {
+  const A = D.archive || [], q = ($("archQ").value || "").trim().toLowerCase();
+  $("archSum").textContent = `Resolved / Archive (${A.length})`;
+  const m = /^#?(\d{1,5})$/.exec(q);
+  const hits = !q ? A : m ? A.filter((a) => String(a.n) === m[1]) : A.filter((a) => `${a.title || ""} ${a.note || ""} ${a.bot || ""} ${decLabel(a)} ${a.by || ""}`.toLowerCase().includes(q));
+  $("archList").innerHTML = hits.length ? hits.slice(0, 300).map((a) => `<div class="arow"><div><span class="an mc-sensitive" data-mc-sensitive="id">${a.n ? "#" + a.n : "#?"}</span> <span class="dec ${esc(a.decision)}">${esc(a.legacy ? "Removed" : decLabel(a))}</span> <span class="meta">${esc(hdWhen(a.at))}${a.by ? " · " + esc(a.by) : ""}${a.bot ? " · " + esc(a.bot) : ""}</span></div>
+    <div class="mc-sensitive" data-mc-sensitive="text">${esc(a.title || "(no title on record)")}</div>${a.note ? `<div class="meta mc-sensitive" data-mc-sensitive="text">${esc(a.note)}</div>` : ""}</div>`).join("")
+    + (hits.length > 300 ? `<p class="cap">Showing the newest 300 of ${hits.length}. Search to narrow it down.</p>` : "")
+    : `<p class="cap">${m ? `No resolved item #${esc(m[1])}. It may still be open on Today.` : "Nothing matches."}</p>`;
+}
+$("archQ").addEventListener("input", () => { if (D) renderArchive(); });
 function renderRest() {
   const h = D.heatmap, max = Math.max(1, ...h.values.flat());
   $("hcap").textContent = h.caption;
@@ -1308,12 +1351,14 @@ function renderRest() {
   $("brief").innerHTML = D.brief.items.map((x) => `<li class="mc-sensitive" data-mc-sensitive="text">${esc(x)}</li>`).join("");
   $("blinks").innerHTML = D.brief.links.map((l) => `<a class="lk" target="_blank" rel="noreferrer" href="${esc(l.href)}"><div class="t">${esc(l.title)}</div><div class="m">${esc([l.site, l.date].filter(Boolean).join(" · "))}</div></a>`).join("");
   $("tcap").textContent = D.captions.timeline;
-  $("timeline").innerHTML = D.done.map((d) => `<div class="tl"><div class="av" style="background:color-mix(in oklab,${colorFor(d.bot)} 30%,var(--surface));border:2px solid ${colorFor(d.bot)}">${esc(initials(d.bot))}</div><div style="min-width:0"><div class="meta">${esc(d.bot)} · ${esc(d.when)}</div><div class="mc-sensitive" data-mc-sensitive="text">${esc(d.text)}</div></div></div>`).join("");
+  $("timeline").innerHTML = timelineEntries().map((d) => d.dec ? decRow(d.dec)
+    : `<div class="tl"><div class="av" style="background:color-mix(in oklab,${colorFor(d.bot)} 30%,var(--surface));border:2px solid ${colorFor(d.bot)}">${esc(initials(d.bot))}</div><div style="min-width:0"><div class="meta">${esc(d.bot)} · ${esc(d.when)}</div><div class="mc-sensitive" data-mc-sensitive="text">${esc(d.text)}</div></div></div>`).join("");
+  renderArchive();
   $("rcap").textContent = D.captions.routines;
   $("routines").innerHTML = D.routines.map((r) => `<tr>${r.map((c) => `<td>${esc(c)}</td>`).join("")}</tr>`).join("");
-  const w = D.waiting, chats = w.filter((i) => !i.stale).length;
+  const w = needsYou(), chats = w.filter((i) => !i.stale).length, held = (D.waiting || []).length - w.length;
   $("statN").textContent = w.length;
-  $("statS").textContent = w.length === 1 ? "item needs you" : "items need you";
+  $("statS").textContent = (w.length === 1 ? "item needs you" : "items need you") + (held ? ` · ${held} on hold or parked` : "");
   $("summary").textContent = ""; $("summary").hidden = true;
   $("wN").textContent = w.length; $("wN").hidden = !w.length;
   $("todayTabCount").textContent = w.length || ""; $("todayTabCount").hidden = !w.length;
@@ -1623,6 +1668,8 @@ async function load(force) {
     const it = D.staff.find((i) => i.key === el.dataset.k), b = el.querySelector(".badge"), n = el.querySelector(".num");
     if (it && b && b.textContent !== (it.status || "")) b.textContent = it.status || "";
     if (it && n && n.textContent !== (it.number ? "#" + it.number : "")) n.textContent = it.number ? "#" + it.number : "";
+    const hb = el.querySelector(".hbadge");
+    if (it && hb && hb.textContent !== holdLabel(it)) { hb.textContent = holdLabel(it); hb.className = `hbadge ${it.hold ? it.hold.decision : ""}`; hb.title = holdTitle(it); el.classList.toggle("held", parkedOf(it)); }
   }
   for (const k of goneS) fadeOut([...$("slist").querySelectorAll(".item")].find((x) => x.dataset.k === k));
   renderStaffHead();
@@ -1632,6 +1679,8 @@ async function load(force) {
     if (it && b && b.textContent !== (it.status || "")) b.textContent = it.status || "";
     const n = el.querySelector(".num"), nt = it && it.number ? "#" + it.number : "";
     if (it && n && n.textContent !== nt) n.textContent = nt;
+    const hb = el.querySelector(".hbadge");
+    if (it && hb && hb.textContent !== holdLabel(it)) { hb.textContent = holdLabel(it); hb.className = `hbadge ${it.hold ? it.hold.decision : ""}`; hb.title = holdTitle(it); el.classList.toggle("held", parkedOf(it)); }
   }
   $("warn").hidden = !!D.configured;
   for (const k of gone) fadeOut([...$("wlist").querySelectorAll(".item")].find((x) => x.dataset.k === k));

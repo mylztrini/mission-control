@@ -1345,4 +1345,59 @@ describe("Mission Control UI", { timeout: 120000 }, () => {
       await context.close();
     }
   });
+  it("shows hold/parked/assigned badges, keeps them out of the waiting count, and finds archived items by ID", async () => {
+    const saved = { waiting: fixture.waiting, decisions: fixture.decisions, archive: fixture.archive, done: fixture.done };
+    fixture.waiting = [
+      ...saved.waiting.map((w) => ({ ...w })),
+      { key: "synthetic-wait-hold", bot: "Sample Bot", botId: "bot-sample", when: "1d", text: "Synthetic held item.", stale: false, number: 166, actions: ["Later"], card: null,
+        hold: { decision: "hold", note: "on hold", by: "Sample voice", at: "2026-11-11T13:31:23Z" } },
+      { key: "synthetic-wait-park", bot: "Sample Bot", botId: "bot-sample", when: "1d", text: "Synthetic parked item.", stale: false, number: 178, actions: ["Later"], card: null,
+        hold: { decision: "parked", note: "later this week", by: "Sample voice", at: "2026-11-11T13:31:41Z" } },
+      { key: "synthetic-wait-assigned", bot: "Sample Bot", botId: "bot-sample", when: "1d", text: "Synthetic assigned item.", stale: false, number: 194, actions: ["Later"], card: null,
+        hold: { decision: "assigned", assignee: "Sample Person (Full Name)", by: "Sample voice", at: "2026-11-11T13:33:09Z" } },
+    ];
+    fixture.decisions = [
+      { n: 176, key: "k176", title: "Synthetic pricing comparison", bot: "Sample Bot", decision: "ignored_forever", by: "Sample voice", at: "2026-11-11T13:31:21Z" },
+      { n: 166, key: "synthetic-wait-hold", title: "Synthetic held item.", decision: "hold", by: "Sample voice", at: "2026-11-11T13:31:23Z" },
+    ];
+    fixture.archive = [
+      { n: 176, key: "k176", title: "Synthetic pricing comparison", bot: "Sample Bot", decision: "ignored_forever", by: "Sample voice", at: "2026-11-11T13:31:21Z" },
+      { n: 17, key: "k17", title: "Synthetic old removal", decision: "removed", legacy: true, by: "cli", at: "2026-10-31T13:00:00Z" },
+    ];
+    fixture.done = [{ bot: "Sample Bot", when: "Wed 9:40 AM", at: "2026-11-11T13:40:00Z", text: "Synthetic Asana done" }, ...saved.done];
+    const commands = [];
+    const leaked = [];
+    const { context, page, errors } = await openPage(browser, commands, leaked);
+    try {
+      await page.goto(base, { waitUntil: "domcontentloaded", timeout: 20000 });
+      await ready(page);
+      const today = await page.evaluate(() => ({
+        badges: [...document.querySelectorAll("#wlist .item")].map((el) => [el.querySelector(".num").textContent, el.querySelector(".hbadge").textContent]),
+        count: document.getElementById("todayTabCount").textContent,
+        statN: document.getElementById("statN").textContent,
+      }));
+      assert.deepEqual(today.badges.filter(([, b]) => b), [["#166", "On hold"], ["#178", "Parked"], ["#194", "Assigned to Sample Person"]]);
+      assert.equal(today.statN, "3"); // 2 plain + 1 assigned; hold and parked don't count
+      assert.equal(today.count, "3");
+      await page.click('.tabs button[data-tab="activity"]');
+      const tl = await page.evaluate(() => [...document.querySelectorAll("#timeline .tl")].map((x) => x.innerText.replace(/\s+/g, " ")));
+      assert.match(tl[0], /Synthetic Asana done/);
+      assert.match(tl[1], /On hold #166 Synthetic held item\./);
+      assert.match(tl[2], /Ignored for good #176 Synthetic pricing comparison/);
+      assert.match(tl[2], /AST/);
+      assert.match(tl[tl.length - 1], /Finished a synthetic item/);
+      await page.evaluate(() => { document.getElementById("archWrap").open = true; });
+      await page.type("#archQ", "#176");
+      const arch = await page.evaluate(() => ({ sum: document.getElementById("archSum").textContent, rows: [...document.querySelectorAll("#archList .arow")].map((x) => x.innerText.replace(/\s+/g, " ")) }));
+      assert.equal(arch.sum, "Resolved / Archive (2)");
+      assert.equal(arch.rows.length, 1);
+      assert.match(arch.rows[0], /#176 Ignored for good/);
+      assert.equal(commands.length, 0);
+      assert.equal(leaked.length, 0);
+      assert.deepEqual(errors, []);
+    } finally {
+      Object.assign(fixture, saved);
+      await context.close();
+    }
+  });
 });
