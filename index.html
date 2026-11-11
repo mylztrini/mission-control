@@ -293,6 +293,33 @@ h1{font-size:28px}
 #tabAds .ads-notes{font-size:14px;color:var(--muted);margin:8px 0 0;padding-left:18px}
 #tabAds .ads-notes li{margin:4px 0}
 @media (max-width:640px){#tabAds .ads-bar{height:150px;gap:4px}#tabAds .ads-bar .amt{font-size:10.5px}}
+/* Cash forecast tab (Finance JSON via cash-forecast.json, sanitized in export-data.js) */
+#tabCash{font-size:16.5px;line-height:1.45}
+#tabCash .cash-kpis{display:flex;flex-wrap:wrap;gap:12px}
+#tabCash .cash-kpis .kpi{flex:1 1 200px}
+#tabCash .rag{display:inline-flex;align-items:center;font:700 12px var(--font-mono);letter-spacing:.08em;text-transform:uppercase;padding:3px 9px;border-radius:999px;line-height:1.3;white-space:nowrap}
+#tabCash .rag.GREEN{background:color-mix(in oklab,var(--good) 18%,transparent);color:var(--good)}
+#tabCash .rag.AMBER{background:color-mix(in oklab,var(--warn) 20%,transparent);color:var(--warn)}
+#tabCash .rag.RED{background:color-mix(in oklab,var(--crit) 18%,transparent);color:var(--crit)}
+#tabCash .rag.CRITICAL{background:color-mix(in oklab,var(--crit) 32%,transparent);color:var(--crit);box-shadow:inset 0 0 0 1px var(--crit)}
+#tabCash .modelled-tag{display:inline-block;font:700 10px var(--font-mono);letter-spacing:.08em;text-transform:uppercase;color:var(--accent-ink);background:var(--accent-bg);border-radius:6px;padding:1px 6px;margin-left:6px;vertical-align:middle}
+#tabCash .bands{display:flex;flex-wrap:wrap;gap:8px 14px;margin:8px 0 0;padding:0;list-style:none}
+#tabCash .bands li{display:flex;align-items:center;gap:8px;font-size:14px;color:var(--muted)}
+#tabCash .sw{width:12px;height:12px;border-radius:3px;flex:0 0 auto}
+#tabCash .sw.GREEN{background:var(--good)}#tabCash .sw.AMBER{background:var(--warn)}#tabCash .sw.RED{background:var(--crit)}#tabCash .sw.CRITICAL{background:color-mix(in oklab,var(--crit) 70%,#000)}
+#tabCash .cash-tbl th,#tabCash .cash-tbl td{text-align:right;vertical-align:top}
+#tabCash .cash-tbl th:first-child,#tabCash .cash-tbl td:first-child{text-align:left}
+#tabCash .cash-tbl .amt{font-variant-numeric:tabular-nums;font-weight:700;white-space:nowrap}
+#tabCash .cash-tbl .empty{color:var(--muted);font-weight:400}
+#tabCash .cash-chart{width:100%;height:auto;max-width:100%;margin:8px 0 0;overflow:visible}
+#tabCash .cash-chart svg{width:100%;height:auto;display:block}
+#tabCash .cash-legend{display:flex;flex-wrap:wrap;gap:8px 16px;margin:8px 0 0;padding:0;list-style:none;font-size:13px;color:var(--muted)}
+#tabCash .cash-legend i{display:inline-block;width:16px;height:3px;border-radius:2px;margin-right:6px;vertical-align:middle}
+#tabCash .cash-notes,#tabCash .cash-list{margin:8px 0 0;padding-left:18px}
+#tabCash .cash-notes li,#tabCash .cash-list li{margin:6px 0}
+#tabCash .sev{font:700 10.5px var(--font-mono);letter-spacing:.06em;text-transform:uppercase;margin-right:6px}
+#tabCash .sev.HIGH{color:var(--crit)}#tabCash .sev.MEDIUM{color:var(--warn)}#tabCash .sev.LOW{color:var(--muted)}
+@media (max-width:640px){#tabCash .cash-tbl th,#tabCash .cash-tbl td{font-size:13.5px}}
 .vital .vpill{display:inline-flex;margin-top:8px;font-size:12.5px;padding:4px 10px;white-space:nowrap;max-width:100%}
 .tabs .tcount.red{background:var(--pink)}
 .h2n{display:inline-block;margin-left:8px;min-width:28px;text-align:center;padding:1px 9px;border-radius:999px;background:var(--pink);color:#fff;font:700 15px var(--font-ui);vertical-align:middle}
@@ -460,7 +487,7 @@ body.mc-blur #keyGate::after,body.mc-blur #keyGate *::after{content:none !import
 </style></head><body class="t-today"><script>try{if(localStorage.getItem("mcBlurMode")==="1")document.body.classList.add("mc-blur")}catch(e){}</script><main>
 <nav class="mcnav" aria-label="Mission Control">
   <div class="mcnav-row">
-    <div class="tabs" role="tablist" aria-label="Sections"><button type="button" role="tab" data-tab="today" aria-selected="true"><svg class="nav-ico" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="3.25"/><path d="M12 3.5v1.8M12 18.7v1.8M3.5 12h1.8M18.7 12h1.8M6.1 6.1l1.3 1.3M16.6 16.6l1.3 1.3M17.9 6.1l-1.3 1.3M7.4 16.6l-1.3 1.3"/></svg><span class="tab-label">Today</span><span class="tcount red" id="todayTabCount" hidden></span></button><button type="button" role="tab" data-tab="villas" aria-selected="false"><svg class="nav-ico" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 21V10.5"/><path d="M12 11c-1.2-3.2-4.6-4.6-7.2-3.6 1.8.6 3.2 2.2 3.6 4.2"/><path d="M12 11c1.2-3.2 4.6-4.6 7.2-3.6-1.8.6-3.2 2.2-3.6 4.2"/><path d="M12 12.2c-2.6.2-4.4 1.6-5.4 3.6M12 12.2c2.6.2 4.4 1.6 5.4 3.6"/></svg><span class="tab-label">Villas</span></button><button type="button" role="tab" data-tab="money" aria-selected="false"><svg class="nav-ico" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><ellipse cx="12" cy="7" rx="7" ry="2.6"/><path d="M5 7v4.2c0 1.5 3.1 2.6 7 2.6s7-1.1 7-2.6V7"/><path d="M5 11.2v4.2c0 1.5 3.1 2.6 7 2.6s7-1.1 7-2.6v-4.2"/></svg><span class="tab-label">Money</span></button><button type="button" role="tab" data-tab="ads" aria-selected="false"><svg class="nav-ico" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M5 10.2v3.6c0 .7.6 1.3 1.3 1.3H8.2L13 19V5L8.2 9H6.3C5.6 9 5 9.5 5 10.2z"/><path d="M16.2 9.4a3 3 0 0 1 0 5.2"/><path d="M18.2 7.5a5.4 5.4 0 0 1 0 9"/></svg><span class="tab-label">Ads</span></button><button type="button" role="tab" data-tab="growth" aria-selected="false"><svg class="nav-ico" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M4 16.5 9.5 11l3.8 3.2L20 7"/><path d="M14.5 7H20v5.5"/></svg><span class="tab-label">Growth</span></button><button type="button" role="tab" data-tab="helpdesk" aria-selected="false"><svg class="nav-ico" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M4.5 13a7.5 7.5 0 0 1 15 0"/><path d="M4.5 13v3.2A2.2 2.2 0 0 0 6.7 18.4H8v-5.6H6.6"/><path d="M19.5 13v3.2a2.2 2.2 0 0 1-2.2 2.2H16v-5.6h1.4"/><path d="M12 18.4v1.2a1.8 1.8 0 0 0 1.8 1.8H16"/></svg><span class="tab-label">Si Helpdesk</span><span class="tcount hdcrit" id="hdTabCrit" hidden title="Critical tickets"></span><span class="tcount hdconc" id="hdTabConc" hidden title="Concerning tickets"></span></button><button type="button" role="tab" data-tab="org" aria-selected="false"><svg class="nav-ico" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="12" cy="5" r="2"/><circle cx="6" cy="18.5" r="2"/><circle cx="18" cy="18.5" r="2"/><path d="M12 7v3.2M12 10.2H7.2L6 16.5M12 10.2h4.8L18 16.5"/></svg><span class="tab-label">Org &amp; Systems</span><span class="tcount" id="orgTabCount" hidden></span></button><button type="button" role="tab" data-tab="activity" aria-selected="false"><svg class="nav-ico" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M13 3 5.5 13.5H12l-1 7.5L18.5 10H12l1-7z"/></svg><span class="tab-label">Activity</span></button><button type="button" role="tab" data-tab="routines" aria-selected="false"><svg class="nav-ico" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="8.25"/><path d="M12 7.4V12l3.2 2"/></svg><span class="tab-label">Routines</span><span class="tcount" id="rtTabCount" hidden></span></button></div>
+    <div class="tabs" role="tablist" aria-label="Sections"><button type="button" role="tab" data-tab="today" aria-selected="true"><svg class="nav-ico" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="3.25"/><path d="M12 3.5v1.8M12 18.7v1.8M3.5 12h1.8M18.7 12h1.8M6.1 6.1l1.3 1.3M16.6 16.6l1.3 1.3M17.9 6.1l-1.3 1.3M7.4 16.6l-1.3 1.3"/></svg><span class="tab-label">Today</span><span class="tcount red" id="todayTabCount" hidden></span></button><button type="button" role="tab" data-tab="villas" aria-selected="false"><svg class="nav-ico" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 21V10.5"/><path d="M12 11c-1.2-3.2-4.6-4.6-7.2-3.6 1.8.6 3.2 2.2 3.6 4.2"/><path d="M12 11c1.2-3.2 4.6-4.6 7.2-3.6-1.8.6-3.2 2.2-3.6 4.2"/><path d="M12 12.2c-2.6.2-4.4 1.6-5.4 3.6M12 12.2c2.6.2 4.4 1.6 5.4 3.6"/></svg><span class="tab-label">Villas</span></button><button type="button" role="tab" data-tab="money" aria-selected="false"><svg class="nav-ico" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><ellipse cx="12" cy="7" rx="7" ry="2.6"/><path d="M5 7v4.2c0 1.5 3.1 2.6 7 2.6s7-1.1 7-2.6V7"/><path d="M5 11.2v4.2c0 1.5 3.1 2.6 7 2.6s7-1.1 7-2.6v-4.2"/></svg><span class="tab-label">Money</span></button><button type="button" role="tab" data-tab="cash" aria-selected="false"><svg class="nav-ico" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><rect x="3.5" y="6.5" width="17" height="11" rx="2"/><circle cx="12" cy="12" r="2.2"/><path d="M6.2 9.2v5.6M17.8 9.2v5.6"/></svg><span class="tab-label">Cash</span></button><button type="button" role="tab" data-tab="ads" aria-selected="false"><svg class="nav-ico" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M5 10.2v3.6c0 .7.6 1.3 1.3 1.3H8.2L13 19V5L8.2 9H6.3C5.6 9 5 9.5 5 10.2z"/><path d="M16.2 9.4a3 3 0 0 1 0 5.2"/><path d="M18.2 7.5a5.4 5.4 0 0 1 0 9"/></svg><span class="tab-label">Ads</span></button><button type="button" role="tab" data-tab="growth" aria-selected="false"><svg class="nav-ico" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M4 16.5 9.5 11l3.8 3.2L20 7"/><path d="M14.5 7H20v5.5"/></svg><span class="tab-label">Growth</span></button><button type="button" role="tab" data-tab="helpdesk" aria-selected="false"><svg class="nav-ico" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M4.5 13a7.5 7.5 0 0 1 15 0"/><path d="M4.5 13v3.2A2.2 2.2 0 0 0 6.7 18.4H8v-5.6H6.6"/><path d="M19.5 13v3.2a2.2 2.2 0 0 1-2.2 2.2H16v-5.6h1.4"/><path d="M12 18.4v1.2a1.8 1.8 0 0 0 1.8 1.8H16"/></svg><span class="tab-label">Si Helpdesk</span><span class="tcount hdcrit" id="hdTabCrit" hidden title="Critical tickets"></span><span class="tcount hdconc" id="hdTabConc" hidden title="Concerning tickets"></span></button><button type="button" role="tab" data-tab="org" aria-selected="false"><svg class="nav-ico" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="12" cy="5" r="2"/><circle cx="6" cy="18.5" r="2"/><circle cx="18" cy="18.5" r="2"/><path d="M12 7v3.2M12 10.2H7.2L6 16.5M12 10.2h4.8L18 16.5"/></svg><span class="tab-label">Org &amp; Systems</span><span class="tcount" id="orgTabCount" hidden></span></button><button type="button" role="tab" data-tab="activity" aria-selected="false"><svg class="nav-ico" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M13 3 5.5 13.5H12l-1 7.5L18.5 10H12l1-7z"/></svg><span class="tab-label">Activity</span></button><button type="button" role="tab" data-tab="routines" aria-selected="false"><svg class="nav-ico" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="8.25"/><path d="M12 7.4V12l3.2 2"/></svg><span class="tab-label">Routines</span><span class="tcount" id="rtTabCount" hidden></span></button></div>
     <div class="mcnav-side">
     <button type="button" class="blur-toggle" id="blurMode" aria-pressed="false" aria-keyshortcuts="Shift+B" title="Blur mode (Shift+B). Hides amounts, names, emails, phone numbers, and private text for screenshots.">
       <svg class="nav-ico" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M3 12s3.5-6 9-6 9 6 9 6-3.5 6-9 6-9-6-9-6z"/><circle cx="12" cy="12" r="2.4"/><path d="M4 5.5 19 18.5"/></svg>
@@ -553,6 +580,7 @@ body.mc-blur #keyGate::after,body.mc-blur #keyGate *::after{content:none !import
 </div>
 <div id="tabVillas" class="big tabpane" hidden></div>
 <div id="tabMoney" class="big tabpane" hidden></div>
+<div id="tabCash" class="big tabpane" hidden></div>
 <div id="tabGrowth" class="big tabpane" hidden></div>
 <div id="tabAds" class="big tabpane" hidden></div>
 <div id="tabHelpdesk" class="big tabpane" hidden></div>
@@ -568,7 +596,7 @@ body.mc-blur #keyGate::after,body.mc-blur #keyGate *::after{content:none !import
 <div class="og-h">Systems</div>
 <div class="stack" style="margin-top:0">
     <section><h2>Upcoming routines</h2><p class="cap" id="rcap"></p><div class="tblwrap"><table><thead><tr><th>Routine</th><th>Next run (AST)</th><th>Owner</th></tr></thead><tbody id="routines"></tbody></table></div></section>
-    <section><h2>Data sources</h2><p class="cap" id="srcCap">Bot chats + Asana (hourly), Cashbot (agency receivables), ads-weekly.json (Ads tab), the Operational Brain engine (weekdays 7:35 AM AST: Hospitable, Gmail, Slack, Calendar, Meta Ads), org.json.</p></section>
+    <section><h2>Data sources</h2><p class="cap" id="srcCap">Bot chats + Asana (hourly), Cashbot (agency receivables), ads-weekly.json (Ads tab), cash-forecast.json (Cash tab), the Operational Brain engine (weekdays 7:35 AM AST: Hospitable, Gmail, Slack, Calendar, Meta Ads), org.json.</p></section>
 </div>
 </div>
 </main>
@@ -900,6 +928,176 @@ function renderOffice() {
 
 // Heatmap, brief, timeline, routines
 
+
+// Cash forecast tab. Data: D.cash_forecast from box file cash-forecast.json, sanitized and shipped by export-data.js.
+const ttCash = (n, d) => {
+  if (n == null || n === "") return "";
+  const v = Number(n), dec = Math.abs(v % 1) > 0.0005 ? 2 : (d || 0);
+  return "TT$" + v.toLocaleString("en-US", { minimumFractionDigits: dec, maximumFractionDigits: dec });
+};
+const usdCash = (n, d) => {
+  if (n == null || n === "") return "";
+  const v = Number(n), dec = Math.abs(v % 1) > 0.0005 ? 2 : (d || 0);
+  return "US$" + v.toLocaleString("en-US", { minimumFractionDigits: dec, maximumFractionDigits: dec });
+};
+function cashDate(iso) {
+  if (!iso) return "";
+  const d = /^\d{4}-\d{2}-\d{2}$/.test(String(iso)) ? new Date(iso + "T12:00:00-04:00") : new Date(iso);
+  if (Number.isNaN(d.getTime())) return String(iso);
+  return new Intl.DateTimeFormat("en-US", { timeZone: "America/Port_of_Spain", day: "numeric", month: "short", year: "numeric" }).format(d);
+}
+function cashMonthLabel(month, fallback) {
+  if (month && /^\d{4}-\d{2}$/.test(month)) {
+    const d = new Date(month + "-01T12:00:00-04:00");
+    return new Intl.DateTimeFormat("en-US", { timeZone: "America/Port_of_Spain", month: "short", year: "numeric" }).format(d);
+  }
+  return fallback || month || "";
+}
+function parseCashBands(b) {
+  const nums = (s) => {
+    if (s == null) return [];
+    return (String(s).replace(/,/g, "").match(/\d+(?:\.\d+)?/g) || []).map(Number);
+  };
+  const green = nums(b && b.GREEN)[0] ?? 450000;
+  const amber = nums(b && b.AMBER);
+  const red = nums(b && b.RED);
+  const crit = nums(b && b.CRITICAL)[0] ?? 175000;
+  return {
+    green, amberLow: amber[0] ?? 300000, amberHigh: amber[1] ?? green,
+    redLow: red[0] ?? 175000, redHigh: red[1] ?? (amber[0] ?? 300000),
+    critical: crit,
+    basis: (b && b.basis) || "usable cash, fixed deposits excluded",
+    raw: b || {}
+  };
+}
+function ragPill(status) {
+  const st = String(status || "").toUpperCase();
+  if (!st) return "";
+  return `<span class="rag ${esc(st)}">${esc(st)}</span>`;
+}
+function cashChartSvg(rows, bands) {
+  const w = 680, h = 240, padL = 58, padR = 16, padT = 18, padB = 40;
+  const vals = rows.flatMap((r) => [r.plan, r.fill, r.booked]).filter((n) => n != null);
+  const hi = Math.max(bands.green, ...vals, 1) * 1.1;
+  const lo = 0;
+  const x = (i) => padL + (rows.length <= 1 ? (w - padL - padR) / 2 : i * (w - padL - padR) / (rows.length - 1));
+  const y = (v) => padT + (1 - (Number(v) - lo) / (hi - lo)) * (h - padT - padB);
+  const line = (key, color, dash) => {
+    const pts = rows.map((r, i) => r[key] == null ? null : `${x(i).toFixed(1)},${y(r[key]).toFixed(1)}`).filter(Boolean).join(" ");
+    if (!pts) return "";
+    const dots = rows.map((r, i) => r[key] == null ? "" : `<circle cx="${x(i).toFixed(1)}" cy="${y(r[key]).toFixed(1)}" r="3.2" fill="${color}"></circle>`).join("");
+    return `<polyline fill="none" stroke="${color}" stroke-width="2.5" ${dash ? `stroke-dasharray="${dash}"` : ""} points="${pts}"></polyline>${dots}`;
+  };
+  const thresh = [
+    [bands.green, "var(--good)", "Green"],
+    [bands.amberLow, "var(--warn)", "Amber"],
+    [bands.critical, "var(--crit)", "Critical"]
+  ];
+  const guides = thresh.map(([v, c, lab]) => {
+    const yy = y(v).toFixed(1);
+    return `<line x1="${padL}" x2="${w - padR}" y1="${yy}" y2="${yy}" stroke="${c}" stroke-width="1" stroke-dasharray="4 4" opacity=".7"></line><text x="${padL - 6}" y="${yy}" text-anchor="end" dominant-baseline="middle" fill="${c}" font-size="10" font-family="var(--font-mono)">${esc(lab)}</text>`;
+  }).join("");
+  const ticks = rows.map((r, i) => `<text x="${x(i).toFixed(1)}" y="${h - 14}" text-anchor="middle" fill="var(--muted)" font-size="11" font-family="var(--font-mono)">${esc(r.label)}</text>`).join("");
+  const yTicks = [0, bands.critical, bands.amberLow, bands.green, hi].filter((v, i, a) => a.indexOf(v) === i).map((v) => {
+    const yy = Number(y(v));
+    const ty = (yy - 8 < padT) ? yy + 10 : yy - 8;
+    return `<text class="mc-sensitive" data-mc-sensitive="money" x="${padL - 6}" y="${ty.toFixed(1)}" text-anchor="end" fill="var(--faint)" font-size="9" font-family="var(--font-mono)">${esc(ttCash(Math.round(v)))}</text>`;
+  }).join("");
+  return `<svg class="cash-chart" viewBox="0 0 ${w} ${h}" role="img" aria-label="Plan versus modelled usable cash and band thresholds">${guides}${yTicks}${line("plan", "var(--muted)", "6 4")}${line("fill", "var(--accent)")}${line("booked", "var(--accent-2)", "2 3")}${ticks}</svg>`;
+}
+function renderCash() {
+  const el = $("tabCash"); if (!el) return;
+  const C = D && D.cash_forecast;
+  if (!C || !Array.isArray(C.months) || !C.months.length) {
+    el.innerHTML = none("The cash forecast has not been loaded yet. The next Mission Control refresh will include cash-forecast.json when that file is on the box.");
+    return;
+  }
+  const pos = C.current_position || {};
+  const bands = parseCashBands(C.bands_ttd_usable);
+  const balMonth = String(pos.date || C.latest_balances_date || "").slice(0, 7);
+  const windowMonths = (C.months || []).filter((m) => (balMonth && m.month > balMonth) || m.modelled_reforecast);
+
+  const balDate = cashDate(pos.date || C.latest_balances_date);
+  const asof = C.as_of ? `as of ${cashDate(C.as_of)}` : "";
+  const variance = pos.variance_vs_plan;
+  const varTxt = variance == null ? "" : `${sens(esc(ttCash(Math.abs(variance))), "money")} ${variance >= 0 ? "above" : "below"} the plan`;
+  const bandItems = [
+    ["GREEN", `Green > ${ttCash(bands.green)}`],
+    ["AMBER", `Amber ${ttCash(bands.amberLow)}–${ttCash(bands.amberHigh)}`],
+    ["RED", `Red ${ttCash(bands.redLow)}–${ttCash(bands.redHigh)}`],
+    ["CRITICAL", `Critical < ${ttCash(bands.critical)}`]
+  ].map(([k, lab]) => `<li><span class="sw ${k}"></span>${esc(lab)}</li>`).join("");
+  const cellPair = (amt, status, modelled) => {
+    if (amt == null && !status) return `<td class="empty">–</td>`;
+    return `<td>${amt == null ? `<span class="empty">–</span>` : `<div class="amt">${sens(esc(ttCash(amt)), "money")}</div>`}${ragPill(status)}${modelled ? `<span class="modelled-tag">MODELLED</span>` : ""}</td>`;
+  };
+  const body = windowMonths.map((m) => {
+    const plan = m.plan || {}, mod = m.modelled_reforecast || {};
+    return `<tr><td><b>${esc(cashMonthLabel(m.month, m.label))}</b></td>${cellPair(plan.closing_usable, plan.status, false)}${cellPair(mod.fill_case_closing_usable, mod.fill_case_status, true)}${cellPair(mod.booked_only_floor_closing_usable, mod.booked_only_floor_status, true)}</tr>`;
+  }).join("");
+  const chartRows = windowMonths.map((m) => {
+    const plan = m.plan || {}, mod = m.modelled_reforecast || {};
+    return { label: cashMonthLabel(m.month, m.label), plan: plan.closing_usable, fill: mod.fill_case_closing_usable, booked: mod.booked_only_floor_closing_usable };
+  });
+  const fd = C.fixed_deposit_line || {};
+  let fdBody = `<p>Fixed deposits never count as usable cash. They are held as card collateral.</p>`;
+  if (fd.total_usd != null || fd.total_ttd != null) {
+    fdBody += `<p>Fixed deposits: ${fd.total_usd != null ? sens(esc(usdCash(fd.total_usd)), "money") : ""}${fd.total_usd != null && fd.total_ttd != null ? " (" : ""}${fd.total_ttd != null ? sens(esc(ttCash(fd.total_ttd)), "money") : ""}${fd.total_usd != null && fd.total_ttd != null ? ")" : ""}.</p>`;
+  }
+  if (fd.net_freed_if_those_cards_paid_ttd != null) {
+    const cards = fd.cards_they_secure_ttd != null ? ` Clearing the ${sens(esc(ttCash(fd.cards_they_secure_ttd)), "money")} owed on those cards would free about ${sens(esc(ttCash(fd.net_freed_if_those_cards_paid_ttd)), "money")}.` : ` Clearing those cards would free about ${sens(esc(ttCash(fd.net_freed_if_those_cards_paid_ttd)), "money")}.`;
+    fdBody += `<p>${cards}</p>`;
+  }
+  const upside = (C.upside_items || []).map((u) => {
+    const bits = [];
+    if (u.ttd != null) bits.push(sens(esc(ttCash(u.ttd)), "money"));
+    if (u.usd != null) bits.push(sens(esc(usdCash(u.usd)), "money"));
+    if (u.due) bits.push(`due ${esc(cashDate(u.due))}`);
+    const amt = bits.length ? ` · ${bits.join(" · ")}` : "";
+    const st = u.status ? ` — ${esc(u.status)}` : "";
+    return `<li><b>${esc(u.item || "")}</b>${amt}${st}</li>`;
+  }).join("");
+  const risks = (C.risks || []).map((r) => `<li>${r.severity ? `<span class="sev ${esc(r.severity)}">${esc(r.severity)}</span>` : ""}<b>${esc(r.risk || "")}</b>${r.detail ? ` — ${esc(r.detail)}` : ""}</li>`).join("");
+  const lens = C.protective_lens || {};
+  const rung3 = lens.rungs_ttd && lens.rungs_ttd["3_months"];
+  let buf = "";
+  if (lens.buffer_months != null) buf += `<p>Buffer: ${sens(esc(String(lens.buffer_months)), "money")} months${lens.unpledged_ttd != null ? ` (${sens(esc(ttCash(lens.unpledged_ttd)), "money")}${lens.unpledged_usd != null ? ` / ${sens(esc(usdCash(lens.unpledged_usd)), "money")}` : ""})` : ""}.</p>`;
+  if (lens.household_only_buffer_months != null) buf += `<p>Household only: ${sens(esc(String(lens.household_only_buffer_months)), "money")} months${lens.household_only_ttd != null ? ` (${sens(esc(ttCash(lens.household_only_ttd)), "money")})` : ""}.</p>`;
+  if (lens.rung_status) buf += `<p>${esc(lens.rung_status)}${rung3 != null ? ` (3-month rung ${sens(esc(ttCash(rung3)), "money")})` : ""}.</p>`;
+  if (lens.surplus_rule_now) buf += `<p>${esc(lens.surplus_rule_now)}.</p>`;
+  const casa = lens.casa || {};
+  if (casa.usd != null || casa.ttd != null) {
+    const parts = [];
+    if (casa.usd != null) parts.push(`USD facility ${sens(esc(usdCash(casa.usd)), "money")} at ${esc(casa.usd_rate || "8%")}`);
+    if (casa.ttd != null) parts.push(`TTD facility ${sens(esc(ttCash(casa.ttd)), "money")} at ${esc(casa.ttd_rate || "7.5%")}`);
+    buf += `<p>Casa balances: ${parts.join("; ")}.</p>`;
+  }
+  const cadence = (C.refresh_cadence || []).map((r) => {
+    const who = [r.who, r.source].filter(Boolean).join(", ");
+    return `<li><b>${esc(r.what || "")}</b>${r.when ? ` — ${esc(r.when)}` : ""}${who ? ` (${esc(who)})` : ""}</li>`;
+  }).join("");
+  const notes = (pos.notes || []).map((n) => `<li>${esc(n)}</li>`).join("");
+  const assumed = (C.assumptions || []).filter((a) => /MODELLED|modelled|fixed deposit/i.test(a));
+  el.innerHTML =
+    sec("Cash forecast", `Usable cash only, TT$ · last balances ${balDate || "unknown"} · ${asof}`.replace(/ · $/, ""),
+      `<div class="cash-kpis"><div class="kpi"><div class="s">Status</div><div class="b">${ragPill(pos.status) || "unknown"}</div><div class="us">Last balances ${esc(balDate || "unknown")}</div></div>`
+      + `<div class="kpi"><div class="s">Usable cash</div><div class="b">${pos.usable_cash != null ? sens(esc(ttCash(pos.usable_cash)), "money") : "unknown"}</div><div class="us">${varTxt || (pos.plan_usable_oct != null ? `Plan ${sens(esc(ttCash(pos.plan_usable_oct)), "money")}` : "")}</div></div>`
+      + `<div class="kpi"><div class="s">Plan (at last balances)</div><div class="b">${pos.plan_usable_oct != null ? sens(esc(ttCash(pos.plan_usable_oct)), "money") : "unknown"}</div><div class="us">Fixed deposits are not usable</div></div></div>`
+      + `<p class="cap">${esc(bands.basis)}. Bands apply to usable cash only.</p>`
+      + `<ul class="bands">${bandItems}</ul>`)
+    + sec((() => { const a = windowMonths[0], b = windowMonths[windowMonths.length - 1]; const rng = a && b ? `, ${cashMonthLabel(a.month, a.label)}–${cashMonthLabel(b.month, b.label)}` : ""; return "Plan vs modelled" + rng; })(), "MODELLED figures start from the last actual balances and apply the plan, with villa pacing. They are not the signed master plan.",
+      `<div class="tblwrap"><table class="cash-tbl"><thead><tr><th>Month</th><th>Plan closing</th><th>MODELLED · expected bookings</th><th>MODELLED · current bookings only</th></tr></thead><tbody>${body}</tbody></table></div>`
+      + (assumed.length ? `<ul class="cash-notes">${assumed.slice(0, 3).map((a) => `<li>${esc(a)}</li>`).join("")}</ul>` : "")
+      + cashChartSvg(chartRows, bands)
+      + `<ul class="cash-legend"><li><i style="background:var(--muted)"></i>Plan</li><li><i style="background:var(--accent)"></i>MODELLED · expected bookings</li><li><i style="background:var(--accent-2)"></i>MODELLED · current bookings only</li><li>Dashed horizontals are the Green, Amber and Critical band thresholds.</li></ul>`)
+    + sec("Fixed deposits (not usable)", fd.label || "", fdBody)
+    + (upside ? sec("Upside, not in the plan", "", `<ul class="cash-list">${upside}</ul>`) : "")
+    + (risks ? sec("Top risks", "", `<ul class="cash-list">${risks}</ul>`) : "")
+    + (buf ? sec("Buffer", "", buf) : "")
+    + (cadence || balDate ? sec("Refresh", `Last balances ${balDate || "unknown"}`, cadence ? `<ul class="cash-list">${cadence}</ul>` : "") : "")
+    + (notes ? `<ul class="cash-notes">${notes}</ul>` : "");
+}
+
 // Weekly Ads tab. Data: D.ads_weekly from box file ads-weekly.json, shipped by export-data.js.
 const usd2 = (n) => n == null || n === "" ? "" : "$" + Number(n).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 function weekLabel(start, end) {
@@ -1002,6 +1200,7 @@ function renderRest() {
   $("wN").textContent = w.length; $("wN").hidden = !w.length;
   $("todayTabCount").textContent = w.length || ""; $("todayTabCount").hidden = !w.length;
   try { renderBrain(); } catch (e) { console.error(e); }
+  try { renderCash(); } catch (e) { console.error(e); }
   try { renderAds(); } catch (e) { console.error(e); }
   try { renderRoutines(); } catch (e) { console.error(e); }
   try { renderHelpdesk(); } catch (e) { console.error(e); }
@@ -1259,7 +1458,7 @@ function renderBrain(force) {
     + (AD ? sec(`Villa ads · ${esc(AD.account)}`, "", `<p class="cap">${esc(AD.window)}${AD.stale ? ` · <span class="stale-flag">stale: Meta Ads hasn't refreshed since this window</span>` : ""}</p><div class="cards">${(AD.kpis || []).map((k) => `<div class="kpi"><div class="s">${esc(k.k)}</div><div class="b mc-sensitive" data-mc-sensitive="money">${esc(k.v)}</div><div class="us mc-sensitive" data-mc-sensitive="text">${esc(k.sub)} · ${esc(k.delta)}</div></div>`).join("")}</div><p class="mc-sensitive" data-mc-sensitive="text" style="margin-top:12px">${esc(AD.story)}</p>` + ttab(["Campaign", "Status", "Spend", "Clicks", "CTR"], (AD.campaigns || []).map((c) => `<tr><td>${esc(c.name)}${c.tag ? `<div class="us">${esc(c.tag)}</div>` : ""}</td><td>${esc(c.status)}</td><td>${sens(esc(c.spend), "money")}</td><td>${esc(c.clicks)}</td><td>${sens(esc(c.ctr), "money")}</td></tr>`))) : "")
     + (PL ? sec("Ad spend plan, next 6 months", "", `${PL.note ? `<p class="cap mc-sensitive" data-mc-sensitive="text">${esc(PL.note)}</p>` : ""}` + ttab(["Month", "Posture", "Spend", "Why"], (PL.months || []).map((m) => `<tr><td><b>${esc(m.m)}</b></td><td>${esc(m.posture)}</td><td>${sens(esc(m.spend), "money")}</td><td>${sens(esc(m.why), "text")}</td></tr>`))) : "")
     + sec("Division goals", "", `<p>Sprint leads, SI Ventures deals and real-estate leads are tracked as KPIs on <a href="#" data-go="org" style="color:var(--accent-ink)">Org &amp; Systems</a>.</p>`);
-  $("srcCap").textContent = `Bot chats + Asana (hourly), Cashbot (agency receivables), ads-weekly.json (Ads tab), the Operational Brain engine (last run ${fmtRun(B.as_of)}; weekdays 7:35 AM AST: Hospitable, Gmail, Slack, Calendar, Meta Ads), org.json.`;
+  $("srcCap").textContent = `Bot chats + Asana (hourly), Cashbot (agency receivables), ads-weekly.json (Ads tab), cash-forecast.json (Cash tab), the Operational Brain engine (last run ${fmtRun(B.as_of)}; weekdays 7:35 AM AST: Hospitable, Gmail, Slack, Calendar, Meta Ads), org.json.`;
   applyNetworthDisclosure();
 }
 document.addEventListener("keydown", (e) => { const v = e.target.closest && e.target.closest("div.vital[role=button]"); if (v && e.target === v && (e.key === "Enter" || e.key === " ")) { e.preventDefault(); v.click(); } });
@@ -1411,7 +1610,7 @@ setInterval(() => { if (!document.querySelector("input.reply:focus")) load().cat
 // org-refresh.js / the mc-sync daemon). Tab chosen by #...&tab=org (fragment only, never sent anywhere).
 const O = { d: null, view: ST.get("mcOrgView") || "all", loading: false };
 const hashP = () => new URLSearchParams(location.hash.slice(1));
-const TABS = { today: "tabToday", villas: "tabVillas", money: "tabMoney", ads: "tabAds", growth: "tabGrowth", helpdesk: "tabHelpdesk", org: "tabOrg", activity: "tabActivity", routines: "tabRoutines" };
+const TABS = { today: "tabToday", villas: "tabVillas", money: "tabMoney", cash: "tabCash", ads: "tabAds", growth: "tabGrowth", helpdesk: "tabHelpdesk", org: "tabOrg", activity: "tabActivity", routines: "tabRoutines" };
 const tabFromHash = () => { const t = hashP().get("tab"); return TABS[t] ? t : "today"; };
 function setTab(t, push) {
   if (!TABS[t]) t = "today";

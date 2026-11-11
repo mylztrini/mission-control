@@ -183,6 +183,12 @@ describe("Mission Control UI", { timeout: 120000 }, () => {
     assert.match(html, /post\(\{ key, action, note, keep_open \}\)/);
     assert.match(html, /post\(\{ key, action, note, keep_open: false \}\)/);
     assert.equal(html.includes(SYNTH_KEY), false);
+    assert.match(html, /data-tab="cash"/);
+    assert.match(html, /id="tabCash"/);
+    assert.match(html, /D && D\.cash_forecast/);
+    assert.equal(html.includes("520000"), false);
+    assert.equal(html.includes("11111.11"), false);
+    assert.equal(/023-\d{5}/.test(html), false);
     assert.equal(html.includes("mcVitalsOpen"), true);
     assert.equal(html.includes("mcNetworthOpen"), true);
     assert.match(html, /id="blurMode"/);
@@ -331,7 +337,7 @@ describe("Mission Control UI", { timeout: 120000 }, () => {
       assert.equal(nav.daily.icon, true);
       assert.equal(nav.brief, true);
       assert.equal(nav.phone, true);
-      assert.deepEqual(nav.tabs.map((t) => t.tab), ["today", "villas", "money", "ads", "growth", "helpdesk", "org", "activity", "routines"]);
+      assert.deepEqual(nav.tabs.map((t) => t.tab), ["today", "villas", "money", "cash", "ads", "growth", "helpdesk", "org", "activity", "routines"]);
       assert.equal(nav.tabs.every((t) => t.icon && t.label), true);
       assert.equal(nav.robots, "noindex, nofollow, noarchive");
       assert.equal(nav.referrer, "no-referrer");
@@ -612,7 +618,7 @@ describe("Mission Control UI", { timeout: 120000 }, () => {
         assert.ok(fit.rowOver <= 1, `${width}px nav row scrolls by ${fit.rowOver}px`);
         assert.ok(fit.navOver <= 1, `${width}px nav scrolls by ${fit.navOver}px`);
         assert.ok(fit.pageOver <= 1, `${width}px page overflows by ${fit.pageOver}px`);
-        assert.deepEqual(fit.tabs, ["Today", "Villas", "Money", "Ads", "Growth", "Si Helpdesk", "Org & Systems", "Activity", "Routines"]);
+        assert.deepEqual(fit.tabs, ["Today", "Villas", "Money", "Cash", "Ads", "Growth", "Si Helpdesk", "Org & Systems", "Activity", "Routines"]);
         assert.equal(fit.tabsIn, true, `${width}px hides a tab`);
         assert.equal(fit.blurIn, true, `${width}px hides Blur mode`);
         assert.match(fit.blurLabel, /Blur mode/);
@@ -1034,6 +1040,91 @@ describe("Mission Control UI", { timeout: 120000 }, () => {
       assert.equal(commands.length, 0);
       assert.equal(leaked.length, 0);
       assert.deepEqual(errors, []);
+    } finally {
+      await context.close();
+    }
+  });
+
+  it("renders the Cash tab from cash_forecast without shipping figures in public HTML", async () => {
+    const commands = [];
+    const leaked = [];
+    const { context, page, errors } = await openPage(browser, commands, leaked);
+    try {
+      const source = fs.readFileSync(path.join(ROOT, "index.html"), "utf8");
+      assert.equal(source.includes("TT$520,000"), false);
+      assert.equal(source.includes("11111.11"), false);
+      assert.equal(/net-?worth/i.test(source) && source.includes("cash_forecast") ? /#tabCash[\s\S]{0,800}net-?worth/i.test(source) : false, false);
+
+      await page.goto(base, { waitUntil: "domcontentloaded", timeout: 20000 });
+      await ready(page);
+      await page.click('.tabs button[data-tab="cash"]');
+      const info = await page.evaluate(() => {
+        const pane = document.getElementById("tabCash");
+        const selected = [...document.querySelectorAll(".tabs button[data-tab]")].filter((b) => b.getAttribute("aria-selected") === "true").map((b) => b.dataset.tab);
+        const text = pane.innerText;
+        const headers = [...pane.querySelectorAll("thead th")].map((th) => th.textContent.trim());
+        const rows = [...pane.querySelectorAll(".cash-tbl tbody tr")].map((tr) => [...tr.children].map((td) => td.innerText.replace(/\s+/g, " ").trim()));
+        const bands = [...pane.querySelectorAll(".bands li")].map((li) => li.textContent);
+        const kpis = [...pane.querySelectorAll(".cash-kpis .kpi")].map((el) => ({ s: el.querySelector(".s")?.textContent, b: el.querySelector(".b")?.innerText.trim() }));
+        const svg = pane.querySelector("svg.cash-chart");
+        const lines = svg ? svg.querySelectorAll("polyline").length : 0;
+        const money = [...pane.querySelectorAll("[data-mc-sensitive='money']")].map((el) => el.textContent);
+        const overflow = pane.scrollWidth - pane.clientWidth;
+        return { selected, text, headers, rows, bands, kpis, lines, money, overflow, hasNetWorth: /net\s*worth/i.test(text) };
+      });
+      assert.deepEqual(info.selected, ["cash"]);
+      assert.equal(info.hasNetWorth, false);
+      assert.ok(info.kpis.some((k) => k.s === "Status" && /GREEN/i.test(k.b)));
+      assert.ok(info.kpis.some((k) => k.s === "Usable cash" && k.b.includes("TT$520,000")));
+      assert.ok(info.kpis.some((k) => k.s === "Plan (at last balances)" && k.b.includes("TT$410,000")));
+      assert.match(info.text, /above the plan/);
+      assert.ok(info.bands.some((b) => /Green/i.test(b) && /450,000/.test(b)));
+      assert.ok(info.bands.some((b) => /Amber/i.test(b)));
+      assert.ok(info.bands.some((b) => /Red/i.test(b)));
+      assert.ok(info.bands.some((b) => /Critical/i.test(b)));
+      assert.ok(info.headers.some((h) => /Plan closing/i.test(h)));
+      assert.ok(info.headers.some((h) => /MODELLED/i.test(h) && /expected bookings/i.test(h)));
+      assert.ok(info.headers.some((h) => /MODELLED/i.test(h) && /current bookings only/i.test(h)));
+      assert.equal(info.rows.length, 6);
+      assert.ok(info.rows.every((r) => /Nov|Dec|Jan|Feb|Mar|Apr/.test(r[0])));
+      assert.equal(info.rows.some((r) => /Oct/.test(r[0])), false);
+      const apr = info.rows.find((r) => /Apr/.test(r[0]));
+      assert.ok(apr, `missing April row in ${JSON.stringify(info.rows)}`);
+      assert.match(apr[1], /TT\$240,000/);
+      assert.match(apr[1], /RED/i);
+      assert.match(apr[2], /TT\$410,000/);
+      assert.match(apr[2], /MODELLED/);
+      assert.match(apr[3], /TT\$200,000/);
+      assert.match(apr[3], /MODELLED/);
+      assert.ok(info.lines >= 3, `expected plan + two modelled lines, got ${info.lines}`);
+      assert.match(info.text, /Fixed deposits never count as usable cash/i);
+      assert.match(info.text, /US\$12,000/);
+      assert.match(info.text, /TT\$65,000/);
+      assert.match(info.text, /NIB Inv 45221/);
+      assert.match(info.text, /TT\$11,111\.11/);
+      assert.match(info.text, /22 Nov 2026|Nov 22, 2026/);
+      assert.match(info.text, /Sample April gap/);
+      assert.match(info.text, /2\.1 months/);
+      assert.match(info.text, /Monthly Balances Input/);
+      assert.match(info.text, /Oct 31, 2026|31 Oct 2026/);
+      assert.ok(info.money.includes("TT$520,000"));
+      assert.equal(commands.length, 0);
+      assert.equal(leaked.length, 0);
+      assert.deepEqual(errors, []);
+
+      await page.setViewport({ width: 390, height: 844 });
+      await page.evaluate(() => new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve))));
+      const mobile = await page.evaluate(() => {
+        const pane = document.getElementById("tabCash");
+        const nav = document.querySelector(".mcnav");
+        return {
+          paneOver: pane.scrollWidth - pane.clientWidth,
+          navTop: nav.getBoundingClientRect().top,
+          pageOver: document.documentElement.scrollWidth - document.documentElement.clientWidth
+        };
+      });
+      assert.ok(mobile.navTop < 80, `nav should sit at the top, got ${mobile.navTop}`);
+      assert.ok(mobile.pageOver <= 1, `390px page overflows by ${mobile.pageOver}px`);
     } finally {
       await context.close();
     }

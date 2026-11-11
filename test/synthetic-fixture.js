@@ -245,6 +245,70 @@ export const fixture = {
       "Google Ads login miles@simplyintense.com",
       "LinkedIn Shell 508694935"
     ]
+  },
+  cash_forecast: {
+    as_of: "2026-11-08",
+    latest_balances_date: "2026-10-31",
+    currency: "TTD unless marked USD",
+    bands_ttd_usable: {
+      GREEN: ">450000",
+      AMBER: "300000-450000",
+      RED: "175000-300000",
+      CRITICAL: "<175000",
+      basis: "usable cash, fixed deposits excluded"
+    },
+    current_position: {
+      date: "2026-10-31",
+      usable_cash: 520000,
+      status: "GREEN",
+      plan_usable_oct: 410000,
+      variance_vs_plan: 110000,
+      notes: ["Synthetic balances only. Not a real cash position."]
+    },
+    months: [
+      { month: "2026-10", label: "Oct-26", plan: { closing_usable: 410000, status: "AMBER" }, latest_actual: { closing_usable: 520000, status: "GREEN", variance_vs_plan: 110000, balance_date: "2026-10-31" }, modelled_reforecast: null },
+      { month: "2026-11", label: "Nov-26", plan: { closing_usable: 500000, status: "GREEN" }, latest_actual: null, modelled_reforecast: { label: "MODELLED", fill_case_closing_usable: 530000, fill_case_status: "GREEN", booked_only_floor_closing_usable: 515000, booked_only_floor_status: "GREEN" } },
+      { month: "2026-12", label: "Dec-26", plan: { closing_usable: 470000, status: "GREEN" }, latest_actual: null, modelled_reforecast: { label: "MODELLED", fill_case_closing_usable: 540000, fill_case_status: "GREEN", booked_only_floor_closing_usable: 480000, booked_only_floor_status: "GREEN" } },
+      { month: "2027-01", label: "Jan-27", plan: { closing_usable: 420000, status: "AMBER" }, latest_actual: null, modelled_reforecast: { label: "MODELLED", fill_case_closing_usable: 500000, fill_case_status: "GREEN", booked_only_floor_closing_usable: 390000, booked_only_floor_status: "AMBER" } },
+      { month: "2027-02", label: "Feb-27", plan: { closing_usable: 360000, status: "AMBER" }, latest_actual: null, modelled_reforecast: { label: "MODELLED", fill_case_closing_usable: 470000, fill_case_status: "GREEN", booked_only_floor_closing_usable: 340000, booked_only_floor_status: "AMBER" } },
+      { month: "2027-03", label: "Mar-27", plan: { closing_usable: 310000, status: "AMBER" }, latest_actual: null, modelled_reforecast: { label: "MODELLED", fill_case_closing_usable: 450000, fill_case_status: "GREEN", booked_only_floor_closing_usable: 280000, booked_only_floor_status: "RED" } },
+      { month: "2027-04", label: "Apr-27", plan: { closing_usable: 240000, status: "RED" }, latest_actual: null, modelled_reforecast: { label: "MODELLED", fill_case_closing_usable: 410000, fill_case_status: "AMBER", booked_only_floor_closing_usable: 200000, booked_only_floor_status: "RED" } }
+    ],
+    fixed_deposit_line: {
+      label: "Fixed deposits are card collateral and never count as usable cash.",
+      total_usd: 12000,
+      total_ttd: 80000,
+      cards_they_secure_ttd: 15000,
+      net_freed_if_those_cards_paid_ttd: 65000
+    },
+    upside_items: [
+      { item: "NIB Inv 45221", ttd: 11111.11, due: "2026-11-22", status: "Synthetic invoice, not a real amount." },
+      { item: "Sample milestone", ttd: 2222, status: "Not counted" }
+    ],
+    risks: [
+      { risk: "Sample April gap", detail: "Synthetic booking gap only.", severity: "HIGH" },
+      { risk: "Sample card balances", detail: "Synthetic card risk.", severity: "MEDIUM" }
+    ],
+    assumptions: [
+      "Modelled re-forecast (labelled MODELLED): synthetic path only.",
+      "Usable cash excludes fixed deposits."
+    ],
+    protective_lens: {
+      buffer_months: 2.1,
+      unpledged_usd: 9000,
+      unpledged_ttd: 60000,
+      household_only_buffer_months: 0.8,
+      household_only_ttd: 25000,
+      rungs_ttd: { "3_months": 445000, "6_months": 889000, "12_months": 1780000 },
+      monthly_need_ttd: 148333,
+      rung_status: "Below the 3-month rung on this synthetic snapshot",
+      surplus_rule_now: "All surplus to the buffer",
+      casa: { usd: 10000, usd_rate: "8%", ttd: 20000, ttd_rate: "7.5%" }
+    },
+    refresh_cadence: [
+      { what: "Monthly Balances Input", who: "Miles", when: "Each month-end" },
+      { what: "Villa pacing check-in", when: "5th of each month", source: "Hospitable" }
+    ]
   }
 };
 
@@ -253,4 +317,6 @@ export const orgFixture = {
   bots: {},
   as_of: "synthetic",
   updated_at: null
+
+
 };
