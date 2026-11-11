@@ -320,6 +320,21 @@ h1{font-size:28px}
 #tabCash .sev{font:700 10.5px var(--font-mono);letter-spacing:.06em;text-transform:uppercase;margin-right:6px}
 #tabCash .sev.HIGH{color:var(--crit)}#tabCash .sev.MEDIUM{color:var(--warn)}#tabCash .sev.LOW{color:var(--muted)}
 @media (max-width:640px){#tabCash .cash-tbl th,#tabCash .cash-tbl td{font-size:13.5px}}
+
+.sheets-row{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 14px;align-items:stretch;min-width:0;max-width:100%}
+.sheets-row a,.sheets-link{display:inline-flex;align-items:center;flex-wrap:wrap;gap:6px 8px;border:1px solid var(--line);border-radius:10px;padding:8px 12px;text-decoration:none;color:inherit;background:var(--surface-2);font:600 13px var(--font-mono);letter-spacing:.02em;min-width:0;max-width:100%}
+.sheets-row a .t,.sheets-link .t{white-space:nowrap}
+.sheets-row a .m,.sheets-link .m{font-weight:400;color:var(--muted);font-size:12px;letter-spacing:0;white-space:normal}
+.sheets-row .sheet-ico,.sheets-menu .sheet-ico{width:16px;height:16px;flex:0 0 auto;stroke:currentColor;fill:none;stroke-width:1.7;stroke-linejoin:round;stroke-linecap:round}
+#sheetsNav[hidden]{display:none}
+.sheets-menu{position:relative;display:inline-block}
+.sheets-menu > summary{list-style:none;cursor:pointer}
+.sheets-menu > summary::-webkit-details-marker{display:none}
+.sheets-menu-list{display:none;position:absolute;top:calc(100% + 6px);right:0;z-index:45;min-width:min(280px,calc(100vw - 32px));padding:8px;border:1px solid var(--line);border-radius:14px;background:var(--surface);box-shadow:var(--shadow);flex-direction:column;align-items:stretch}
+.sheets-menu[open] .sheets-menu-list{display:flex}
+.sheets-menu-list a{justify-content:flex-start;width:100%;flex-wrap:wrap}
+.sheets-menu-list a .m{font:400 11px var(--font-ui);text-transform:none;letter-spacing:0;color:var(--muted);white-space:normal}
+@media (max-width:640px){.sheets-row a{flex:1 1 100%}}
 .vital .vpill{display:inline-flex;margin-top:8px;font-size:12.5px;padding:4px 10px;white-space:nowrap;max-width:100%}
 .tabs .tcount.red{background:var(--pink)}
 .h2n{display:inline-block;margin-left:8px;min-width:28px;text-align:center;padding:1px 9px;border-radius:999px;background:var(--pink);color:#fff;font:700 15px var(--font-ui);vertical-align:middle}
@@ -504,7 +519,7 @@ body.mc-blur #keyGate::after,body.mc-blur #keyGate *::after{content:none !import
       <div id="toolsMenu" class="tools-menu" role="group" aria-labelledby="toolsLabel">
         <a class="mcnav-item" id="duLink" href="https://dailyupdate.simplyintense.com/" rel="noreferrer"><svg class="nav-ico" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M7 3.5h7.2L19 8.2V20.5H7z"/><path d="M14 3.5V8.2H19"/><path d="M9.5 12.5h5M9.5 16h3.5"/></svg><span class="pill-label">Daily Update</span></a>
         <a class="mcnav-item" id="villasSite" href="https://villas.tobago.ai" target="_blank" rel="noreferrer noopener" aria-label="Villas site, https://villas.tobago.ai"><svg class="nav-ico" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M4 11.2 12 4.5l8 6.7"/><path d="M6.5 10.2V19.5h11V10.2"/><path d="M10 19.5v-4.2h4V19.5"/></svg><span class="pill-label">Villas site</span></a>
-        <a class="mcnav-item" id="propertySite" href="https://property.tobago.ai" target="_blank" rel="noreferrer noopener" aria-label="Property site, https://property.tobago.ai"><svg class="nav-ico" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><rect x="5" y="3" width="14" height="18" rx="1.5"/><path d="M9 7h2M13 7h2M9 11h2M13 11h2M9 15h2M13 15h2"/><path d="M10 21v-3h4v3"/></svg><span class="pill-label">Property site</span></a>
+        <a class="mcnav-item" id="propertySite" href="https://property.tobago.ai" target="_blank" rel="noreferrer noopener" aria-label="Property site, https://property.tobago.ai"><svg class="nav-ico" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><rect x="5" y="3" width="14" height="18" rx="1.5"/><path d="M9 7h2M13 7h2M9 11h2M13 11h2M9 15h2M13 15h2"/><path d="M10 21v-3h4v3"/></svg><span class="pill-label">Property site</span></a><span id="sheetsNav" hidden></span>
         <button class="mcnav-item" id="aBtn" type="button"><svg class="nav-ico" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="8.25"/><path class="solid" d="M10.2 8.9v6.2L15.6 12z"/></svg><span class="pill-label">Play the latest JARVIS brief</span></button>
         <button class="mcnav-item" id="phoneSetup" type="button" hidden title="Copies the view key to this device's clipboard, for the home-screen app's first launch"><svg class="nav-ico" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="8" cy="15" r="3.25"/><path d="M10.6 13.2 19.5 4.5"/><path d="M16.5 4.5h3v3M15 8.5l2 2"/></svg><span class="pill-label">Copy key for phone app</span></button>
         <span class="ab-lab" id="aLab"></span>
@@ -975,9 +990,14 @@ function ragPill(status) {
   if (!st) return "";
   return `<span class="rag ${esc(st)}">${esc(st)}</span>`;
 }
-function cashChartSvg(rows, bands) {
+function cashChartSvg(rows, bands, series) {
+  series = series || [
+    { key: "plan", color: "var(--muted)", dash: "6 4" },
+    { key: "fill", color: "var(--accent)" },
+    { key: "booked", color: "var(--accent-2)", dash: "2 3" }
+  ];
   const w = 680, h = 240, padL = 58, padR = 16, padT = 18, padB = 40;
-  const vals = rows.flatMap((r) => [r.plan, r.fill, r.booked]).filter((n) => n != null);
+  const vals = rows.flatMap((r) => series.map((s) => r[s.key])).filter((n) => n != null);
   const hi = Math.max(bands.green, ...vals, 1) * 1.1;
   const lo = 0;
   const x = (i) => padL + (rows.length <= 1 ? (w - padL - padR) / 2 : i * (w - padL - padR) / (rows.length - 1));
@@ -1003,23 +1023,51 @@ function cashChartSvg(rows, bands) {
     const ty = (yy - 8 < padT) ? yy + 10 : yy - 8;
     return `<text class="mc-sensitive" data-mc-sensitive="money" x="${padL - 6}" y="${ty.toFixed(1)}" text-anchor="end" fill="var(--faint)" font-size="9" font-family="var(--font-mono)">${esc(ttCash(Math.round(v)))}</text>`;
   }).join("");
-  return `<svg class="cash-chart" viewBox="0 0 ${w} ${h}" role="img" aria-label="Plan versus modelled usable cash and band thresholds">${guides}${yTicks}${line("plan", "var(--muted)", "6 4")}${line("fill", "var(--accent)")}${line("booked", "var(--accent-2)", "2 3")}${ticks}</svg>`;
+  return `<svg class="cash-chart" viewBox="0 0 ${w} ${h}" role="img" aria-label="Plan versus modelled usable cash and band thresholds">${guides}${yTicks}${series.map((s) => line(s.key, s.color, s.dash)).join("")}${ticks}</svg>`;
+}
+const SHEET_ICO = `<svg class="sheet-ico nav-ico" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><rect x="4.5" y="3.5" width="15" height="17" rx="1.6"/><path d="M8 8h8M8 12h8M8 16h5"/></svg>`;
+function sheetsLinks() {
+  return (D && Array.isArray(D.sheets_links) && D.sheets_links.length) ? D.sheets_links : [];
+}
+function sheetsRow() {
+  const links = sheetsLinks();
+  if (!links.length) return "";
+  return `<div class="sheets-row" aria-label="Sheets">${links.map((l) => {
+    const when = l.updated ? `<span class="m">${esc(l.updated_label || "updated")} ${esc(l.updated)}</span>` : "";
+    return `<a class="sheets-link" href="${esc(l.href)}" target="_blank" rel="noreferrer noopener">${SHEET_ICO}<span class="t">${esc(l.title)}</span>${when}</a>`;
+  }).join("")}</div>`;
+}
+function renderSheetsNav() {
+  const host = $("sheetsNav"); if (!host) return;
+  const links = sheetsLinks();
+  if (!links.length) { host.hidden = true; host.innerHTML = ""; return; }
+  host.hidden = false;
+  const items = links.map((l) => {
+    const when = l.updated ? `<span class="m">${esc(l.updated_label || "updated")} ${esc(l.updated)}</span>` : "";
+    return `<a class="mcnav-item" href="${esc(l.href)}" target="_blank" rel="noreferrer noopener">${SHEET_ICO}<span class="pill-label">${esc(l.title)}</span>${when}</a>`;
+  }).join("");
+  host.innerHTML = `<details class="sheets-menu"><summary class="mcnav-item"><svg class="nav-ico" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><rect x="4.5" y="3.5" width="15" height="17" rx="1.6"/><path d="M8 8h8M8 12h8M8 16h5"/></svg><span class="pill-label">Sheets</span></summary><div class="sheets-menu-list">${items}</div></details>`;
 }
 function renderCash() {
   const el = $("tabCash"); if (!el) return;
   const C = D && D.cash_forecast;
   if (!C || !Array.isArray(C.months) || !C.months.length) {
-    el.innerHTML = none("The cash forecast has not been loaded yet. The next Mission Control refresh will include cash-forecast.json when that file is on the box.");
+    el.innerHTML = sheetsRow() + none("The cash forecast has not been loaded yet. The next Mission Control refresh will include cash-forecast.json when that file is on the box.");
     return;
   }
   const pos = C.current_position || {};
   const bands = parseCashBands(C.bands_ttd_usable);
   const balMonth = String(pos.date || C.latest_balances_date || "").slice(0, 7);
-  const windowMonths = (C.months || []).filter((m) => (balMonth && m.month > balMonth) || m.modelled_reforecast);
-
+  const endMonth = String((pos.last_month_end && pos.last_month_end.date) || "").slice(0, 7);
+  const windowMonths = (C.months || []).filter((m) => {
+    if (endMonth) return m.month > endMonth;
+    return (balMonth && m.month > balMonth) || m.modelled_reforecast || (m.rebased && m.rebased.closing_usable != null);
+  });
   const balDate = cashDate(pos.date || C.latest_balances_date);
   const asof = C.as_of ? `as of ${cashDate(C.as_of)}` : "";
-  const variance = pos.variance_vs_plan;
+  const lastEnd = pos.last_month_end || {};
+  const variance = pos.variance_vs_plan != null ? pos.variance_vs_plan : lastEnd.variance;
+  const planAtEnd = pos.plan_usable_oct != null ? pos.plan_usable_oct : lastEnd.plan_usable;
   const varTxt = variance == null ? "" : `${sens(esc(ttCash(Math.abs(variance))), "money")} ${variance >= 0 ? "above" : "below"} the plan`;
   const bandItems = [
     ["GREEN", `Green > ${ttCash(bands.green)}`],
@@ -1029,16 +1077,36 @@ function renderCash() {
   ].map(([k, lab]) => `<li><span class="sw ${k}"></span>${esc(lab)}</li>`).join("");
   const cellPair = (amt, status, modelled) => {
     if (amt == null && !status) return `<td class="empty">–</td>`;
-    return `<td>${amt == null ? `<span class="empty">–</span>` : `<div class="amt">${sens(esc(ttCash(amt)), "money")}</div>`}${ragPill(status)}${modelled ? `<span class="modelled-tag">MODELLED</span>` : ""}</td>`;
+    return `<td>${amt == null ? `<span class="empty">–</span>` : `<div class="amt">${sens(esc(ttCash(amt)), "money")}</div>`}${ragPill(status)}${modelled ? ` <span class="modelled-tag">MODELLED</span>` : ""}</td>`;
   };
+  const hasRebased = windowMonths.some((m) => m.rebased && m.rebased.closing_usable != null);
+  const hasFill = windowMonths.some((m) => m.modelled_reforecast && (m.modelled_reforecast.fill_case_closing_usable != null || m.modelled_reforecast.booked_only_floor_closing_usable != null));
+  const heads = ["Month", "Plan closing"];
+  if (hasRebased) heads.push("Rebased (MODELLED)");
+  if (hasFill) heads.push("MODELLED · expected bookings", "MODELLED · current bookings only");
   const body = windowMonths.map((m) => {
-    const plan = m.plan || {}, mod = m.modelled_reforecast || {};
-    return `<tr><td><b>${esc(cashMonthLabel(m.month, m.label))}</b></td>${cellPair(plan.closing_usable, plan.status, false)}${cellPair(mod.fill_case_closing_usable, mod.fill_case_status, true)}${cellPair(mod.booked_only_floor_closing_usable, mod.booked_only_floor_status, true)}</tr>`;
+    const plan = m.plan || {}, mod = m.modelled_reforecast || {}, reb = m.rebased || {};
+    let cells = `<td><b>${esc(cashMonthLabel(m.month, m.label))}</b></td>${cellPair(plan.closing_usable, plan.status, false)}`;
+    if (hasRebased) cells += cellPair(reb.closing_usable, reb.status, true);
+    if (hasFill) cells += cellPair(mod.fill_case_closing_usable, mod.fill_case_status, true) + cellPair(mod.booked_only_floor_closing_usable, mod.booked_only_floor_status, true);
+    return `<tr>${cells}</tr>`;
   }).join("");
   const chartRows = windowMonths.map((m) => {
-    const plan = m.plan || {}, mod = m.modelled_reforecast || {};
-    return { label: cashMonthLabel(m.month, m.label), plan: plan.closing_usable, fill: mod.fill_case_closing_usable, booked: mod.booked_only_floor_closing_usable };
+    const plan = m.plan || {}, mod = m.modelled_reforecast || {}, reb = m.rebased || {};
+    return {
+      label: cashMonthLabel(m.month, m.label),
+      plan: plan.closing_usable,
+      rebased: reb.closing_usable,
+      fill: mod.fill_case_closing_usable,
+      booked: mod.booked_only_floor_closing_usable
+    };
   });
+  const series = [{ key: "plan", color: "var(--muted)", dash: "6 4", label: "Plan" }];
+  if (hasRebased) series.push({ key: "rebased", color: "var(--accent)", label: "Rebased (MODELLED)" });
+  if (hasFill) {
+    series.push({ key: "fill", color: "var(--accent)", label: "MODELLED · expected bookings" });
+    series.push({ key: "booked", color: "var(--accent-2)", dash: "2 3", label: "MODELLED · current bookings only" });
+  }
   const fd = C.fixed_deposit_line || {};
   let fdBody = `<p>Fixed deposits never count as usable cash. They are held as card collateral.</p>`;
   if (fd.total_usd != null || fd.total_ttd != null) {
@@ -1059,12 +1127,15 @@ function renderCash() {
   }).join("");
   const risks = (C.risks || []).map((r) => `<li>${r.severity ? `<span class="sev ${esc(r.severity)}">${esc(r.severity)}</span>` : ""}<b>${esc(r.risk || "")}</b>${r.detail ? ` — ${esc(r.detail)}` : ""}</li>`).join("");
   const lens = C.protective_lens || {};
-  const rung3 = lens.rungs_ttd && lens.rungs_ttd["3_months"];
+  const rung3 = lens.rungs_ttd && (lens.rungs_ttd["3_months"] != null ? lens.rungs_ttd["3_months"] : lens.rungs_ttd["3m"]);
   let buf = "";
-  if (lens.buffer_months != null) buf += `<p>Buffer: ${sens(esc(String(lens.buffer_months)), "money")} months${lens.unpledged_ttd != null ? ` (${sens(esc(ttCash(lens.unpledged_ttd)), "money")}${lens.unpledged_usd != null ? ` / ${sens(esc(usdCash(lens.unpledged_usd)), "money")}` : ""})` : ""}.</p>`;
+  if (lens.buffer_months != null) {
+    const all = lens.buffer_months_all_unpledged != null ? ` (${sens(esc(String(lens.buffer_months_all_unpledged)), "money")} counting all unpledged USD)` : (lens.unpledged_ttd != null ? ` (${sens(esc(ttCash(lens.unpledged_ttd)), "money")}${lens.unpledged_usd != null ? ` / ${sens(esc(usdCash(lens.unpledged_usd)), "money")}` : ""})` : "");
+    buf += `<p>Buffer: ${sens(esc(String(lens.buffer_months)), "money")} months${all}.</p>`;
+  }
   if (lens.household_only_buffer_months != null) buf += `<p>Household only: ${sens(esc(String(lens.household_only_buffer_months)), "money")} months${lens.household_only_ttd != null ? ` (${sens(esc(ttCash(lens.household_only_ttd)), "money")})` : ""}.</p>`;
   if (lens.rung_status) buf += `<p>${esc(lens.rung_status)}${rung3 != null ? ` (3-month rung ${sens(esc(ttCash(rung3)), "money")})` : ""}.</p>`;
-  if (lens.surplus_rule_now) buf += `<p>${esc(lens.surplus_rule_now)}.</p>`;
+  if (lens.surplus_rule_now && !(lens.rung_status && lens.rung_status.toLowerCase().includes(lens.surplus_rule_now.toLowerCase().replace(/\.$/, "")))) buf += `<p>${esc(lens.surplus_rule_now)}.</p>`;
   const casa = lens.casa || {};
   if (casa.usd != null || casa.ttd != null) {
     const parts = [];
@@ -1077,19 +1148,31 @@ function renderCash() {
     return `<li><b>${esc(r.what || "")}</b>${r.when ? ` — ${esc(r.when)}` : ""}${who ? ` (${esc(who)})` : ""}</li>`;
   }).join("");
   const notes = (pos.notes || []).map((n) => `<li>${esc(n)}</li>`).join("");
-  const assumed = (C.assumptions || []).filter((a) => /MODELLED|modelled|fixed deposit/i.test(a));
+  const assumed = (C.assumptions || []).filter((a) => /MODELLED|modelled|rebased|fixed deposit/i.test(a));
+  const more = [];
+  if (pos.cards_owed_ttd != null) more.push(`Cards owed: ${sens(esc(ttCash(pos.cards_owed_ttd)), "money")}.`);
+  if (pos.planned_not_done) more.push(esc(pos.planned_not_done));
+  const lastEndCap = lastEnd.date ? `Last month-end ${esc(cashDate(lastEnd.date))}` : "Fixed deposits are not usable";
+  const lastEndVal = lastEnd.usable_cash != null ? sens(esc(ttCash(lastEnd.usable_cash)), "money") : (planAtEnd != null ? sens(esc(ttCash(planAtEnd)), "money") : "unknown");
+  const tableCap = hasRebased
+    ? "Rebased (MODELLED) adds October's gap to the updated plan. These figures are not a new signed plan. NIB is shown as upside only."
+    : "MODELLED figures start from the last actual balances and apply the plan, with villa pacing. They are not the signed master plan.";
+  const fx = C.fx_basis ? `<p class="cap">${esc(C.fx_basis)}</p>` : "";
   el.innerHTML =
-    sec("Cash forecast", `Usable cash only, TT$ · last balances ${balDate || "unknown"} · ${asof}`.replace(/ · $/, ""),
+    sheetsRow()
+    + sec("Cash forecast", `Usable cash only, TT$ · last balances ${balDate || "unknown"} · ${asof}`.replace(/ · $/, ""),
       `<div class="cash-kpis"><div class="kpi"><div class="s">Status</div><div class="b">${ragPill(pos.status) || "unknown"}</div><div class="us">Last balances ${esc(balDate || "unknown")}</div></div>`
-      + `<div class="kpi"><div class="s">Usable cash</div><div class="b">${pos.usable_cash != null ? sens(esc(ttCash(pos.usable_cash)), "money") : "unknown"}</div><div class="us">${varTxt || (pos.plan_usable_oct != null ? `Plan ${sens(esc(ttCash(pos.plan_usable_oct)), "money")}` : "")}</div></div>`
-      + `<div class="kpi"><div class="s">Plan (at last balances)</div><div class="b">${pos.plan_usable_oct != null ? sens(esc(ttCash(pos.plan_usable_oct)), "money") : "unknown"}</div><div class="us">Fixed deposits are not usable</div></div></div>`
+      + `<div class="kpi"><div class="s">Usable cash</div><div class="b">${pos.usable_cash != null ? sens(esc(ttCash(pos.usable_cash)), "money") : "unknown"}</div><div class="us">${varTxt || (planAtEnd != null ? `Plan ${sens(esc(ttCash(planAtEnd)), "money")}` : "")}</div></div>`
+      + `<div class="kpi"><div class="s">${lastEnd.date ? "Last month-end" : "Plan (at last balances)"}</div><div class="b">${lastEndVal}</div><div class="us">${lastEnd.date && planAtEnd != null ? `Plan ${sens(esc(ttCash(planAtEnd)), "money")}${varTxt ? ` · ${varTxt}` : ""}` : lastEndCap}</div></div></div>`
+      + fx
+      + (more.length ? `<p class="cap">${more.join(" ")}</p>` : "")
       + `<p class="cap">${esc(bands.basis)}. Bands apply to usable cash only.</p>`
       + `<ul class="bands">${bandItems}</ul>`)
-    + sec((() => { const a = windowMonths[0], b = windowMonths[windowMonths.length - 1]; const rng = a && b ? `, ${cashMonthLabel(a.month, a.label)}–${cashMonthLabel(b.month, b.label)}` : ""; return "Plan vs modelled" + rng; })(), "MODELLED figures start from the last actual balances and apply the plan, with villa pacing. They are not the signed master plan.",
-      `<div class="tblwrap"><table class="cash-tbl"><thead><tr><th>Month</th><th>Plan closing</th><th>MODELLED · expected bookings</th><th>MODELLED · current bookings only</th></tr></thead><tbody>${body}</tbody></table></div>`
+    + sec((() => { const a = windowMonths[0], b = windowMonths[windowMonths.length - 1]; const rng = a && b ? `, ${cashMonthLabel(a.month, a.label)}–${cashMonthLabel(b.month, b.label)}` : ""; return "Plan vs modelled" + rng; })(), tableCap,
+      `<div class="tblwrap"><table class="cash-tbl"><thead><tr>${heads.map((h) => `<th>${h}</th>`).join("")}</tr></thead><tbody>${body}</tbody></table></div>`
       + (assumed.length ? `<ul class="cash-notes">${assumed.slice(0, 3).map((a) => `<li>${esc(a)}</li>`).join("")}</ul>` : "")
-      + cashChartSvg(chartRows, bands)
-      + `<ul class="cash-legend"><li><i style="background:var(--muted)"></i>Plan</li><li><i style="background:var(--accent)"></i>MODELLED · expected bookings</li><li><i style="background:var(--accent-2)"></i>MODELLED · current bookings only</li><li>Dashed horizontals are the Green, Amber and Critical band thresholds.</li></ul>`)
+      + cashChartSvg(chartRows, bands, series)
+      + `<ul class="cash-legend">${series.map((s) => `<li><i style="background:${s.color}"></i>${esc(s.label)}</li>`).join("")}<li>Dashed horizontals are the Green, Amber and Critical band thresholds.</li></ul>`)
     + sec("Fixed deposits (not usable)", fd.label || "", fdBody)
     + (upside ? sec("Upside, not in the plan", "", `<ul class="cash-list">${upside}</ul>`) : "")
     + (risks ? sec("Top risks", "", `<ul class="cash-list">${risks}</ul>`) : "")
@@ -1201,6 +1284,7 @@ function renderRest() {
   $("todayTabCount").textContent = w.length || ""; $("todayTabCount").hidden = !w.length;
   try { renderBrain(); } catch (e) { console.error(e); }
   try { renderCash(); } catch (e) { console.error(e); }
+  try { renderSheetsNav(); } catch (e) { console.error(e); }
   try { renderAds(); } catch (e) { console.error(e); }
   try { renderRoutines(); } catch (e) { console.error(e); }
   try { renderHelpdesk(); } catch (e) { console.error(e); }
@@ -1443,6 +1527,7 @@ function renderBrain(force) {
   const nwBody = `<div class="blurbox ${NW.show ? "" : "blurred"}" id="nwBox"><div class="val mc-sensitive" data-mc-sensitive="money">${nw.total != null ? `<div class="tt" style="font-size:34px">TT$${Number(nw.total).toLocaleString("en-US")}</div><div class="us">Business TT$${Number(nw.business || 0).toLocaleString("en-US")} · Personal TT$${Number(nw.personal || 0).toLocaleString("en-US")}</div>${(nw.lines || []).length ? ttab(["Item", "Value"], nw.lines.map((l) => `<tr><td>${esc(l.label)}</td><td>${esc(l.value)}</td></tr>`)) : ""}` : `<div class="tt" style="font-size:30px">TT$ ———,———</div>`}${nw.note ? `<div class="us">${esc(nw.note)}</div>` : (nw.total == null ? `<div class="us">Awaiting Finance's first snapshot.</div>` : "")}</div></div>
       <div class="row"><button class="btn" type="button" id="nwTog">${NW.show ? "🙈 Blur" : "👁 Show"}</button></div>`;
   $("tabMoney").innerHTML =
+    sheetsRow() +
     `<section id="nwSec"><h2 class="nw-h"><button type="button" class="nw-disclosure" id="nwDisclosure" aria-expanded="false" aria-controls="nwPanel"><svg class="nav-ico chev" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M9 5.5 15.5 12 9 18.5"/></svg><span id="nwDisclosureLabel">Net worth</span><span class="nw-hint" id="nwHint">Show</span></button></h2><div id="nwPanel" role="region" aria-labelledby="nwDisclosureLabel" hidden><p class="cap">${esc(nwCap)}</p>${nwBody}</div></section>`
     + `<div class="grid2">`
     + sec("Cash landing by week", M.weeks_caption, ttab(["Week", "TT$", "US$", "Payments"], (M.weeks || []).map((w) => `<tr><td><b>${esc(w.label)}</b><div class="us">${esc(w.rng)}</div></td><td><b>${sens(esc(w.tt), "money")}</b></td><td>${sens(esc(w.usd), "money")}</td><td>${(w.items || []).length ? `<details><summary>${w.n}</summary>${w.items.map((i) => `<div class="us">${sens(`${esc(i.when)} · ${esc(i.g)} (${esc(i.v)}, ${esc(i.src)}) ${esc(i.amt)}`, "text")}</div>`).join("")}</details>` : "0"}</td></tr>`)) + (M.beyond ? `<p class="cap">${esc(M.beyond.note)}: ${sens(esc(M.beyond.usd), "money")} across ${esc(M.beyond.n)} payments.</p>` : ""))

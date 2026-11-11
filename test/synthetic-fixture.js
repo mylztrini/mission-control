@@ -246,6 +246,11 @@ export const fixture = {
       "LinkedIn Shell 508694935"
     ]
   },
+  sheets_links: [
+    { key: "si_payables", title: "Si Payables", href: "https://example.invalid/sheets/si-payables" },
+    { key: "rt_payables", title: "RT Payables", href: "https://example.invalid/sheets/rt-payables" },
+    { key: "cashplan", title: "Cashplan", href: "https://example.invalid/sheets/cashplan", updated: "Wed, Nov 11, 2026, 12:11 AM AST", updated_label: "updated", updated_source: "drive_modifiedTime" }
+  ],
   cash_forecast: {
     as_of: "2026-11-08",
     latest_balances_date: "2026-10-31",

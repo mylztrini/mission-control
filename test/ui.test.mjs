@@ -189,6 +189,8 @@ describe("Mission Control UI", { timeout: 120000 }, () => {
     assert.equal(html.includes("520000"), false);
     assert.equal(html.includes("11111.11"), false);
     assert.equal(/023-\d{5}/.test(html), false);
+    assert.equal(html.includes("docs.google.com/spreadsheets"), false);
+    assert.match(html, /id="sheetsNav"/);
     assert.equal(html.includes("mcVitalsOpen"), true);
     assert.equal(html.includes("mcNetworthOpen"), true);
     assert.match(html, /id="blurMode"/);
@@ -1125,6 +1127,134 @@ describe("Mission Control UI", { timeout: 120000 }, () => {
       });
       assert.ok(mobile.navTop < 80, `nav should sit at the top, got ${mobile.navTop}`);
       assert.ok(mobile.pageOver <= 1, `390px page overflows by ${mobile.pageOver}px`);
+    } finally {
+      await context.close();
+    }
+  });
+
+  it("renders Sheets links from the keyed payload without putting URLs in public HTML", async () => {
+    const commands = [];
+    const leaked = [];
+    const { context, page, errors } = await openPage(browser, commands, leaked);
+    try {
+      const source = fs.readFileSync(path.join(ROOT, "index.html"), "utf8");
+      assert.equal(source.includes("docs.google.com/spreadsheets"), false);
+      await page.goto(base, { waitUntil: "domcontentloaded", timeout: 20000 });
+      await ready(page);
+      const nav = await page.evaluate(() => {
+        const host = document.getElementById("sheetsNav");
+        const summary = host && host.querySelector("summary");
+        return { hidden: host ? host.hidden : true, summary: summary ? summary.innerText.trim() : "" };
+      });
+      assert.equal(nav.hidden, false);
+      assert.match(nav.summary, /Sheets/i);
+      await page.click("#sheetsNav summary");
+      const open = await page.evaluate(() => {
+        const host = document.getElementById("sheetsNav");
+        const links = [...(host ? host.querySelectorAll("a") : [])].map((a) => ({ href: a.getAttribute("href"), text: a.innerText.replace(/\s+/g, " ").trim() }));
+        return { open: !!host.querySelector("details[open]"), links };
+      });
+      assert.equal(open.open, true);
+      assert.deepEqual(open.links.map((l) => l.href), [
+        "https://example.invalid/sheets/si-payables",
+        "https://example.invalid/sheets/rt-payables",
+        "https://example.invalid/sheets/cashplan"
+      ]);
+      assert.ok(open.links.some((l) => /Si Payables/i.test(l.text)));
+      assert.ok(open.links.some((l) => /RT Payables/i.test(l.text)));
+      assert.ok(open.links.some((l) => /Cashplan/i.test(l.text) && /updated/i.test(l.text) && /Nov 11, 2026, 12:11 AM AST/.test(l.text)));
+
+      await page.click('.tabs button[data-tab="money"]');
+      const money = await page.evaluate(() => [...document.querySelectorAll("#tabMoney .sheets-row a")].map((a) => ({ href: a.getAttribute("href"), text: a.innerText.replace(/\s+/g, " ").trim() })));
+      assert.equal(money.length, 3);
+      assert.ok(money.some((l) => l.href.includes("cashplan") && /updated Wed, Nov 11, 2026, 12:11 AM AST/.test(l.text)));
+
+      await page.click('.tabs button[data-tab="cash"]');
+      const cash = await page.evaluate(() => [...document.querySelectorAll("#tabCash .sheets-row a")].map((a) => ({ href: a.getAttribute("href"), text: a.innerText.replace(/\s+/g, " ").trim() })));
+      assert.equal(cash.length, 3);
+      assert.ok(cash.some((l) => /Si Payables/.test(l.text)));
+      assert.equal(commands.length, 0);
+      assert.equal(leaked.length, 0);
+      assert.deepEqual(errors, []);
+    } finally {
+      await context.close();
+    }
+  });
+
+  it("renders rebased MODELLED columns from the new cash forecast schema", async () => {
+    const commands = [];
+    const leaked = [];
+    const { context, page, errors } = await openPage(browser, commands, leaked);
+    try {
+      await page.goto(base, { waitUntil: "domcontentloaded", timeout: 20000 });
+      await ready(page);
+      await page.evaluate(() => {
+        D.cash_forecast = {
+          as_of: "2026-11-10",
+          latest_balances_date: "2026-11-10",
+          fx_basis: "Balances at 6.78. Plan at 7.5.",
+          bands_ttd_usable: { GREEN: ">450000", AMBER: "300000-450000", RED: "175000-300000", CRITICAL: "<175000", basis: "usable cash, fixed deposits excluded" },
+          current_position: {
+            date: "2026-11-10",
+            usable_cash: 500000,
+            status: "GREEN",
+            plan_usable_oct: 450000,
+            variance_vs_plan: 150000,
+            notes: ["Mid-month. Synthetic only."],
+            last_month_end: { date: "2026-10-29", usable_cash: 600000, status: "GREEN", plan_usable: 450000, variance: 150000 }
+          },
+          months: [
+            { month: "2026-10", label: "Oct-26", plan: { closing_usable: 450000, status: "AMBER" }, rebased: { label: "MODELLED", closing_usable: 600000, status: "GREEN" } },
+            { month: "2026-11", label: "Nov-26", plan: { closing_usable: 454000, status: "GREEN" }, rebased: { label: "MODELLED", closing_usable: 613000, status: "GREEN" } },
+            { month: "2026-12", label: "Dec-26", plan: { closing_usable: 536000, status: "GREEN" }, rebased: { label: "MODELLED", closing_usable: 696000, status: "GREEN" } },
+            { month: "2027-01", label: "Jan-27", plan: { closing_usable: 452000, status: "GREEN" }, rebased: { label: "MODELLED", closing_usable: 611000, status: "GREEN" } },
+            { month: "2027-02", label: "Feb-27", plan: { closing_usable: 436000, status: "AMBER" }, rebased: { label: "MODELLED", closing_usable: 596000, status: "GREEN" } },
+            { month: "2027-03", label: "Mar-27", plan: { closing_usable: 378000, status: "AMBER" }, rebased: { label: "MODELLED", closing_usable: 537000, status: "GREEN" } },
+            { month: "2027-04", label: "Apr-27", plan: { closing_usable: 299000, status: "RED" }, rebased: { label: "MODELLED", closing_usable: 458000, status: "GREEN" } }
+          ],
+          fixed_deposit_line: { label: "Not usable.", total_usd: 12000, total_ttd: 80000, cards_they_secure_ttd: 15000, net_freed_if_those_cards_paid_ttd: 65000 },
+          upside_items: [{ item: "NIB Inv 45221", ttd: 11111.11, due: "2026-11-22", status: "Synthetic upside only." }],
+          risks: [{ risk: "Receivable timing", detail: "TTPCU invoice just sent.", severity: "LOW" }],
+          assumptions: ["Rebased path = plan closing + October gap; MODELLED."],
+          protective_lens: { buffer_months: 2.1, buffer_months_all_unpledged: 2.4, household_only_buffer_months: 1.3, rungs_ttd: { "3_months": 445000 }, rung_status: "Below 3-month rung: all surplus to buffer", casa: { usd: 10000, usd_rate: "8%", ttd: 20000, ttd_rate: "7.5%" } },
+          refresh_cadence: [{ what: "Agency receivables", source: "Cashbot" }]
+        };
+        renderCash();
+      });
+      await page.click('.tabs button[data-tab="cash"]');
+      const info = await page.evaluate(() => {
+        const pane = document.getElementById("tabCash");
+        const headers = [...pane.querySelectorAll(".cash-tbl thead th")].map((th) => th.textContent.trim());
+        const rows = [...pane.querySelectorAll(".cash-tbl tbody tr")].map((tr) => [...tr.children].map((td) => td.innerText.replace(/\s+/g, " ").trim()));
+        const text = pane.innerText;
+        const lines = pane.querySelectorAll("svg.cash-chart polyline").length;
+        const nullCells = [...pane.querySelectorAll(".cash-tbl td")].filter((td) => /null/i.test(td.textContent)).length;
+        return { headers, rows, text, lines, nullCells };
+      });
+      assert.deepEqual(info.headers, ["Month", "Plan closing", "Rebased (MODELLED)"]);
+      assert.equal(info.rows.length, 6);
+      assert.equal(info.rows.some((r) => /Oct/.test(r[0])), false);
+      assert.ok(info.rows[0][0].includes("Nov"));
+      assert.match(info.rows[0][1], /TT\$454,000/);
+      assert.match(info.rows[0][1], /GREEN/i);
+      assert.match(info.rows[0][2], /TT\$613,000/);
+      assert.match(info.rows[0][2], /MODELLED/);
+      const apr = info.rows.find((r) => /Apr/.test(r[0]));
+      assert.match(apr[1], /TT\$299,000/);
+      assert.match(apr[1], /RED/i);
+      assert.match(apr[2], /TT\$458,000/);
+      assert.match(apr[2], /GREEN/i);
+      assert.match(apr[2], /MODELLED/);
+      assert.equal(info.nullCells, 0);
+      assert.ok(info.lines >= 2, `expected plan + rebased lines, got ${info.lines}`);
+      assert.match(info.text, /TT\$500,000/);
+      assert.match(info.text, /Last month-end/i);
+      assert.match(info.text, /NIB Inv 45221/);
+      assert.match(info.text, /Agency receivables/);
+      assert.match(info.text, /Cashbot/);
+      assert.match(info.text, /TTPCU/);
+      assert.equal(/null/i.test(info.text), false);
+      assert.deepEqual(errors, []);
     } finally {
       await context.close();
     }
