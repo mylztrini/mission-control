@@ -8,7 +8,7 @@ import { describe, it, before, after } from "node:test";
 import { fixture, orgFixture, SYNTH_KEY } from "./synthetic-fixture.js";
 
 const ROOT = path.resolve(import.meta.dirname, "..");
-const ARTIFACTS = "/opt/cursor/artifacts";
+const ARTIFACTS = fs.existsSync("/opt/cursor") ? "/opt/cursor/artifacts" : path.join(ROOT, "test/artifacts");
 const CHROME = process.env.CHROME_PATH || "/usr/bin/google-chrome-stable";
 
 function startServer() {
@@ -221,7 +221,7 @@ describe("Mission Control UI", { timeout: 120000 }, () => {
       assert.equal(fresh.hidden, true);
       assert.equal(fresh.labelled, "vitalsToggleLabel");
       assert.equal(fresh.hint, "Show");
-      assert.equal(fresh.count, "4");
+      assert.equal(fresh.count, "5");
       assert.equal(fresh.stored, null);
 
       const focusedWhileHidden = await page.evaluate(() => {
@@ -331,7 +331,7 @@ describe("Mission Control UI", { timeout: 120000 }, () => {
       assert.equal(nav.daily.icon, true);
       assert.equal(nav.brief, true);
       assert.equal(nav.phone, true);
-      assert.deepEqual(nav.tabs.map((t) => t.tab), ["today", "villas", "money", "growth", "helpdesk", "org", "activity", "routines"]);
+      assert.deepEqual(nav.tabs.map((t) => t.tab), ["today", "villas", "money", "ads", "growth", "helpdesk", "org", "activity", "routines"]);
       assert.equal(nav.tabs.every((t) => t.icon && t.label), true);
       assert.equal(nav.robots, "noindex, nofollow, noarchive");
       assert.equal(nav.referrer, "no-referrer");
@@ -362,7 +362,7 @@ describe("Mission Control UI", { timeout: 120000 }, () => {
       await page.click("#vitalsToggle");
       const desktopOpen = await metrics(page);
       assert.equal(desktopOpen.panelHidden, false);
-      assert.equal(desktopOpen.cards.length, 4);
+      assert.equal(desktopOpen.cards.length, 5);
       assert.ok(desktopOpen.cards.every((c) => c.right <= desktopOpen.leftRight + 2 && c.left >= desktopOpen.leftLeft - 2), `expanded stats leave the left column ${JSON.stringify(desktopOpen.cards)}`);
       assert.ok(desktopOpen.taskTop > desktopClosed.taskTop + 40, `tasks moved ${desktopOpen.taskTop - desktopClosed.taskTop}px`);
 
@@ -384,7 +384,7 @@ describe("Mission Control UI", { timeout: 120000 }, () => {
 
       await page.click("#vitalsToggle");
       const mobileOpen = await metrics(page);
-      assert.equal(mobileOpen.cards.length, 4);
+      assert.equal(mobileOpen.cards.length, 5);
       assert.ok(mobileOpen.cards[1].top > mobileOpen.cards[0].top + 40, `mobile cards should stack: ${JSON.stringify(mobileOpen.cards)}`);
       assert.ok(mobileOpen.taskTop > mobileClosed.taskTop + 80, `mobile tasks moved ${mobileOpen.taskTop - mobileClosed.taskTop}px`);
       assert.equal(errors.length, 0);
@@ -513,7 +513,7 @@ describe("Mission Control UI", { timeout: 120000 }, () => {
       assert.deepEqual(desk.selected, ["today"]);
       assert.ok((await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth)) <= 1);
 
-      for (const tab of ["villas", "money", "growth", "helpdesk", "org", "activity", "routines", "today"]) {
+      for (const tab of ["villas", "money", "ads", "growth", "helpdesk", "org", "activity", "routines", "today"]) {
         await page.click(`.tabs button[data-tab="${tab}"]`);
         const on = await page.evaluate((name) => [...document.querySelectorAll(".tabs button[data-tab]")].filter((b) => b.getAttribute("aria-selected") === "true").map((b) => b.dataset.tab), tab);
         assert.deepEqual(on, [tab]);
@@ -612,7 +612,7 @@ describe("Mission Control UI", { timeout: 120000 }, () => {
         assert.ok(fit.rowOver <= 1, `${width}px nav row scrolls by ${fit.rowOver}px`);
         assert.ok(fit.navOver <= 1, `${width}px nav scrolls by ${fit.navOver}px`);
         assert.ok(fit.pageOver <= 1, `${width}px page overflows by ${fit.pageOver}px`);
-        assert.deepEqual(fit.tabs, ["Today", "Villas", "Money", "Growth", "Si Helpdesk", "Org & Systems", "Activity", "Routines"]);
+        assert.deepEqual(fit.tabs, ["Today", "Villas", "Money", "Ads", "Growth", "Si Helpdesk", "Org & Systems", "Activity", "Routines"]);
         assert.equal(fit.tabsIn, true, `${width}px hides a tab`);
         assert.equal(fit.blurIn, true, `${width}px hides Blur mode`);
         assert.match(fit.blurLabel, /Blur mode/);
@@ -943,6 +943,94 @@ describe("Mission Control UI", { timeout: 120000 }, () => {
       await page.click('.tabs button[data-tab="today"]');
       await shot("blur_mobile_today_on.png");
 
+      assert.equal(commands.length, 0);
+      assert.equal(leaked.length, 0);
+      assert.deepEqual(errors, []);
+    } finally {
+      await context.close();
+    }
+  });
+
+  it("shows a compact Agency overdue table instead of a huge repeated headline", async () => {
+    const commands = [];
+    const leaked = [];
+    const { context, page, errors } = await openPage(browser, commands, leaked);
+    try {
+      await page.setViewport({ width: 390, height: 844 });
+      await page.goto(base, { waitUntil: "domcontentloaded", timeout: 20000 });
+      await ready(page);
+      await page.click("#vitalsToggle");
+      const info = await page.evaluate(() => {
+        const card = document.querySelector("#vitals .ag-od-card");
+        if (!card) return { missing: true };
+        const rows = [...card.querySelectorAll("tbody tr")].map((tr) => [...tr.children].map((td) => td.textContent.trim()));
+        const headline = card.querySelector(".b");
+        const src = (card.querySelector(".ag-od-src") || {}).textContent || "";
+        const od = card.querySelector("td.od");
+        const color = od ? getComputedStyle(od).color : "";
+        return {
+          rows,
+          hasBigHeadline: !!(headline && headline.textContent.includes("SIMCL TT$1,234.00 · SiBB")),
+          src,
+          odColor: color,
+          odSize: od ? parseFloat(getComputedStyle(od).fontSize) : 0,
+          overflow: card.scrollWidth - card.clientWidth,
+          wrap: od ? getComputedStyle(od).whiteSpace : ""
+        };
+      });
+      assert.equal(info.missing, undefined);
+      assert.deepEqual(info.rows, [
+        ["SIMCL", "TT$1,234.00", "TT$9,000.00"],
+        ["SiBB", "BDS$2,345.00", "BDS$8,000.00"],
+        ["SI CY", "US$3,456.00", "US$3,456.00"]
+      ]);
+      assert.equal(info.hasBigHeadline, false);
+      assert.match(info.src, /Cashbot/);
+      assert.match(info.src, /5:46 PM AST/);
+      assert.equal(info.wrap, "nowrap");
+      assert.ok(info.odSize > 12 && info.odSize < 26, `overdue font ${info.odSize}px should be normal-ish, not 30px`);
+      assert.ok(info.overflow <= 1, `agency overdue card overflows by ${info.overflow}px`);
+      assert.equal(commands.length, 0);
+      assert.equal(leaked.length, 0);
+      assert.deepEqual(errors, []);
+    } finally {
+      await context.close();
+    }
+  });
+
+  it("renders the Ads tab from ads_weekly without inventing $0 weeks", async () => {
+    const commands = [];
+    const leaked = [];
+    const { context, page, errors } = await openPage(browser, commands, leaked);
+    try {
+      await page.goto(base, { waitUntil: "domcontentloaded", timeout: 20000 });
+      await ready(page);
+      await page.click('.tabs button[data-tab="ads"]');
+      const info = await page.evaluate(() => {
+        const pane = document.getElementById("tabAds");
+        const selected = [...document.querySelectorAll(".tabs button[data-tab]")].filter((b) => b.getAttribute("aria-selected") === "true").map((b) => b.dataset.tab);
+        const combined = (pane.querySelector(".kpi .b") || {}).textContent || "";
+        const headers = [...pane.querySelectorAll("thead th")].map((th) => th.textContent.trim());
+        const rows = [...pane.querySelectorAll("tbody tr")].map((tr) => [...tr.children].map((td) => td.textContent.trim()));
+        const notes = [...pane.querySelectorAll(".ads-notes li")].map((li) => li.textContent);
+        const bars = pane.querySelectorAll(".ads-bar .col").length;
+        const zeros = [...pane.querySelectorAll("td")].filter((td) => td.textContent.trim() === "$0.00").length;
+        return { selected, combined, headers, rows, notes, bars, zeros, text: pane.innerText };
+      });
+      assert.deepEqual(info.selected, ["ads"]);
+      assert.equal(info.combined, "$150.00");
+      assert.ok(info.headers.includes("Meta · Sample Account"));
+      assert.ok(info.headers.includes("Google · Sample Google"));
+      // Oct 26 week has Meta only; Google cell must be an en dash, not $0.00
+      const week1 = info.rows.find((r) => r[0].includes("Oct 26") || r[0].includes("Oct 26–Nov") || r[0].includes("26–1") || /Oct/.test(r[0]) && /26/.test(r[0]));
+      assert.ok(week1, `missing Oct 26 week in ${JSON.stringify(info.rows)}`);
+      assert.equal(info.zeros, 0);
+      assert.ok(week1.includes("–") || week1.includes("—"));
+      assert.equal(info.bars, 2);
+      assert.ok(info.notes.some((n) => /miles@simplyintense.com/.test(n)));
+      assert.ok(info.notes.some((n) => /Shell 508694935/.test(n)));
+      assert.ok(info.notes.some((n) => /Time in UTC/.test(n)));
+      assert.ok(info.notes.some((n) => /Not yet pulled/.test(n)));
       assert.equal(commands.length, 0);
       assert.equal(leaked.length, 0);
       assert.deepEqual(errors, []);

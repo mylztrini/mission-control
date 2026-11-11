@@ -264,6 +264,35 @@ h1{font-size:28px}
 .vital .u{font-size:14.5px;color:var(--muted);margin-top:2px;line-height:1.4}
 .vital .g{font:600 12.5px var(--font-mono);color:var(--accent-ink);margin-top:4px}
 .vital.bad .b{color:var(--pink)}
+
+/* Agency overdue vital: compact per-company table (Miles, 10 Nov 2026) */
+.vital.ag-od-card{grid-column:1/-1;min-width:0;max-width:100%}
+.ag-od{width:100%;border-collapse:collapse;font-size:15px;line-height:1.35;margin-top:6px}
+.ag-od th,.ag-od td{padding:5px 8px;vertical-align:baseline;border-bottom:1px solid var(--line-soft)}
+.ag-od th{font:600 11px var(--font-mono);letter-spacing:.08em;text-transform:uppercase;color:var(--muted);text-align:right;border-bottom:1px solid var(--bd)}
+.ag-od th:first-child,.ag-od td:first-child{text-align:left;padding-left:0}
+.ag-od th:last-child,.ag-od td:last-child{padding-right:0}
+.ag-od td.co{font-weight:700;white-space:nowrap}
+.ag-od td.od{color:var(--pink);font-weight:700;font-variant-numeric:tabular-nums;white-space:nowrap;text-align:right;font-size:16px}
+.ag-od td.os{color:var(--muted);font-variant-numeric:tabular-nums;white-space:nowrap;text-align:right}
+.ag-od-src{font-size:12px;color:var(--muted);margin-top:8px;line-height:1.35}
+@media (max-width:640px){.ag-od{font-size:13.5px}.ag-od td.od{font-size:14.5px}.ag-od th,.ag-od td{padding:4px 6px}}
+/* Weekly Ads tab (Miles, 9 Nov 2026) */
+#tabAds{font-size:16.5px;line-height:1.45}
+#tabAds .ads-kpis{display:flex;flex-wrap:wrap;gap:12px}
+#tabAds .ads-kpis .kpi{flex:1 1 200px}
+#tabAds .ads-bar{display:flex;align-items:flex-end;gap:8px;height:180px;margin:8px 0 0;padding:0}
+#tabAds .ads-bar .col{flex:1 1 0;min-width:0;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%;gap:4px}
+#tabAds .ads-bar .bar{width:100%;max-width:56px;background:var(--accent);border-radius:6px 6px 0 0;min-height:2px}
+#tabAds .ads-bar .amt{font:700 12px var(--font-mono);font-variant-numeric:tabular-nums;color:var(--text);text-align:center}
+#tabAds .ads-bar .wk{font:11px var(--font-mono);color:var(--muted);text-align:center;line-height:1.25}
+#tabAds .ads-tbl th,#tabAds .ads-tbl td{white-space:nowrap;text-align:right}
+#tabAds .ads-tbl th:first-child,#tabAds .ads-tbl td:first-child{text-align:left}
+#tabAds .ads-tbl .tot{font-weight:700}
+#tabAds .ads-tbl .empty{color:var(--muted)}
+#tabAds .ads-notes{font-size:14px;color:var(--muted);margin:8px 0 0;padding-left:18px}
+#tabAds .ads-notes li{margin:4px 0}
+@media (max-width:640px){#tabAds .ads-bar{height:150px;gap:4px}#tabAds .ads-bar .amt{font-size:10.5px}}
 .vital .vpill{display:inline-flex;margin-top:8px;font-size:12.5px;padding:4px 10px;white-space:nowrap;max-width:100%}
 .tabs .tcount.red{background:var(--pink)}
 .h2n{display:inline-block;margin-left:8px;min-width:28px;text-align:center;padding:1px 9px;border-radius:999px;background:var(--pink);color:#fff;font:700 15px var(--font-ui);vertical-align:middle}
@@ -431,7 +460,7 @@ body.mc-blur #keyGate::after,body.mc-blur #keyGate *::after{content:none !import
 </style></head><body class="t-today"><script>try{if(localStorage.getItem("mcBlurMode")==="1")document.body.classList.add("mc-blur")}catch(e){}</script><main>
 <nav class="mcnav" aria-label="Mission Control">
   <div class="mcnav-row">
-    <div class="tabs" role="tablist" aria-label="Sections"><button type="button" role="tab" data-tab="today" aria-selected="true"><svg class="nav-ico" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="3.25"/><path d="M12 3.5v1.8M12 18.7v1.8M3.5 12h1.8M18.7 12h1.8M6.1 6.1l1.3 1.3M16.6 16.6l1.3 1.3M17.9 6.1l-1.3 1.3M7.4 16.6l-1.3 1.3"/></svg><span class="tab-label">Today</span><span class="tcount red" id="todayTabCount" hidden></span></button><button type="button" role="tab" data-tab="villas" aria-selected="false"><svg class="nav-ico" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 21V10.5"/><path d="M12 11c-1.2-3.2-4.6-4.6-7.2-3.6 1.8.6 3.2 2.2 3.6 4.2"/><path d="M12 11c1.2-3.2 4.6-4.6 7.2-3.6-1.8.6-3.2 2.2-3.6 4.2"/><path d="M12 12.2c-2.6.2-4.4 1.6-5.4 3.6M12 12.2c2.6.2 4.4 1.6 5.4 3.6"/></svg><span class="tab-label">Villas</span></button><button type="button" role="tab" data-tab="money" aria-selected="false"><svg class="nav-ico" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><ellipse cx="12" cy="7" rx="7" ry="2.6"/><path d="M5 7v4.2c0 1.5 3.1 2.6 7 2.6s7-1.1 7-2.6V7"/><path d="M5 11.2v4.2c0 1.5 3.1 2.6 7 2.6s7-1.1 7-2.6v-4.2"/></svg><span class="tab-label">Money</span></button><button type="button" role="tab" data-tab="growth" aria-selected="false"><svg class="nav-ico" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M4 16.5 9.5 11l3.8 3.2L20 7"/><path d="M14.5 7H20v5.5"/></svg><span class="tab-label">Growth</span></button><button type="button" role="tab" data-tab="helpdesk" aria-selected="false"><svg class="nav-ico" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M4.5 13a7.5 7.5 0 0 1 15 0"/><path d="M4.5 13v3.2A2.2 2.2 0 0 0 6.7 18.4H8v-5.6H6.6"/><path d="M19.5 13v3.2a2.2 2.2 0 0 1-2.2 2.2H16v-5.6h1.4"/><path d="M12 18.4v1.2a1.8 1.8 0 0 0 1.8 1.8H16"/></svg><span class="tab-label">Si Helpdesk</span><span class="tcount hdcrit" id="hdTabCrit" hidden title="Critical tickets"></span><span class="tcount hdconc" id="hdTabConc" hidden title="Concerning tickets"></span></button><button type="button" role="tab" data-tab="org" aria-selected="false"><svg class="nav-ico" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="12" cy="5" r="2"/><circle cx="6" cy="18.5" r="2"/><circle cx="18" cy="18.5" r="2"/><path d="M12 7v3.2M12 10.2H7.2L6 16.5M12 10.2h4.8L18 16.5"/></svg><span class="tab-label">Org &amp; Systems</span><span class="tcount" id="orgTabCount" hidden></span></button><button type="button" role="tab" data-tab="activity" aria-selected="false"><svg class="nav-ico" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M13 3 5.5 13.5H12l-1 7.5L18.5 10H12l1-7z"/></svg><span class="tab-label">Activity</span></button><button type="button" role="tab" data-tab="routines" aria-selected="false"><svg class="nav-ico" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="8.25"/><path d="M12 7.4V12l3.2 2"/></svg><span class="tab-label">Routines</span><span class="tcount" id="rtTabCount" hidden></span></button></div>
+    <div class="tabs" role="tablist" aria-label="Sections"><button type="button" role="tab" data-tab="today" aria-selected="true"><svg class="nav-ico" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="3.25"/><path d="M12 3.5v1.8M12 18.7v1.8M3.5 12h1.8M18.7 12h1.8M6.1 6.1l1.3 1.3M16.6 16.6l1.3 1.3M17.9 6.1l-1.3 1.3M7.4 16.6l-1.3 1.3"/></svg><span class="tab-label">Today</span><span class="tcount red" id="todayTabCount" hidden></span></button><button type="button" role="tab" data-tab="villas" aria-selected="false"><svg class="nav-ico" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 21V10.5"/><path d="M12 11c-1.2-3.2-4.6-4.6-7.2-3.6 1.8.6 3.2 2.2 3.6 4.2"/><path d="M12 11c1.2-3.2 4.6-4.6 7.2-3.6-1.8.6-3.2 2.2-3.6 4.2"/><path d="M12 12.2c-2.6.2-4.4 1.6-5.4 3.6M12 12.2c2.6.2 4.4 1.6 5.4 3.6"/></svg><span class="tab-label">Villas</span></button><button type="button" role="tab" data-tab="money" aria-selected="false"><svg class="nav-ico" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><ellipse cx="12" cy="7" rx="7" ry="2.6"/><path d="M5 7v4.2c0 1.5 3.1 2.6 7 2.6s7-1.1 7-2.6V7"/><path d="M5 11.2v4.2c0 1.5 3.1 2.6 7 2.6s7-1.1 7-2.6v-4.2"/></svg><span class="tab-label">Money</span></button><button type="button" role="tab" data-tab="ads" aria-selected="false"><svg class="nav-ico" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M5 10.2v3.6c0 .7.6 1.3 1.3 1.3H8.2L13 19V5L8.2 9H6.3C5.6 9 5 9.5 5 10.2z"/><path d="M16.2 9.4a3 3 0 0 1 0 5.2"/><path d="M18.2 7.5a5.4 5.4 0 0 1 0 9"/></svg><span class="tab-label">Ads</span></button><button type="button" role="tab" data-tab="growth" aria-selected="false"><svg class="nav-ico" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M4 16.5 9.5 11l3.8 3.2L20 7"/><path d="M14.5 7H20v5.5"/></svg><span class="tab-label">Growth</span></button><button type="button" role="tab" data-tab="helpdesk" aria-selected="false"><svg class="nav-ico" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M4.5 13a7.5 7.5 0 0 1 15 0"/><path d="M4.5 13v3.2A2.2 2.2 0 0 0 6.7 18.4H8v-5.6H6.6"/><path d="M19.5 13v3.2a2.2 2.2 0 0 1-2.2 2.2H16v-5.6h1.4"/><path d="M12 18.4v1.2a1.8 1.8 0 0 0 1.8 1.8H16"/></svg><span class="tab-label">Si Helpdesk</span><span class="tcount hdcrit" id="hdTabCrit" hidden title="Critical tickets"></span><span class="tcount hdconc" id="hdTabConc" hidden title="Concerning tickets"></span></button><button type="button" role="tab" data-tab="org" aria-selected="false"><svg class="nav-ico" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="12" cy="5" r="2"/><circle cx="6" cy="18.5" r="2"/><circle cx="18" cy="18.5" r="2"/><path d="M12 7v3.2M12 10.2H7.2L6 16.5M12 10.2h4.8L18 16.5"/></svg><span class="tab-label">Org &amp; Systems</span><span class="tcount" id="orgTabCount" hidden></span></button><button type="button" role="tab" data-tab="activity" aria-selected="false"><svg class="nav-ico" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M13 3 5.5 13.5H12l-1 7.5L18.5 10H12l1-7z"/></svg><span class="tab-label">Activity</span></button><button type="button" role="tab" data-tab="routines" aria-selected="false"><svg class="nav-ico" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="8.25"/><path d="M12 7.4V12l3.2 2"/></svg><span class="tab-label">Routines</span><span class="tcount" id="rtTabCount" hidden></span></button></div>
     <div class="mcnav-side">
     <button type="button" class="blur-toggle" id="blurMode" aria-pressed="false" aria-keyshortcuts="Shift+B" title="Blur mode (Shift+B). Hides amounts, names, emails, phone numbers, and private text for screenshots.">
       <svg class="nav-ico" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M3 12s3.5-6 9-6 9 6 9 6-3.5 6-9 6-9-6-9-6z"/><circle cx="12" cy="12" r="2.4"/><path d="M4 5.5 19 18.5"/></svg>
@@ -525,6 +554,7 @@ body.mc-blur #keyGate::after,body.mc-blur #keyGate *::after{content:none !import
 <div id="tabVillas" class="big tabpane" hidden></div>
 <div id="tabMoney" class="big tabpane" hidden></div>
 <div id="tabGrowth" class="big tabpane" hidden></div>
+<div id="tabAds" class="big tabpane" hidden></div>
 <div id="tabHelpdesk" class="big tabpane" hidden></div>
 <div id="tabActivity" class="tabpane" hidden>
     <section><h2>Activity timeline</h2><p class="cap" id="tcap"></p><div id="timeline"></div></section>
@@ -538,7 +568,7 @@ body.mc-blur #keyGate::after,body.mc-blur #keyGate *::after{content:none !import
 <div class="og-h">Systems</div>
 <div class="stack" style="margin-top:0">
     <section><h2>Upcoming routines</h2><p class="cap" id="rcap"></p><div class="tblwrap"><table><thead><tr><th>Routine</th><th>Next run (AST)</th><th>Owner</th></tr></thead><tbody id="routines"></tbody></table></div></section>
-    <section><h2>Data sources</h2><p class="cap" id="srcCap">Bot chats + Asana (hourly), Cashbot (agency receivables), the Operational Brain engine (weekdays 7:35 AM AST: Hospitable, Gmail, Slack, Calendar, Meta Ads), org.json.</p></section>
+    <section><h2>Data sources</h2><p class="cap" id="srcCap">Bot chats + Asana (hourly), Cashbot (agency receivables), ads-weekly.json (Ads tab), the Operational Brain engine (weekdays 7:35 AM AST: Hospitable, Gmail, Slack, Calendar, Meta Ads), org.json.</p></section>
 </div>
 </div>
 </main>
@@ -869,6 +899,86 @@ function renderOffice() {
 }
 
 // Heatmap, brief, timeline, routines
+
+// Weekly Ads tab. Data: D.ads_weekly from box file ads-weekly.json, shipped by export-data.js.
+const usd2 = (n) => n == null || n === "" ? "" : "$" + Number(n).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+function weekLabel(start, end) {
+  const at = (iso) => new Date(iso + "T12:00:00-04:00");
+  const part = (d, opts) => new Intl.DateTimeFormat("en-US", { timeZone: "America/Port_of_Spain", ...opts }).format(d);
+  const s = at(start), e = at(end);
+  const sm = part(s, { month: "short" }), em = part(e, { month: "short" });
+  const sd = part(s, { day: "numeric" }), ed = part(e, { day: "numeric" });
+  return sm === em ? `${sm} ${sd}–${ed}` : `${sm} ${sd}–${em} ${ed}`;
+}
+function adsColKey(channel, acc) {
+  const id = acc && (acc.id || acc.account_id);
+  const name = acc && (acc.name || "");
+  if (channel && id) return `${channel}:${id}`;
+  if (channel === "google" && /tobago/i.test(name)) return "google:632-795-6890";
+  if (channel === "google" && /sellier/i.test(name)) return "google:409-368-0196";
+  if (channel === "linkedin") return "linkedin:502471731";
+  return `${channel || ""}:${name}`;
+}
+function renderAds() {
+  const el = $("tabAds"); if (!el) return;
+  const A = D && D.ads_weekly;
+  if (!A || !Array.isArray(A.weeks) || !A.weeks.length) {
+    el.innerHTML = none("Weekly ads spend has not been loaded yet. The next Mission Control refresh will include ads-weekly.json when that file is on the box.");
+    return;
+  }
+  const cols = (A.columns && A.columns.length) ? A.columns : [];
+  const spendBy = {};
+  const weekRows = [...A.weeks].sort((a, b) => String(a.start).localeCompare(String(b.start)));
+  for (const w of weekRows) {
+    for (const ch of w.channels || []) {
+      for (const acc of ch.accounts || []) {
+        const k = adsColKey(ch.channel, acc);
+        if (acc.spend == null) continue;
+        (spendBy[w.start] || (spendBy[w.start] = {}))[k] = acc.spend;
+      }
+    }
+  }
+  const official = Object.fromEntries((A.account_totals || []).map((r) => [r.key, r.spend]));
+  const usdCell = (n) => n == null ? `<td class="empty">–</td>` : `<td class="mc-sensitive" data-mc-sensitive="money">${usd2(n)}</td>`;
+  const body = weekRows.map((w) => {
+    let tot = 0, any = false;
+    const cells = cols.map((c) => {
+      const n = (spendBy[w.start] || {})[c.key];
+      if (n != null) { tot += Number(n); any = true; }
+      return usdCell(n);
+    });
+    return `<tr><td>${esc(weekLabel(w.start, w.end))}</td>${cells.join("")}<td class="tot mc-sensitive" data-mc-sensitive="money">${any ? usd2(tot) : "–"}</td></tr>`;
+  });
+  const totals = cols.map((c) => {
+    if (official[c.key] != null) return official[c.key];
+    return weekRows.reduce((s, w) => s + Number((spendBy[w.start] || {})[c.key] || 0), 0);
+  });
+  const combined = A.combined_known_spend != null ? A.combined_known_spend : totals.reduce((s, n) => s + Number(n || 0), 0);
+  const totRow = `<tr class="tot"><td>Window total</td>${totals.map((n) => `<td class="tot mc-sensitive" data-mc-sensitive="money">${usd2(n)}</td>`).join("")}<td class="tot mc-sensitive" data-mc-sensitive="money">${usd2(combined)}</td></tr>`;
+  const maxW = Math.max(0, ...weekRows.map((w) => Object.values(spendBy[w.start] || {}).reduce((s, n) => s + Number(n), 0)));
+  const bars = weekRows.map((w) => {
+    const tot = Object.values(spendBy[w.start] || {}).reduce((s, n) => s + Number(n), 0);
+    const pct = maxW ? Math.max(2, Math.round(tot / maxW * 100)) : 0;
+    return `<div class="col"><div class="amt mc-sensitive" data-mc-sensitive="money">${usd2(tot)}</div><div class="bar" style="height:${pct}%" title="${esc(weekLabel(w.start, w.end))}: ${usd2(tot)}"></div><div class="wk">${esc(weekLabel(w.start, w.end))}</div></div>`;
+  }).join("");
+  const notes = [];
+  notes.push("Only accounts and weeks with confirmed spend are shown. Blank cells are not zeros.");
+  if (A.linkedin_time_note) notes.push(A.linkedin_time_note);
+  if (A.rounding_note) notes.push(A.rounding_note);
+  const gaps = A.not_yet_pulled || [];
+  if (gaps.length) notes.push("Not yet pulled (not $0): " + gaps.join("; ") + ".");
+  const asof = A.as_of ? `as of ${fmtRun(A.as_of)}` : "";
+  const win = (A.meta && A.meta.window) || (A.google && A.google.window) || {};
+  const winLbl = win.start && win.end ? `${weekLabel(win.start, win.end)}` : "known weeks";
+  el.innerHTML =
+    sec("Weekly ad spend", `USD · weeks Monday–Sunday, America/Port_of_Spain · ${asof}`,
+      `<div class="ads-kpis"><div class="kpi"><div class="s">Combined known spend</div><div class="b mc-sensitive" data-mc-sensitive="money">${usd2(combined)}</div><div class="us">${esc(winLbl)}</div></div></div>`
+      + `<p class="cap">Bar heights are the sum of confirmed spend in that week.</p>`
+      + `<div class="ads-bar" role="img" aria-label="Weekly total spend">${bars}</div>`
+      + `<div class="tblwrap" style="margin-top:18px"><table class="ads-tbl"><thead><tr><th>Week</th>${cols.map((c) => `<th>${esc(c.label || c.name)}</th>`).join("")}<th>Week total</th></tr></thead><tbody>${body.join("")}${totRow}</tbody></table></div>`
+      + (notes.length ? `<ul class="ads-notes">${notes.map((n) => `<li>${esc(n)}</li>`).join("")}</ul>` : ""));
+}
+
 function renderRest() {
   const h = D.heatmap, max = Math.max(1, ...h.values.flat());
   $("hcap").textContent = h.caption;
@@ -892,6 +1002,7 @@ function renderRest() {
   $("wN").textContent = w.length; $("wN").hidden = !w.length;
   $("todayTabCount").textContent = w.length || ""; $("todayTabCount").hidden = !w.length;
   try { renderBrain(); } catch (e) { console.error(e); }
+  try { renderAds(); } catch (e) { console.error(e); }
   try { renderRoutines(); } catch (e) { console.error(e); }
   try { renderHelpdesk(); } catch (e) { console.error(e); }
 }
@@ -1066,7 +1177,16 @@ function renderBrain(force) {
   $("oneMove").hidden = !om.head;
   $("oneMove").innerHTML = `<div class="lab">Your one move today · from the ${esc(fmtRun(B.as_of))} run</div><div class="hd mc-sensitive" data-mc-sensitive="text">${esc(om.head)}</div>${om.detail ? `<div class="dt mc-sensitive" data-mc-sensitive="text">${esc(om.detail)}</div>` : ""}${om.why ? `<div class="why">Why: ${sens(esc(om.why), "text")}</div>` : ""}${om.advisor_line ? `<div class="adv">🎩 ${sens(esc(om.advisor_line), "text")}</div>` : ""}`;
   const vitals = B.vitals || [];
+  const agencyBook = (B.money && B.money.agency) || {};
   $("vitals").innerHTML = vitals.map((v) => { const pnlBtn = /^Villa profit/.test(v.k || ""), tag = pnlBtn ? "div" : "button";
+    const companies = (v.companies && v.companies.length) ? v.companies : (/^Agency overdue$/i.test(v.k || "") ? (agencyBook.companies || []) : []);
+    if (companies.length) {
+      const asof = v.asof || agencyBook.asof || "";
+      const srcName = v.source || agencyBook.source || "";
+      const src = srcName === "Cashbot" ? `Cashbot${asof ? `, ${asof}` : ""}` : (asof || srcName || "");
+      const rows = companies.map((c) => `<tr><td class="co">${esc(c.company)}</td><td class="od mc-sensitive" data-mc-sensitive="money">${esc(c.overdue_lbl || "")}</td><td class="os mc-sensitive" data-mc-sensitive="money">${esc(c.outstanding_lbl || "")}</td></tr>`).join("");
+      return `<${tag} ${pnlBtn ? `role="button" tabindex="0"` : `type="button"`} class="vital ag-od-card ${v.bad ? "bad" : ""}" data-go="${esc(v.tab)}"><div class="s">${esc(v.k)}</div><div class="tblwrap"><table class="ag-od"><thead><tr><th>Company</th><th>Overdue</th><th>Outstanding</th></tr></thead><tbody>${rows}</tbody></table></div>${src ? `<div class="ag-od-src">${esc(src)}</div>` : ""}</${tag}>`;
+    }
     return `<${tag} ${pnlBtn ? `role="button" tabindex="0"` : `type="button"`} class="vital ${v.bad ? "bad" : ""}" data-go="${esc(v.tab)}"><div class="s">${esc(v.k)}</div><div class="b mc-sensitive" data-mc-sensitive="money">${esc(v.v ?? "unknown")}</div>${v.sub ? `<div class="u mc-sensitive" data-mc-sensitive="text">${esc(v.sub)}</div>` : ""}${v.goal ? `<div class="g mc-sensitive" data-mc-sensitive="text">${esc(v.goal)}</div>` : ""}${pnlBtn ? `<a class="pill vpill" href="#tab=villas" data-go="villas" data-sec="villaPnl">See revenue and expenses</a>` : ""}</${tag}>`; }).join("") || `<p class="cap">No villa stats in this run.</p>`;
   const vc = $("vitalsCount"); if (vc) { vc.textContent = vitals.length ? String(vitals.length) : ""; vc.hidden = !vitals.length; }
   // Board Room
@@ -1139,7 +1259,7 @@ function renderBrain(force) {
     + (AD ? sec(`Villa ads · ${esc(AD.account)}`, "", `<p class="cap">${esc(AD.window)}${AD.stale ? ` · <span class="stale-flag">stale: Meta Ads hasn't refreshed since this window</span>` : ""}</p><div class="cards">${(AD.kpis || []).map((k) => `<div class="kpi"><div class="s">${esc(k.k)}</div><div class="b mc-sensitive" data-mc-sensitive="money">${esc(k.v)}</div><div class="us mc-sensitive" data-mc-sensitive="text">${esc(k.sub)} · ${esc(k.delta)}</div></div>`).join("")}</div><p class="mc-sensitive" data-mc-sensitive="text" style="margin-top:12px">${esc(AD.story)}</p>` + ttab(["Campaign", "Status", "Spend", "Clicks", "CTR"], (AD.campaigns || []).map((c) => `<tr><td>${esc(c.name)}${c.tag ? `<div class="us">${esc(c.tag)}</div>` : ""}</td><td>${esc(c.status)}</td><td>${sens(esc(c.spend), "money")}</td><td>${esc(c.clicks)}</td><td>${sens(esc(c.ctr), "money")}</td></tr>`))) : "")
     + (PL ? sec("Ad spend plan, next 6 months", "", `${PL.note ? `<p class="cap mc-sensitive" data-mc-sensitive="text">${esc(PL.note)}</p>` : ""}` + ttab(["Month", "Posture", "Spend", "Why"], (PL.months || []).map((m) => `<tr><td><b>${esc(m.m)}</b></td><td>${esc(m.posture)}</td><td>${sens(esc(m.spend), "money")}</td><td>${sens(esc(m.why), "text")}</td></tr>`))) : "")
     + sec("Division goals", "", `<p>Sprint leads, SI Ventures deals and real-estate leads are tracked as KPIs on <a href="#" data-go="org" style="color:var(--accent-ink)">Org &amp; Systems</a>.</p>`);
-  $("srcCap").textContent = `Bot chats + Asana (hourly), Cashbot (agency receivables), the Operational Brain engine (last run ${fmtRun(B.as_of)}; weekdays 7:35 AM AST: Hospitable, Gmail, Slack, Calendar, Meta Ads), org.json.`;
+  $("srcCap").textContent = `Bot chats + Asana (hourly), Cashbot (agency receivables), ads-weekly.json (Ads tab), the Operational Brain engine (last run ${fmtRun(B.as_of)}; weekdays 7:35 AM AST: Hospitable, Gmail, Slack, Calendar, Meta Ads), org.json.`;
   applyNetworthDisclosure();
 }
 document.addEventListener("keydown", (e) => { const v = e.target.closest && e.target.closest("div.vital[role=button]"); if (v && e.target === v && (e.key === "Enter" || e.key === " ")) { e.preventDefault(); v.click(); } });
@@ -1291,7 +1411,7 @@ setInterval(() => { if (!document.querySelector("input.reply:focus")) load().cat
 // org-refresh.js / the mc-sync daemon). Tab chosen by #...&tab=org (fragment only, never sent anywhere).
 const O = { d: null, view: ST.get("mcOrgView") || "all", loading: false };
 const hashP = () => new URLSearchParams(location.hash.slice(1));
-const TABS = { today: "tabToday", villas: "tabVillas", money: "tabMoney", growth: "tabGrowth", helpdesk: "tabHelpdesk", org: "tabOrg", activity: "tabActivity", routines: "tabRoutines" };
+const TABS = { today: "tabToday", villas: "tabVillas", money: "tabMoney", ads: "tabAds", growth: "tabGrowth", helpdesk: "tabHelpdesk", org: "tabOrg", activity: "tabActivity", routines: "tabRoutines" };
 const tabFromHash = () => { const t = hashP().get("tab"); return TABS[t] ? t : "today"; };
 function setTab(t, push) {
   if (!TABS[t]) t = "today";

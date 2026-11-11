@@ -98,7 +98,12 @@ export const fixture = {
       { k: "Villa profit", v: "TT$12,000 sample", sub: "Synthetic month", goal: "Sample goal", bad: false, tab: "villas" },
       { k: "Booked nights", v: "40%", sub: "Sample Nest", bad: false, tab: "villas" },
       { k: "In transit", v: "TT$1,000 sample", sub: "Synthetic payout", bad: false, tab: "money" },
-      { k: "Open asks", v: "2", sub: "Sample queue", bad: true, tab: "today" }
+      { k: "Open asks", v: "2", sub: "Sample queue", bad: true, tab: "today" },
+      { k: "Agency overdue", v: "SIMCL TT$1,234.00 · SiBB BDS$2,345.00 · SI CY US$3,456.00", sub: "outstanding SIMCL TT$9,000.00 · SiBB BDS$8,000.00 · SI CY US$3,456.00 · Cashbot, Tue 10 Nov, 5:46 PM AST", bad: true, tab: "money", source: "Cashbot", asof: "Tue 10 Nov, 5:46 PM AST", companies: [
+        { company: "SIMCL", currency: "TTD", overdue_lbl: "TT$1,234.00", outstanding_lbl: "TT$9,000.00" },
+        { company: "SiBB", currency: "BBD", overdue_lbl: "BDS$2,345.00", outstanding_lbl: "BDS$8,000.00" },
+        { company: "SI CY", currency: "USD", overdue_lbl: "US$3,456.00", outstanding_lbl: "US$3,456.00" }
+      ] }
     ],
     board: {
       month: "Nov",
@@ -212,6 +217,34 @@ export const fixture = {
         months: [{ m: "Nov", posture: "Steady", spend: "TT$2,400", why: "Sample only" }]
       }
     }
+  },
+  ads_weekly: {
+    timezone: "America/Port_of_Spain",
+    currency: "USD",
+    as_of: "2026-11-09T19:00:00-04:00",
+    combined_known_spend: 150.00,
+    weekly_rows_sum: 150.00,
+    columns: [
+      { key: "meta:1", channel: "meta", name: "Sample Account", id: "1", label: "Meta · Sample Account" },
+      { key: "google:2", channel: "google", name: "Sample Google", id: "2", label: "Google · Sample Google" }
+    ],
+    account_totals: [
+      { key: "meta:1", spend: 100.00 },
+      { key: "google:2", spend: 50.00 }
+    ],
+    weeks: [
+      { start: "2026-10-26", end: "2026-11-01", complete: true, channels: [
+        { channel: "meta", spend: 100, accounts: [{ name: "Sample Account", id: "1", spend: 100 }] }
+      ]},
+      { start: "2026-11-02", end: "2026-11-08", complete: true, channels: [
+        { channel: "google", spend: 50, accounts: [{ name: "Sample Google", id: "2", spend: 50 }] }
+      ]}
+    ],
+    linkedin_time_note: "LinkedIn figures are from a Campaign Manager date picker labelled Time in UTC and were not converted to America/Port_of_Spain.",
+    not_yet_pulled: [
+      "Google Ads login miles@simplyintense.com",
+      "LinkedIn Shell 508694935"
+    ]
   }
 };
 
