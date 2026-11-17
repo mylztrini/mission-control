@@ -129,7 +129,7 @@ details.oldgrp{margin-top:10px}details.oldgrp>summary{cursor:pointer;font-weight
 .btn.appr{border-color:var(--good,#2e7d32);color:var(--good,#2e7d32)}.btn.decl{border-color:var(--crit,#c0392b);color:var(--crit,#c0392b)}
 .elist .em{border-top:1px solid var(--line-soft,var(--line));padding:8px 0}.elist .em:first-child{border-top:0}.elist .em .hd{font-weight:700;overflow-wrap:anywhere}.elist .em .ask{font-size:13px;margin:2px 0}
 .wk h3{font-size:13px;margin:10px 0 4px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em}.wk ul{margin:0;padding-left:18px}.wk li{margin:2px 0;font-size:13.5px;overflow-wrap:anywhere}
-@media (max-width:720px){.mstrip{grid-template-columns:repeat(2,minmax(0,1fr))}.mcell .b{font-size:16px}.decide input{flex-basis:100%}.item .row{flex-wrap:wrap}}
+@media (max-width:720px){.mstrip{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.mcell{padding:8px 10px}.mcell .b{font-size:14.5px;line-height:1.25}.mcell:not(.nodata) .u{display:none}.mcell .u,.mcell .src{display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden}.mcell .src{font-size:10.5px}.decide input{flex-basis:100%}.item .row{flex-wrap:wrap}}
 .dec{display:inline-block;padding:0 8px;border-radius:999px;font-size:12px;font-weight:700;border:1px solid var(--line);margin-right:6px}
 .dec.completed{color:var(--good);border-color:var(--good)}.dec.ignored_forever,.dec.ignored{color:var(--muted)}.dec.hold,.dec.parked{color:var(--warn);border-color:var(--warn)}.dec.assigned,.dec.reviewed,.dec.hidden_until_comment{color:var(--accent-ink);border-color:var(--accent)}
 .tl .av.dec-av{font-size:15px}
@@ -659,6 +659,7 @@ body.mc-blur #keyGate::after,body.mc-blur #keyGate *::after{content:none !import
 <script>
 // Always-on Mission Control. This page holds NO data: it reads the view key from the #k= fragment (never sent to
 // this host, never put in a link) and calls the private Supabase function with it in a request header.
+let WSHOWN = null; // Top 10 count shown in the Waiting header (null = all view)
 const FN = "https://ufwckditozswfzosymwu.supabase.co/functions/v1/mission-control";
 // Safe storage: some in-app browsers (Slack/WhatsApp/Instagram webviews, blocked-cookie or private modes) throw on
 // localStorage; fall back to memory so the page still runs instead of dying on "Loading…".
@@ -927,6 +928,7 @@ function renderWaiting() {
   const fresh = top ? items : items.filter((i) => !isOld(i)), stale = top ? [] : items.filter(isOld);
   $("vTop").setAttribute("aria-pressed", String(top)); $("vAll").setAttribute("aria-pressed", String(!top));
   $("wTitle").textContent = top ? "Top 10 asks" : "Waiting on me (all)";
+  WSHOWN = top ? items.length : null; $("wN").textContent = top ? items.length : all.length; $("wN").hidden = top ? false : !all.length;
   const card = (it) => {
     const k = esc(it.key), ig = ignored.has(it.key), bl = blurAll || hidden.has(it.key), s = sent.get(it.key);
     return `<div class="item ${it.stale ? "stale" : ""} ${ig ? "ign" : ""} ${bl ? "blur" : ""} ${s && s.ok ? "sent" : ""} ${parkedOf(it) ? "held" : ""} ${isOld(it) ? "old" : ""}" data-k="${k}"><div class="nrow"><div class="num mc-sensitive" data-mc-sensitive="id">${it.number ? "#" + it.number : ""}</div><div class="nbody">
@@ -1519,7 +1521,7 @@ function renderRest() {
   $("statN").textContent = w.length;
   $("statS").textContent = (w.length === 1 ? "item needs you" : "items need you") + (held ? ` · ${held} on hold or parked` : "");
   $("summary").textContent = ""; $("summary").hidden = true;
-  $("wN").textContent = w.length; $("wN").hidden = !w.length;
+  if (WSHOWN == null) { $("wN").textContent = w.length; $("wN").hidden = !w.length; }
   $("todayTabCount").textContent = w.length || ""; $("todayTabCount").hidden = !w.length;
   try { renderBrain(); } catch (e) { console.error(e); }
   try { renderCash(); } catch (e) { console.error(e); }
