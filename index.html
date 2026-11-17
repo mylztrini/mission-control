@@ -112,7 +112,24 @@ ol{margin:0;padding-left:22px}ol li{margin:4px 0}
 .item.old{opacity:.55}.item.old:hover,.item.old:focus-within{opacity:1}
 .boardasof{font-size:12.5px;color:var(--muted,#888);margin:-4px 0 8px}.boardasof.stale{color:var(--bad,#c0392b);font-weight:700;border:1px solid currentColor;border-radius:8px;padding:6px 10px;margin:0 0 10px}
 details.oldgrp{margin-top:10px}details.oldgrp>summary{cursor:pointer;font-weight:700;color:var(--muted,#888);padding:6px 0}
-.btn.done{border-color:var(--ok,#2e7d32);color:var(--ok,#2e7d32)}
+.btn.done{border-color:var(--good,#2e7d32);color:var(--good,#2e7d32)}
+/* v2 (Nov 17 2026): money strip, top 10, decide in place, proper-ask flags, re-raise, emails, weekly wins/drift */
+.mstrip{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin:0 0 14px}
+.mcell{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:10px 12px;min-width:0}
+.mcell .s{font-size:11.5px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.mcell .b{font-size:19px;font-weight:800;margin:2px 0;overflow-wrap:anywhere}.mcell .u{font-size:12px;color:var(--muted);overflow-wrap:anywhere}
+.mcell.nodata .b{font-size:15px;color:var(--warn)}.mcell .src{font-size:11px;color:var(--faint,var(--muted));margin-top:4px}
+.viewseg{display:inline-flex;border:1px solid var(--line);border-radius:999px;overflow:hidden}.viewseg button{border:0;background:transparent;padding:5px 12px;font:inherit;font-size:13px;font-weight:700;color:var(--muted);cursor:pointer}
+.viewseg button[aria-pressed="true"]{background:var(--accent-bg);color:var(--accent-ink)}
+.askmeta{display:flex;flex-wrap:wrap;gap:6px;margin:6px 0 2px}.pill2{display:inline-block;padding:1px 8px;border-radius:999px;font-size:11.5px;font-weight:700;border:1px solid var(--line);color:var(--muted)}
+.pill2.money{border-color:var(--good,#2e7d32);color:var(--good,#2e7d32)}.pill2.due{border-color:var(--accent);color:var(--accent-ink)}.pill2.over{border-color:var(--crit,#c0392b);color:var(--crit,#c0392b)}
+.pill2.flag{border-color:var(--warn);color:var(--warn);background:color-mix(in oklab,var(--warn) 10%,transparent)}.pill2.raise{border-color:var(--pink,#c2185b);color:var(--pink,#c2185b)}
+.askq{font-size:13px;margin:4px 0;color:var(--text)}.rec{border:1px dashed var(--line);border-radius:10px;padding:6px 10px;margin:6px 0;font-size:13px}.rec b{font-size:11.5px;letter-spacing:.05em;text-transform:uppercase}
+.decide{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-top:6px}.decide input{flex:1 1 180px;min-width:0}.decide select{font:inherit;font-size:13px;border-radius:8px;border:1px solid var(--line);background:var(--surface);color:var(--text);padding:4px 6px}
+.btn.appr{border-color:var(--good,#2e7d32);color:var(--good,#2e7d32)}.btn.decl{border-color:var(--crit,#c0392b);color:var(--crit,#c0392b)}
+.elist .em{border-top:1px solid var(--line-soft,var(--line));padding:8px 0}.elist .em:first-child{border-top:0}.elist .em .hd{font-weight:700;overflow-wrap:anywhere}.elist .em .ask{font-size:13px;margin:2px 0}
+.wk h3{font-size:13px;margin:10px 0 4px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em}.wk ul{margin:0;padding-left:18px}.wk li{margin:2px 0;font-size:13.5px;overflow-wrap:anywhere}
+@media (max-width:720px){.mstrip{grid-template-columns:repeat(2,minmax(0,1fr))}.mcell .b{font-size:16px}.decide input{flex-basis:100%}.item .row{flex-wrap:wrap}}
 .dec{display:inline-block;padding:0 8px;border-radius:999px;font-size:12px;font-weight:700;border:1px solid var(--line);margin-right:6px}
 .dec.completed{color:var(--good);border-color:var(--good)}.dec.ignored_forever,.dec.ignored{color:var(--muted)}.dec.hold,.dec.parked{color:var(--warn);border-color:var(--warn)}.dec.assigned,.dec.reviewed,.dec.hidden_until_comment{color:var(--accent-ink);border-color:var(--accent)}
 .tl .av.dec-av{font-size:15px}
@@ -576,10 +593,12 @@ body.mc-blur #keyGate::after,body.mc-blur #keyGate *::after{content:none !import
   <div class="vitals" id="vitals" role="region" aria-labelledby="vitalsToggleLabel" hidden></div>
 </div>
 <div id="tabToday">
+<div class="mstrip" id="mstrip" aria-label="Money strip"></div>
 <div class="cols">
   <div class="left"><section>
-    <div class="sh"><h2>Waiting on me<span class="h2n" id="wN" hidden></span></h2>
-      <div style="display:flex;gap:14px;flex-wrap:wrap">
+    <div class="sh"><h2><span id="wTitle">Waiting on me</span><span class="h2n" id="wN" hidden></span></h2>
+      <div style="display:flex;gap:14px;flex-wrap:wrap;align-items:center">
+        <div class="viewseg" role="group" aria-label="Which items"><button type="button" id="vTop" aria-pressed="true">Top 10</button><button type="button" id="vAll" aria-pressed="false">Show all</button></div>
         <label class="tog"><input type="checkbox" id="showIgn"><span id="showIgnLbl">Show ignored (0)</span></label>
         <label class="tog"><input type="checkbox" id="blurAll">Blur all</label>
       </div></div>
@@ -587,7 +606,8 @@ body.mc-blur #keyGate::after,body.mc-blur #keyGate *::after{content:none !import
     <p class="boardasof" id="boardAsOf" hidden></p>
     <div class="warn" id="warn" hidden></div>
     <div id="wlist"></div>
-  </section></div>
+  </section>
+  <section id="emailSec"><div class="sh"><h2>Emails waiting on you</h2></div><p class="boardasof" id="emailAsOf"></p><div class="elist" id="elist"></div></section></div>
   <div class="left"><section>
     <div class="sh"><h2>Staff waiting on me</h2></div>
     <p class="cap" id="scap"></p>
@@ -596,6 +616,7 @@ body.mc-blur #keyGate::after,body.mc-blur #keyGate *::after{content:none !import
   <div class="right top">
     <section class="big"><h2>Today</h2><p class="cap" id="calCap"></p><ul class="lst" id="cal"></ul><div class="osub" style="margin-top:14px">Team today</div><div class="team2" id="team"></div></section>
     <section class="big" id="asanaSec" hidden><h2>Overdue in Asana · important</h2><p class="cap" id="asanaCap"></p><ul class="lst" id="asana"></ul></section>
+    <section class="big wk" id="weekSec" hidden><h2>This week: wins and drift</h2><p class="cap" id="weekCap"></p><div id="week"></div></section>
   </div>
 </div>
 <div class="stack">
@@ -876,14 +897,36 @@ function renderBoardAsOf() {
     : `Asana board as of ${when} AST (${age}).`;
 }
 const WEEK_MS = 7 * 864e5;
-const touchedMs = (i) => { const t = Date.parse(i.touched_at || i.status_at || ""); return Number.isFinite(t) ? t : 0; };
+const raiseOf = (i) => (i.ask && i.ask.raise) || i.raise || null;
+// last touched = latest of the card's own change and its latest re-raise point (day 3, 7, 14, then weekly), so undecided asks come back up
+const touchedMs = (i) => { const r = raiseOf(i); const t = Math.max(Date.parse(i.touched_at || i.status_at || "") || 0, r ? Date.parse(r.last_raised_at) || 0 : 0); return t; };
+let VIEW = ST.get("mcView") === "all" ? "all" : "top"; // v2: Top 10 by default, "Show all" remembered
+const isAsanaAsk = (i) => !!(i.card && /^\d{10,20}$/.test(i.card) && i.ask);
+function topItems(list) { const by = new Map(list.map((i) => [i.key, i])); return (D.top10 || []).map((k) => by.get(k)).filter(Boolean).slice(0, 10); }
+const fmtDue = (d) => { const t = Date.parse(d + "T12:00:00-04:00"); return Number.isFinite(t) ? new Date(t).toLocaleDateString("en-US", { timeZone: "America/Port_of_Spain", weekday: "short", month: "short", day: "numeric" }) : d; };
+function askBlock(it) {
+  const a = it.ask, r = raiseOf(it), rec = (a && a.recommendation) || it.recommendation, out = [];
+  const pills = [];
+  if (a && a.money_label) pills.push(`<span class="pill2 money mc-sensitive" data-mc-sensitive="money">${esc(a.money_label)} at stake</span>`);
+  if (a && a.due) pills.push(`<span class="pill2 ${a.overdue ? "over" : "due"}">${a.overdue ? "Overdue · " : "Due "}${esc(fmtDue(a.due))}</span>`);
+  if (r && r.count > 1) pills.push(`<span class="pill2 raise" title="Re-raised on a growing schedule (day 3, 7, 14, then weekly) until you decide">asked ${r.count}× / ${r.days} days</span>`);
+  if (a && !a.proper) pills.push(`<span class="pill2 flag" title="Missing: ${esc(a.missing.join(", "))}">needs a proper ask</span>`);
+  if (pills.length) out.push(`<div class="askmeta">${pills.join("")}</div>`);
+  if (a && a.question && a.question !== it.text) out.push(`<div class="askq mc-sensitive" data-mc-sensitive="text">❓ ${esc(a.question)}${a.options && a.options_kind !== "yes/no" ? ` <span class="meta">Options: ${esc(a.options.join(" · "))}</span>` : ""}</div>`);
+  if (rec) out.push(`<div class="rec"><b>Recommended</b> ${rec.decision ? `<span class="pill2 ${rec.decision === "approve" ? "money" : "over"}">${rec.decision === "approve" ? "Approve" : "Decline"}</span> ` : ""}<span class="mc-sensitive" data-mc-sensitive="text">${esc(rec.reason)}</span>${rec.decision && isAsanaAsk(it) ? ` <button class="btn" data-dec="accept">Accept recommendation</button>` : ""}</div>`);
+  return out.join("");
+}
 const isOld = (i) => { const t = touchedMs(i); return !!t && Date.now() - t > WEEK_MS; };
 function renderWaiting() {
   renderWaitingHead();
   const w = D.waiting, showIgn = $("showIgn").checked, blurAll = $("blurAll").checked;
   // Sorted by last touched (newest first); anything untouched for 7 days is faded and collapsed at the bottom.
-  const items = w.filter((i) => (showIgn || !ignored.has(i.key)) && !(sent.get(i.key) || {}).ok).sort((a, b) => touchedMs(b) - touchedMs(a));
-  const fresh = items.filter((i) => !isOld(i)), stale = items.filter(isOld);
+  const all = w.filter((i) => (showIgn || !ignored.has(i.key)) && !(sent.get(i.key) || {}).ok).sort((a, b) => touchedMs(b) - touchedMs(a));
+  const top = VIEW === "top" && Array.isArray(D.top10); // older payloads without top10 show everything
+  const items = top ? topItems(all) : all;
+  const fresh = top ? items : items.filter((i) => !isOld(i)), stale = top ? [] : items.filter(isOld);
+  $("vTop").setAttribute("aria-pressed", String(top)); $("vAll").setAttribute("aria-pressed", String(!top));
+  $("wTitle").textContent = top ? "Top 10 asks" : "Waiting on me (all)";
   const card = (it) => {
     const k = esc(it.key), ig = ignored.has(it.key), bl = blurAll || hidden.has(it.key), s = sent.get(it.key);
     return `<div class="item ${it.stale ? "stale" : ""} ${ig ? "ign" : ""} ${bl ? "blur" : ""} ${s && s.ok ? "sent" : ""} ${parkedOf(it) ? "held" : ""} ${isOld(it) ? "old" : ""}" data-k="${k}"><div class="nrow"><div class="num mc-sensitive" data-mc-sensitive="id">${it.number ? "#" + it.number : ""}</div><div class="nbody">
@@ -894,19 +937,54 @@ function renderWaiting() {
         <button class="btn" data-eye title="${bl ? "Show" : "Blur for privacy"}" aria-label="${bl ? "Show item" : "Blur item"}">${bl ? "🙈" : "👁"}</button>
         <button class="btn" data-ign>${ig ? "Restore" : "Ignore"}</button>
         ${it.card ? `<a class="btn l" target="_blank" rel="noreferrer" href="${esc(D.card_base + it.card)}">Asana card</a>` : ""}
-        ${it.card && /^\d{10,20}$/.test(it.card) ? `<button class="btn done" data-done title="Hide this item and mark its Asana card complete">✓ Done</button>` : ""}
       </div>
-      <div class="row">${it.actions.map((a) => `<button class="chip" data-a="${esc(a)}">${esc(a)}</button>`).join("")}</div>
+      ${askBlock(it)}
+      ${it.card && /^\d{10,20}$/.test(it.card) ? `<div class="decide"><input class="dreply" placeholder="Optional one-line reply (posted on the Asana card)" maxlength="200" aria-label="Optional reply">
+        <button class="btn appr" data-dec="approve" title="Comment on the card and move it to In progress">Approve</button>
+        <button class="btn decl" data-dec="decline" title="Comment on the card, move it to Done and complete it">Decline</button>
+        <select class="snz" aria-label="Snooze for"><option value="1d">1 day</option><option value="3d">3 days</option><option value="1w">1 week</option></select><button class="btn" data-dec="snooze" title="Hide until then; the card stays in Waiting on Miles">Snooze</button>
+        <button class="btn done" data-done title="Hide this item and mark its Asana card complete">✓ Done</button></div>` : ""}
+      <div class="row">${(isAsanaAsk(it) || (it.card && /^\d{10,20}$/.test(it.card)) ? it.actions.filter((a) => a !== "Approve" && a !== "Decline") : it.actions).map((a) => `<button class="chip" data-a="${esc(a)}">${esc(a)}</button>`).join("")}</div>
       <div class="row"><input class="reply" placeholder="Or type a reply for JARVIS…" maxlength="1000"><button class="btn p" data-a="Reply">Send</button><span class="st">${s ? esc(s.msg) : ""}</span></div>
     </div></div></div>`;
   };
+  const S = D.asks_summary || {};
+  const empty = top ? `<p class="cap">No proper asks right now. ${S.needs_proper_ask ? `${S.needs_proper_ask} Asana card${S.needs_proper_ask === 1 ? "" : "s"} need${S.needs_proper_ask === 1 ? "s" : ""} a proper ask (a clear question, options and a due date). ` : ""}<button type="button" class="btn" data-view="all">Show all ${all.length}</button></p>`
+    : `<p class="cap">Everything is ignored for this view. Tick "Show ignored" to bring items back.</p>`;
   $("wlist").innerHTML = items.length ? fresh.map(card).join("")
     + (stale.length ? `<details class="oldgrp"><summary>Untouched for 7+ days (${stale.length})</summary>${stale.map(card).join("")}</details>` : "")
-    : `<p class="cap">Everything is ignored for this view. Tick "Show ignored" to bring items back.</p>`;
+    + (top && all.length > items.length ? `<p class="cap">${all.length - items.length} more open item${all.length - items.length === 1 ? "" : "s"}${S.needs_proper_ask ? ` (${S.needs_proper_ask} flagged "needs a proper ask")` : ""}. <button type="button" class="btn" data-view="all">Show all</button></p>` : "")
+    : empty;
+}
+function setView(v) { VIEW = v; ST.set ? ST.set("mcView", v) : null; try { localStorage.setItem("mcView", v); } catch {} renderWaiting(); }
+$("vTop").addEventListener("click", () => setView("top"));
+$("vAll").addEventListener("click", () => setView("all"));
+// Decide in place (v2): Approve / Decline / Snooze / Accept recommendation save a removal with by = "web view: <action>" and the reply as note.
+// The box sync posts the Asana comment, moves the card, records it for the owning bot, and (Snooze) brings it back on the date.
+async function decidePress(el, it, kind) {
+  const st = el.querySelector(".st"), reply = (el.querySelector(".dreply") || {}).value || "";
+  const rec = (it.ask && it.ask.recommendation) || {};
+  let by, note = reply.trim().replace(/\s+/g, " ").slice(0, 200), msg;
+  if (kind === "approve") { by = "web view: Approve"; msg = "Approved. Posting on the Asana card and moving it to In progress."; }
+  else if (kind === "decline") { by = "web view: Decline"; msg = "Declined. Posting on the Asana card and closing it."; }
+  else if (kind === "snooze") { const d = el.querySelector(".snz").value; by = `web view: Snooze ${d}`; msg = `Snoozed ${({ "1d": "1 day", "3d": "3 days", "1w": "1 week" })[d]}. It comes back then.`; }
+  else if (kind === "accept" && rec.decision) { by = `web view: Accept rec (${rec.decision})`; note = "Accepted recommendation"; msg = `Accepted the recommendation (${rec.decision}).`; }
+  else return;
+  el.querySelectorAll("[data-dec],[data-done]").forEach((x) => (x.disabled = true)); st.textContent = "Saving…";
+  try {
+    const r = await api("remove", { method: "POST", headers: { "Content-Type": "application/json", "X-Mission-Control": "1" }, body: JSON.stringify({ key: it.card, by, note: note || undefined }) });
+    const j = await r.json().catch(() => ({}));
+    if (!r.ok || !j.ok) throw new Error(j.error || "not saved");
+    sent.set(it.key, { ok: true, msg }); st.textContent = msg;
+    D.waiting = D.waiting.filter((i) => i.key !== it.key); fadeOut(el);
+  } catch (err) { el.querySelectorAll("[data-dec],[data-done]").forEach((x) => (x.disabled = false)); st.textContent = "Couldn't save: " + (err.message || "error"); }
 }
 $("wlist").addEventListener("click", async (e) => {
   const b = e.target.closest("button"); if (!b) return;
-  const el = b.closest(".item"), key = el.dataset.k, it = D.waiting.find((i) => i.key === key); if (!it) return;
+  if (b.dataset.view) return setView(b.dataset.view);
+  const el = b.closest(".item"); if (!el) return;
+  const key = el.dataset.k, it = D.waiting.find((i) => i.key === key); if (!it) return;
+  if (b.dataset.dec) return decidePress(el, it, b.dataset.dec);
   if (b.hasAttribute("data-eye")) { hidden.has(key) ? hidden.delete(key) : hidden.add(key); return renderWaiting(); }
   if (b.hasAttribute("data-ign")) { ignored.has(key) ? ignored.delete(key) : ignored.add(key); return renderWaiting(); }
   if (b.hasAttribute("data-done")) { // hide + complete the Asana card (the box completes it within ~15 s; Ignore stays hide-only)
@@ -1379,7 +1457,43 @@ function renderArchive() {
     : `<p class="cap">${m ? `No resolved item #${esc(m[1])}. It may still be open on Today.` : "Nothing matches."}</p>`;
 }
 $("archQ").addEventListener("input", () => { if (D) renderArchive(); });
+// ---- v2 blocks: money strip, emails waiting on you, weekly wins and drift ----
+function renderMoneyStrip() {
+  const M = D.money_strip, el = $("mstrip"); if (!el) return;
+  if (!M || !Array.isArray(M.cells)) { el.innerHTML = `<div class="mcell nodata"><div class="s">Money</div><div class="b">No data</div><div class="u">The money strip hasn't been built yet.</div></div>`; return; }
+  el.innerHTML = M.cells.map((c) => c.value
+    ? `<div class="mcell"${c.tab ? ` role="button" tabindex="0" data-go="${esc(c.tab)}"` : ""}><div class="s">${esc(c.label)}</div><div class="b mc-sensitive" data-mc-sensitive="money">${esc(c.value)}</div>${c.sub ? `<div class="u mc-sensitive" data-mc-sensitive="money">${esc(c.sub)}</div>` : ""}<div class="src">${esc(c.source || "")}${c.as_of_label ? " · as of " + esc(c.as_of_label) : ""}${c.age_days > 3 ? ` · ${c.age_days} days old` : ""}</div></div>`
+    : `<div class="mcell nodata"><div class="s">${esc(c.label)}</div><div class="b">No data</div><div class="u">${esc(c.missing || "Not reachable from the box.")}</div>${c.source ? `<div class="src">${esc(c.source)}${c.as_of_label ? " · last file " + esc(c.as_of_label) : ""}</div>` : ""}</div>`).join("");
+}
+function renderEmails() {
+  const E = D.email_top10, el = $("elist"), hd = $("emailAsOf"); if (!el) return;
+  if (!E || E.status === "no data yet" || !E.generated_at) {
+    hd.className = "boardasof stale"; hd.textContent = E && E.status === "unreadable" ? "⚠ The email list file couldn't be read." : "Email list: no data yet. JARVIS writes it after the inbox sweep.";
+    el.innerHTML = ""; return;
+  }
+  const t = Date.parse(E.generated_at), mins = Math.round((Date.now() - t) / 60000);
+  const when = new Date(t).toLocaleString("en-US", { timeZone: "America/Port_of_Spain", weekday: "short", hour: "numeric", minute: "2-digit" }).replace(",", "");
+  const old = !Number.isFinite(t) || mins > 12 * 60;
+  hd.className = "boardasof" + (old ? " stale" : "");
+  hd.textContent = old ? `⚠ Email list as of ${when} AST, over 12 hours old.` : `Email list as of ${when} AST.`;
+  const age = (iso) => { const h = (Date.now() - Date.parse(iso)) / 3600e3; return !Number.isFinite(h) ? "" : h < 24 ? `${Math.max(1, Math.round(h))}h` : `${Math.round(h / 24)}d`; };
+  el.innerHTML = (E.items || []).length ? E.items.map((m) => `<div class="em"><div class="meta">${esc(m.inbox === "team" ? "team@" : "miles@")} · <span class="mc-sensitive" data-mc-sensitive="name">${esc(m.from_name || m.from_email || "")}</span> · ${esc(age(m.received_at))} old${m.raise && m.raise.count > 1 ? ` <span class="pill2 raise">asked ${m.raise.count}× / ${m.raise.days} days</span>` : ""}${m.due ? ` <span class="pill2 due">Due ${esc(fmtDue(m.due))}</span>` : ""}${m.money_at_stake ? ` <span class="pill2 money mc-sensitive" data-mc-sensitive="money">${esc(String(m.money_at_stake))} at stake</span>` : ""}</div>
+      <div class="hd mc-sensitive" data-mc-sensitive="text">${esc(m.subject || "(no subject)")}</div><div class="ask mc-sensitive" data-mc-sensitive="text">${esc(m.ask || "")}</div>
+      ${m.link ? `<a class="btn l" target="_blank" rel="noreferrer" href="${esc(m.link)}">Open in Gmail</a>` : ""}</div>`).join("")
+    : `<p class="cap">No emails waiting on you in the latest list.</p>`;
+}
+function renderWeekly() {
+  const W = D.weekly, sec = $("weekSec"); if (!sec) return;
+  if (!W) { sec.hidden = true; return; }
+  sec.hidden = false;
+  $("weekCap").textContent = `Since ${new Date(W.since).toLocaleDateString("en-US", { timeZone: "America/Port_of_Spain", weekday: "short", month: "short", day: "numeric" })}: ${W.shipped_total} Asana card${W.shipped_total === 1 ? "" : "s"} completed, ${W.stalled.length} stalled in In progress.`;
+  const shipped = W.shipped.map((g) => `<li><b>${esc(g.bot)}</b> ${g.count}<span class="meta mc-sensitive" data-mc-sensitive="text"> · ${esc(g.items.slice(0, 3).map((i) => i.text).join("; "))}${g.count > 3 ? "…" : ""}</span></li>`).join("");
+  const stalled = W.stalled.slice(0, 10).map((x) => `<li><b>${esc(x.bot)}</b> · ${x.days} days without an update · <a target="_blank" rel="noreferrer" class="mc-sensitive" data-mc-sensitive="text" href="${esc(D.card_base + x.card)}">${esc(x.text)}</a></li>`).join("");
+  const rr = W.reraised.map((x) => `<li>${x.number ? "#" + x.number + " " : ""}<span class="mc-sensitive" data-mc-sensitive="text">${esc(x.text)}</span> <span class="pill2 raise">asked ${x.count}× / ${x.days} days</span></li>`).join("");
+  $("week").innerHTML = `<h3>Shipped, by bot</h3><ul>${shipped || "<li>Nothing completed this week.</li>"}</ul><h3>Stalled (In progress, no update for 3+ days)</h3><ul>${stalled || "<li>No stalled cards.</li>"}</ul>${W.stalled.length > 10 ? `<p class="cap">+${W.stalled.length - 10} more.</p>` : ""}<h3>Re-raised most</h3><ul>${rr || "<li>No ask has been re-raised yet.</li>"}</ul>`;
+}
 function renderRest() {
+  try { renderMoneyStrip(); renderEmails(); renderWeekly(); } catch (e) { console.error(e); }
   const h = D.heatmap, hsec = $("heat").closest("section");
   if (!h || !Array.isArray(h.values)) { hsec.hidden = true; } else { // no live source since Nov 16 2026: section hidden rather than frozen
   hsec.hidden = false;
@@ -1605,7 +1719,7 @@ function renderBrain(force) {
   const sc = (bd.scorecards || []).map((c) => `<div class="scc"><span class="gr ${c.grade || "na"}">${esc(c.grade || "–")}</span><div class="an">${esc(c.advisor)}</div><div class="ms">${esc(c.measure)}</div><div class="vv">${sens(esc(c.value || "Not graded yet"), "text")}</div><div class="nt">${sens(esc(c.note || ""), "text")}</div></div>`).join("");
   // States (Nov 16 2026): open (check-back date), due, done (linked Asana card closed), answered, expired. Repeated asks are merged.
   const todayAst = new Date(Date.now() - 4 * 3600e3).toISOString().slice(0, 10);
-  const bst = (e) => e.status === "open" ? (e.check_on <= todayAst ? ["hot", "due " + e.check_on] : ["warn", "check-back " + e.check_on]) : e.status === "expired" ? ["", "expired" + (e.closed_on ? " " + e.closed_on : "")] : ["ok", e.status + (e.closed_on ? " " + e.closed_on : "")];
+  const bst = (e) => e.status === "re-raised" ? ["hot", `re-raised · asked ${(e.raise || {}).count || 2}× / ${(e.raise || {}).days || "?"} days`] : e.status === "open" ? (e.check_on <= todayAst ? ["hot", "due " + e.check_on] : ["warn", "check-back " + e.check_on]) : ["ok", e.status + (e.closed_on ? " " + e.closed_on : "")];
   const lg = (bd.log || []).map((e) => { const [c, l] = bst(e); return `<li><span class="t">${esc(e.repeats > 1 ? `${e.date} – ${e.last_date}` : e.date)}</span>${esc(e.advisor)}: ${sens(esc(e.do), "text")}${e.repeats > 1 ? ` <span class="tag2">asked ${e.repeats}×</span>` : ""} <span class="tag2 ${c}">${esc(l)}</span>${e.card ? ` <a class="tag2" target="_blank" rel="noreferrer" href="${esc(D.card_base + e.card)}">card</a>` : ""}</li>`; }).join("");
   $("board").innerHTML = (tk ? `<div class="who"><div class="avb">${esc(tk.ini || "")}</div><div><div class="nm">${esc(tk.advisor)}</div><div class="ln">${esc(tk.lens || "")}</div></div></div>
     <div class="rd mc-sensitive" data-mc-sensitive="text">${esc(tk.read || "")}</div>${tk.do ? `<div class="do"><b>DO THIS</b>${sens(esc(tk.do), "text")}</div>` : ""}${tk.life ? `<div class="life">On life: ${sens(esc(tk.life), "text")}</div>` : ""}` : "")

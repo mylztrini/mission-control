@@ -132,7 +132,9 @@ async function metrics(page) {
     const cards = [...document.querySelectorAll("#vitals .vital")].map((el) => el.getBoundingClientRect());
     const tabs = document.querySelector(".tabs");
     return {
-      taskTop: task.top,
+      // v2: the money strip sits above the task list by design; layout checks measure the task top without it
+      taskTop: task.top - ((document.getElementById("mstrip") || { offsetHeight: 0 }).offsetHeight + (document.getElementById("mstrip") ? 14 : 0)),
+      taskTopRaw: task.top,
       shellW: shell.width,
       leftRight: left.right,
       leftLeft: left.left,
@@ -1447,6 +1449,88 @@ describe("Mission Control UI", { timeout: 120000 }, () => {
       await page.evaluate(() => { D.asana_board = { fetched_at: new Date(Date.now() - 20 * 60000).toISOString(), stale_after_min: 120 }; renderBoardAsOf(); });
       const fresh = await page.evaluate(() => ({ t: document.getElementById("boardAsOf").textContent, stale: document.getElementById("boardAsOf").classList.contains("stale") }));
       assert.ok(!fresh.stale); assert.match(fresh.t, /20 min ago/);
+      assert.equal(leaked.length, 0);
+      assert.deepEqual(errors, []);
+    } finally {
+      Object.assign(fixture, saved);
+      await context.close();
+    }
+  });
+  it("v2: Top 10 + Show all, decide in place, proper-ask flags, re-raise + recommendation, money strip, emails, weekly, 390px", async () => {
+    const keys = ["waiting", "top10", "asks_summary", "money_strip", "weekly", "email_top10", "asana_board"];
+    const saved = Object.fromEntries(keys.map((k) => [k, fixture[k]]));
+    const ago = (h) => new Date(Date.now() - h * 3600e3).toISOString();
+    const raise = (d) => ({ count: d >= 14 ? 4 : d >= 7 ? 3 : d >= 3 ? 2 : 1, days: d, first_at: ago(d * 24), last_raised_at: ago(2), next_raise_at: ago(-24) });
+    const ask = (o) => ({ proper: true, missing: [], question: "Synthetic question: go or wait?", options: ["go", "wait"], options_kind: "either/or", due: "2026-12-01", overdue: false, money_tt: null, money_label: null, raise: raise(1), created_at: ago(24), ...o });
+    fixture.waiting = [
+      { key: "1220000000000001", bot: "Sample Bot", botId: "bot-sample", when: "1h", text: "Synthetic task: big money ask.", number: 301, actions: ["Approve", "Decline", "Ignore for good"], card: "1220000000000001", asana: true, touched_at: ago(1),
+        ask: ask({ money_tt: 72000, money_label: "TT$72,000", raise: raise(9), created_at: ago(9 * 24), recommendation: { decision: "approve", reason: 'The owning bot\'s card recommends: "go now"' } }) },
+      { key: "1220000000000002", bot: "Sample Bot", botId: "bot-sample", when: "2h", text: "Synthetic task: small ask.", number: 302, actions: ["Approve", "Decline", "Ignore for good"], card: "1220000000000002", asana: true, touched_at: ago(2), ask: ask({}) },
+      { key: "1220000000000003", bot: "Sample Bot", botId: "bot-sample", when: "3h", text: "Synthetic vague card.", number: 303, actions: ["Approve", "Decline", "Ignore for good"], card: "1220000000000003", asana: true, touched_at: ago(3),
+        ask: ask({ proper: false, missing: ["a due date"], due: null, raise: raise(15), created_at: ago(15 * 24), recommendation: { decision: null, reason: "No recommendation; needs your call." } }) },
+      { key: "board:2026-11-01:X", bot: "Board Room", botId: "brain:board", src: "board", when: "check-back from Nov 1 · asked 4× / 16 days", text: "Synthetic board check-back.", number: 304, actions: ["Done"], card: null, touched_at: ago(30),
+        raise: raise(16), recommendation: { decision: null, reason: "No recommendation; needs your call." } },
+    ];
+    fixture.top10 = ["1220000000000001", "1220000000000002"];
+    fixture.asks_summary = { asana_asks: 3, proper: 2, needs_proper_ask: 1, top10: 2 };
+    fixture.asana_board = { fetched_at: ago(0.2), open: 3, stale_after_min: 120 };
+    fixture.money_strip = { cells: [
+      { k: "cash", label: "Usable cash", value: "TT$1,234", sub: "Status GREEN", as_of_label: "2026-11-10", age_days: 7, source: "Synthetic finance" },
+      { k: "receivables", label: "Agency receivables", value: "TT$5,678", source: "Cashbot", as_of_label: "Mon" },
+      { k: "ads", label: "Ad spend this week", value: null, missing: "This week isn't pulled yet.", source: "ads-weekly.json" },
+      { k: "usage", label: "Grok Bot usage", value: "50% of weekly limit", source: "usage report" } ] };
+    fixture.weekly = { since: ago(168), shipped_total: 3, shipped: [{ bot: "Sample Bot", count: 3, items: [{ text: "Shipped synthetic A" }, { text: "B" }, { text: "C" }] }], stalled: [{ bot: "Idle Sample", text: "Stalled synthetic card", card: "1220000000000009", days: 5 }], stalled_bots: [], reraised: [{ number: 303, text: "Synthetic vague card.", count: 4, days: 15 }] };
+    fixture.email_top10 = { status: "no data yet", generated_at: null, items: [] };
+    const commands = [], leaked = [];
+    const { context, page, errors } = await openPage(browser, commands, leaked);
+    try {
+      await page.evaluateOnNewDocument(() => localStorage.removeItem("mcView"));
+      await page.goto(base, { waitUntil: "domcontentloaded", timeout: 20000 });
+      await ready(page);
+      let v = await page.evaluate(() => ({
+        title: document.getElementById("wTitle").textContent, nums: [...document.querySelectorAll("#wlist .item .num")].map((x) => x.textContent),
+        more: (document.querySelector("#wlist [data-view=all]") || {}).textContent, strip: [...document.querySelectorAll("#mstrip .mcell")].map((c) => [c.querySelector(".s").textContent, c.querySelector(".b").textContent]),
+        email: document.getElementById("emailAsOf").textContent, emailStale: document.getElementById("emailAsOf").classList.contains("stale"),
+        first: (() => { const el = document.querySelector("#wlist .item"); return { pills: [...el.querySelectorAll(".pill2")].map((p) => p.textContent), rec: (el.querySelector(".rec") || {}).textContent, chips: [...el.querySelectorAll(".chip")].map((c) => c.textContent) }; })(),
+        week: document.getElementById("week").textContent }));
+      assert.equal(v.title, "Top 10 asks");
+      assert.deepEqual(v.nums, ["#301", "#302"], "only proper asks, in top10 order");
+      assert.match(v.more, /Show all/);
+      assert.deepEqual(v.strip.map((x) => x[1]), ["TT$1,234", "TT$5,678", "No data", "50% of weekly limit"]);
+      assert.match(v.email, /no data yet/); assert.ok(v.emailStale);
+      assert.ok(v.first.pills.includes("TT$72,000 at stake")); assert.ok(v.first.pills.some((p) => /asked 3× \/ 9 days/.test(p)));
+      assert.match(v.first.rec, /Recommended.*Approve.*go now.*Accept recommendation/s);
+      assert.deepEqual(v.first.chips, ["Ignore for good"], "webhook Approve/Decline chips replaced by decide-in-place");
+      assert.match(v.week, /Sample Bot 3/); assert.match(v.week, /5 days without an update/); assert.match(v.week, /asked 4× \/ 15 days/);
+      // decide in place
+      await page.type('#wlist .item[data-k="1220000000000002"] .dreply', "Go ahead, keep it small");
+      await page.click('#wlist .item[data-k="1220000000000002"] [data-dec=approve]');
+      await page.waitForFunction(() => !document.querySelector('#wlist .item[data-k="1220000000000002"]'), { timeout: 5000 });
+      await page.click('#wlist .item[data-k="1220000000000001"] [data-dec=accept]');
+      await page.waitForFunction(() => !document.querySelector('#wlist .item[data-k="1220000000000001"]'), { timeout: 5000 });
+      assert.deepEqual(commands.map((c) => c.body), [
+        { key: "1220000000000002", by: "web view: Approve", note: "Go ahead, keep it small" },
+        { key: "1220000000000001", by: "web view: Accept rec (approve)", note: "Accepted recommendation" }]);
+      // Show all: flagged card + board re-raise
+      await page.click("#vAll");
+      v = await page.evaluate(() => ({ title: document.getElementById("wTitle").textContent, nums: [...document.querySelectorAll("#wlist .item .num")].map((x) => x.textContent),
+        flag: [...document.querySelectorAll('#wlist .item[data-k="1220000000000003"] .pill2')].map((p) => p.textContent), noRec: (document.querySelector('#wlist .item[data-k="1220000000000003"] .rec') || {}).textContent,
+        boardPill: [...document.querySelectorAll('#wlist .item[data-k="board:2026-11-01:X"] .pill2')].map((p) => p.textContent), saved: localStorage.getItem("mcView") }));
+      assert.equal(v.title, "Waiting on me (all)"); assert.deepEqual(v.nums.sort(), ["#303", "#304"]);
+      assert.ok(v.flag.includes("needs a proper ask")); assert.match(v.noRec, /needs your call/); assert.ok(!/Accept/.test(v.noRec));
+      assert.ok(v.boardPill.some((p) => /asked 4× \/ 16 days/.test(p))); assert.equal(v.saved, "all");
+      await page.click('#wlist .item[data-k="1220000000000003"] [data-dec=snooze]');
+      await page.waitForFunction(() => !document.querySelector('#wlist .item[data-k="1220000000000003"]'), { timeout: 5000 });
+      assert.deepEqual(commands[2].body, { key: "1220000000000003", by: "web view: Snooze 1d" });
+      // emails present + stale, and 390px layout with no sideways scroll
+      await page.evaluate((g) => { D.email_top10 = { status: "ok", generated_at: g, items: [{ id: "m1", inbox: "team", from_name: "Sample Sender", subject: "Synthetic subject", received_at: g, ask: "Decide on the sample", link: "https://mail.google.com/mail/#all/m1", raise: { count: 2, days: 3 } }] }; renderEmails(); }, ago(13));
+      v = await page.evaluate(() => ({ hd: document.getElementById("emailAsOf").textContent, items: [...document.querySelectorAll("#elist .em")].map((e) => e.textContent.replace(/\s+/g, " ")) }));
+      assert.match(v.hd, /over 12 hours old/); assert.match(v.items[0], /Synthetic subject.*Decide on the sample.*Open in Gmail/); assert.match(v.items[0], /asked 2× \/ 3 days/);
+      await page.setViewport({ width: 390, height: 844 });
+      await new Promise((r) => setTimeout(r, 300));
+      const m = await page.evaluate(() => ({ sw: document.documentElement.scrollWidth, cols: getComputedStyle(document.getElementById("mstrip")).gridTemplateColumns.split(" ").length }));
+      assert.ok(m.sw <= 392, `no sideways scroll at 390px (scrollWidth ${m.sw})`); assert.equal(m.cols, 2);
+      await page.screenshot({ path: path.join(ARTIFACTS, "v2-mobile-synthetic.png"), fullPage: false }).catch(() => {});
       assert.equal(leaked.length, 0);
       assert.deepEqual(errors, []);
     } finally {
