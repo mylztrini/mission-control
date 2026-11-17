@@ -73,6 +73,11 @@ function installMock(page, commands, leaked) {
         req.respond({ status: 401, contentType: "application/json", headers, body: JSON.stringify({ error: "rejected synthetic test key" }) }).catch(() => {});
         return;
       }
+      if (url.endsWith("/remove")) {
+        commands.push({ url, method: req.method(), key, body: JSON.parse(req.postData() || "{}") });
+        req.respond({ status: 200, contentType: "application/json", headers, body: JSON.stringify({ ok: true, added: true }) }).catch(() => {});
+        return;
+      }
       if (url.endsWith("/command")) {
         commands.push({ url, method: req.method(), key, body: JSON.parse(req.postData() || "{}") });
         req.respond({ status: 200, contentType: "application/json", headers, body: JSON.stringify({ ok: true }) }).catch(() => {});
@@ -1356,15 +1361,17 @@ describe("Mission Control UI", { timeout: 120000 }, () => {
       { key: "synthetic-wait-assigned", bot: "Sample Bot", botId: "bot-sample", when: "1d", text: "Synthetic assigned item.", stale: false, number: 194, actions: ["Later"], card: null,
         hold: { decision: "assigned", assignee: "Sample Person (Full Name)", by: "Sample voice", at: "2026-11-11T13:33:09Z" } },
     ];
+    const ago = (h) => new Date(Date.now() - h * 3600e3).toISOString(); // timeline shows the last 7 days only
     fixture.decisions = [
-      { n: 176, key: "k176", title: "Synthetic pricing comparison", bot: "Sample Bot", decision: "ignored_forever", by: "Sample voice", at: "2026-11-11T13:31:21Z" },
-      { n: 166, key: "synthetic-wait-hold", title: "Synthetic held item.", decision: "hold", by: "Sample voice", at: "2026-11-11T13:31:23Z" },
+      { n: 176, key: "k176", title: "Synthetic pricing comparison", bot: "Sample Bot", decision: "ignored_forever", by: "Sample voice", at: ago(1.2) },
+      { n: 166, key: "synthetic-wait-hold", title: "Synthetic held item.", decision: "hold", by: "Sample voice", at: ago(1.1) },
+      { n: 150, key: "k150", title: "Synthetic decision from last month", decision: "ignored", by: "Sample voice", at: ago(24 * 9) },
     ];
     fixture.archive = [
       { n: 176, key: "k176", title: "Synthetic pricing comparison", bot: "Sample Bot", decision: "ignored_forever", by: "Sample voice", at: "2026-11-11T13:31:21Z" },
       { n: 17, key: "k17", title: "Synthetic old removal", decision: "removed", legacy: true, by: "cli", at: "2026-10-31T13:00:00Z" },
     ];
-    fixture.done = [{ bot: "Sample Bot", when: "Wed 9:40 AM", at: "2026-11-11T13:40:00Z", text: "Synthetic Asana done" }, ...saved.done];
+    fixture.done = [{ bot: "Sample Bot", when: "Wed 9:40 AM", at: ago(1), text: "Synthetic Asana done" }, { bot: "Sample Bot", when: "old", at: ago(24 * 8), text: "Synthetic done 8 days ago" }, ...saved.done];
     const commands = [];
     const leaked = [];
     const { context, page, errors } = await openPage(browser, commands, leaked);
@@ -1385,7 +1392,8 @@ describe("Mission Control UI", { timeout: 120000 }, () => {
       assert.match(tl[1], /On hold #166 Synthetic held item\./);
       assert.match(tl[2], /Ignored for good #176 Synthetic pricing comparison/);
       assert.match(tl[2], /AST/);
-      assert.match(tl[tl.length - 1], /Finished a synthetic item/);
+      assert.equal(tl.length, 3, "only the last 7 days; undated and older entries age out");
+      assert.ok(!tl.some((x) => /Finished a synthetic item|8 days ago|last month/.test(x)));
       await page.evaluate(() => { document.getElementById("archWrap").open = true; });
       await page.type("#archQ", "#176");
       const arch = await page.evaluate(() => ({ sum: document.getElementById("archSum").textContent, rows: [...document.querySelectorAll("#archList .arow")].map((x) => x.innerText.replace(/\s+/g, " ")) }));
@@ -1393,6 +1401,52 @@ describe("Mission Control UI", { timeout: 120000 }, () => {
       assert.equal(arch.rows.length, 1);
       assert.match(arch.rows[0], /#176 Ignored for good/);
       assert.equal(commands.length, 0);
+      assert.equal(leaked.length, 0);
+      assert.deepEqual(errors, []);
+    } finally {
+      Object.assign(fixture, saved);
+      await context.close();
+    }
+  });
+  it("Asana board freshness, Done button (hide + complete card), sort by last touched, 7-day fade, frozen sections hidden", async () => {
+    const saved = { waiting: fixture.waiting, asana_board: fixture.asana_board, brain: fixture.brain, heatmap: fixture.heatmap, routines: fixture.routines };
+    const ago = (h) => new Date(Date.now() - h * 3600e3).toISOString();
+    fixture.waiting = [
+      { key: "synthetic-wait-1", bot: "Sample Bot", botId: "bot-sample", when: "2h", text: "Synthetic task: older touch.", stale: false, number: 101, actions: ["Later"], card: null, touched_at: ago(5) },
+      { key: "1234567890123", bot: "Sample Bot", botId: "bot-sample", when: "1h", text: "Synthetic task: Asana ask.", stale: false, number: 103, actions: ["Later"], card: "1234567890123", asana: true, touched_at: ago(1) },
+      { key: "synthetic-wait-old", bot: "Sample Bot", botId: "bot-sample", when: "10d", text: "Synthetic untouched ask.", stale: false, number: 104, actions: ["Later"], card: null, touched_at: ago(24 * 10) },
+    ];
+    fixture.asana_board = { fetched_at: ago(3), open: 2, source: "api", stale_after_min: 120 };
+    fixture.heatmap = null; fixture.routines = null;
+    const commands = [], leaked = [];
+    const { context, page, errors } = await openPage(browser, commands, leaked);
+    try {
+      await page.goto(base, { waitUntil: "domcontentloaded", timeout: 20000 });
+      await ready(page);
+      const st = await page.evaluate(() => ({
+        asof: document.getElementById("boardAsOf").textContent, stale: document.getElementById("boardAsOf").classList.contains("stale"),
+        order: [...document.querySelectorAll("#wlist > .item .num")].map((x) => x.textContent),
+        old: [...document.querySelectorAll("#wlist details.oldgrp .item")].map((x) => x.classList.contains("old") && x.querySelector(".num").textContent),
+        oldSum: (document.querySelector("#wlist details.oldgrp summary") || {}).textContent,
+        doneBtns: [...document.querySelectorAll("#wlist [data-done]")].map((b) => b.closest(".item").dataset.k),
+        heatHidden: document.getElementById("heat").closest("section").hidden, rtHidden: document.getElementById("routines").closest("section").hidden,
+      }));
+      assert.match(st.asof, /Asana board as of .* AST/);
+      assert.ok(st.stale, "3-hour-old copy must warn");
+      assert.match(st.asof, /over 2 hours old/);
+      assert.deepEqual(st.order, ["#103", "#101"], "newest touch first");
+      assert.deepEqual(st.old, ["#104"]);
+      assert.match(st.oldSum, /Untouched for 7\+ days \(1\)/);
+      assert.deepEqual(st.doneBtns, ["1234567890123"], "Done only on Asana-backed items");
+      assert.ok(st.heatHidden && st.rtHidden, "frozen heatmap / routines hidden");
+      await page.click('#wlist [data-done]');
+      await page.waitForFunction(() => ![...document.querySelectorAll("#wlist .item")].some((x) => x.dataset.k === "1234567890123"), { timeout: 5000 });
+      assert.equal(commands.length, 1);
+      assert.match(commands[0].url, /\/remove$/);
+      assert.deepEqual(commands[0].body, { key: "1234567890123", by: "web view: Done", note: "Done: complete the Asana card" });
+      await page.evaluate(() => { D.asana_board = { fetched_at: new Date(Date.now() - 20 * 60000).toISOString(), stale_after_min: 120 }; renderBoardAsOf(); });
+      const fresh = await page.evaluate(() => ({ t: document.getElementById("boardAsOf").textContent, stale: document.getElementById("boardAsOf").classList.contains("stale") }));
+      assert.ok(!fresh.stale); assert.match(fresh.t, /20 min ago/);
       assert.equal(leaked.length, 0);
       assert.deepEqual(errors, []);
     } finally {

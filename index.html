@@ -109,6 +109,10 @@ ol{margin:0;padding-left:22px}ol li{margin:4px 0}
 .hbadge{display:inline-block;margin-left:6px;padding:0 8px;border-radius:999px;font-size:11.5px;font-weight:700;border:1px solid var(--warn);color:var(--warn);background:color-mix(in oklab,var(--warn) 12%,transparent)}.hbadge:empty{display:none}
 .hbadge.assigned{border-color:var(--accent);color:var(--accent-ink);background:var(--accent-bg)}
 .item.held{opacity:.82}
+.item.old{opacity:.55}.item.old:hover,.item.old:focus-within{opacity:1}
+.boardasof{font-size:12.5px;color:var(--muted,#888);margin:-4px 0 8px}.boardasof.stale{color:var(--bad,#c0392b);font-weight:700;border:1px solid currentColor;border-radius:8px;padding:6px 10px;margin:0 0 10px}
+details.oldgrp{margin-top:10px}details.oldgrp>summary{cursor:pointer;font-weight:700;color:var(--muted,#888);padding:6px 0}
+.btn.done{border-color:var(--ok,#2e7d32);color:var(--ok,#2e7d32)}
 .dec{display:inline-block;padding:0 8px;border-radius:999px;font-size:12px;font-weight:700;border:1px solid var(--line);margin-right:6px}
 .dec.completed{color:var(--good);border-color:var(--good)}.dec.ignored_forever,.dec.ignored{color:var(--muted)}.dec.hold,.dec.parked{color:var(--warn);border-color:var(--warn)}.dec.assigned,.dec.reviewed,.dec.hidden_until_comment{color:var(--accent-ink);border-color:var(--accent)}
 .tl .av.dec-av{font-size:15px}
@@ -580,6 +584,7 @@ body.mc-blur #keyGate::after,body.mc-blur #keyGate *::after{content:none !import
         <label class="tog"><input type="checkbox" id="blurAll">Blur all</label>
       </div></div>
     <p class="cap" id="wcap"></p>
+    <p class="boardasof" id="boardAsOf" hidden></p>
     <div class="warn" id="warn" hidden></div>
     <div id="wlist"></div>
   </section></div>
@@ -856,14 +861,32 @@ function renderWaitingHead() {
   $("warn").hidden = !!D.configured;
   $("warn").textContent = "Not connected to JARVIS: presses are saved to the outbox only.";
   $("showIgnLbl").textContent = `Show ignored (${w.filter((i) => ignored.has(i.key)).length})`;
+  renderBoardAsOf();
 }
+// Asana board copy freshness (Nov 16 2026): "board as of <time AST>", red warning once the copy is over 2 hours old.
+function renderBoardAsOf() {
+  const el = $("boardAsOf"), b = D.asana_board; if (!el) return;
+  if (!b || !b.fetched_at) { el.hidden = false; el.className = "boardasof stale"; el.textContent = "Asana board: no copy on record. Waiting on me may be missing cards."; return; }
+  const t = Date.parse(b.fetched_at), mins = Math.round((Date.now() - t) / 60000), lim = b.stale_after_min || 120;
+  const when = new Date(t).toLocaleString("en-US", { timeZone: "America/Port_of_Spain", weekday: "short", hour: "numeric", minute: "2-digit" }).replace(",", "");
+  const age = mins < 60 ? `${mins} min ago` : `${Math.floor(mins / 60)} h ${mins % 60} min ago`;
+  el.hidden = false;
+  el.className = "boardasof" + (mins > lim ? " stale" : "");
+  el.textContent = mins > lim ? `⚠ Asana board as of ${when} AST (${age}). The copy is over 2 hours old, so cards closed since then may still show here.`
+    : `Asana board as of ${when} AST (${age}).`;
+}
+const WEEK_MS = 7 * 864e5;
+const touchedMs = (i) => { const t = Date.parse(i.touched_at || i.status_at || ""); return Number.isFinite(t) ? t : 0; };
+const isOld = (i) => { const t = touchedMs(i); return !!t && Date.now() - t > WEEK_MS; };
 function renderWaiting() {
   renderWaitingHead();
   const w = D.waiting, showIgn = $("showIgn").checked, blurAll = $("blurAll").checked;
-  const items = w.filter((i) => (showIgn || !ignored.has(i.key)) && !(sent.get(i.key) || {}).ok);
-  $("wlist").innerHTML = items.length ? items.map((it) => {
+  // Sorted by last touched (newest first); anything untouched for 7 days is faded and collapsed at the bottom.
+  const items = w.filter((i) => (showIgn || !ignored.has(i.key)) && !(sent.get(i.key) || {}).ok).sort((a, b) => touchedMs(b) - touchedMs(a));
+  const fresh = items.filter((i) => !isOld(i)), stale = items.filter(isOld);
+  const card = (it) => {
     const k = esc(it.key), ig = ignored.has(it.key), bl = blurAll || hidden.has(it.key), s = sent.get(it.key);
-    return `<div class="item ${it.stale ? "stale" : ""} ${ig ? "ign" : ""} ${bl ? "blur" : ""} ${s && s.ok ? "sent" : ""} ${parkedOf(it) ? "held" : ""}" data-k="${k}"><div class="nrow"><div class="num mc-sensitive" data-mc-sensitive="id">${it.number ? "#" + it.number : ""}</div><div class="nbody">
+    return `<div class="item ${it.stale ? "stale" : ""} ${ig ? "ign" : ""} ${bl ? "blur" : ""} ${s && s.ok ? "sent" : ""} ${parkedOf(it) ? "held" : ""} ${isOld(it) ? "old" : ""}" data-k="${k}"><div class="nrow"><div class="num mc-sensitive" data-mc-sensitive="id">${it.number ? "#" + it.number : ""}</div><div class="nbody">
       <div class="meta">${it.src ? `<span class="src ${esc(it.src)}">${esc(it.src.toUpperCase())}</span>` : ""}${esc(it.bot)} · ${esc(it.when)}${it.stale ? " · <i>Asana only, may be stale</i>" : ""}<span class="hbadge ${it.hold ? esc(it.hold.decision) : ""}" title="${esc(holdTitle(it))}">${esc(holdLabel(it))}</span><span class="badge">${esc(it.status || "")}</span></div>
       <div class="txt mc-sensitive" data-mc-sensitive="text">${esc(it.text)}</div>
       <div class="row">
@@ -871,17 +894,33 @@ function renderWaiting() {
         <button class="btn" data-eye title="${bl ? "Show" : "Blur for privacy"}" aria-label="${bl ? "Show item" : "Blur item"}">${bl ? "🙈" : "👁"}</button>
         <button class="btn" data-ign>${ig ? "Restore" : "Ignore"}</button>
         ${it.card ? `<a class="btn l" target="_blank" rel="noreferrer" href="${esc(D.card_base + it.card)}">Asana card</a>` : ""}
+        ${it.card && /^\d{10,20}$/.test(it.card) ? `<button class="btn done" data-done title="Hide this item and mark its Asana card complete">✓ Done</button>` : ""}
       </div>
       <div class="row">${it.actions.map((a) => `<button class="chip" data-a="${esc(a)}">${esc(a)}</button>`).join("")}</div>
       <div class="row"><input class="reply" placeholder="Or type a reply for JARVIS…" maxlength="1000"><button class="btn p" data-a="Reply">Send</button><span class="st">${s ? esc(s.msg) : ""}</span></div>
     </div></div></div>`;
-  }).join("") : `<p class="cap">Everything is ignored for this view. Tick "Show ignored" to bring items back.</p>`;
+  };
+  $("wlist").innerHTML = items.length ? fresh.map(card).join("")
+    + (stale.length ? `<details class="oldgrp"><summary>Untouched for 7+ days (${stale.length})</summary>${stale.map(card).join("")}</details>` : "")
+    : `<p class="cap">Everything is ignored for this view. Tick "Show ignored" to bring items back.</p>`;
 }
 $("wlist").addEventListener("click", async (e) => {
   const b = e.target.closest("button"); if (!b) return;
   const el = b.closest(".item"), key = el.dataset.k, it = D.waiting.find((i) => i.key === key); if (!it) return;
   if (b.hasAttribute("data-eye")) { hidden.has(key) ? hidden.delete(key) : hidden.add(key); return renderWaiting(); }
   if (b.hasAttribute("data-ign")) { ignored.has(key) ? ignored.delete(key) : ignored.add(key); return renderWaiting(); }
+  if (b.hasAttribute("data-done")) { // hide + complete the Asana card (the box completes it within ~15 s; Ignore stays hide-only)
+    const st = el.querySelector(".st"); b.disabled = true; st.textContent = "Marking done…";
+    try {
+      const r = await api("remove", { method: "POST", headers: { "Content-Type": "application/json", "X-Mission-Control": "1" },
+        body: JSON.stringify({ key: it.card, by: "web view: Done", note: "Done: complete the Asana card" }) });
+      const j = await r.json().catch(() => ({}));
+      if (!r.ok || !j.ok) throw new Error(j.error || "not saved");
+      sent.set(key, { ok: true, msg: "Done. The Asana card is being completed." }); st.textContent = sent.get(key).msg;
+      D.waiting = D.waiting.filter((i) => i.key !== key); fadeOut(el);
+    } catch (err) { b.disabled = false; st.textContent = "Couldn't mark done: " + (err.message || "error"); }
+    return;
+  }
   const action = b.dataset.a; if (!action) return;
   const note = el.querySelector("input.reply").value.trim(), st = el.querySelector(".st");
   if (action === "Reply" && !note) { st.textContent = "Type a reply first."; return; }
@@ -1315,10 +1354,12 @@ function renderAds() {
 // Activity timeline = Asana done entries + triage decisions (mc_events), newest first. Undated canvas entries go last.
 function timelineEntries() {
   const dated = [], undated = [];
-  for (const d of D.done || []) (d.at ? dated : undated).push({ ...d, t: Date.parse(d.at) });
-  for (const e of D.decisions || []) dated.push({ dec: e, t: Date.parse(e.at) });
+  // Last 7 days only (Nov 16 2026); undated entries are dropped.
+  const since = Date.now() - WEEK_MS;
+  for (const d of D.done || []) if (d.at && Date.parse(d.at) >= since) dated.push({ ...d, t: Date.parse(d.at) });
+  for (const e of D.decisions || []) if (Date.parse(e.at) >= since) dated.push({ dec: e, t: Date.parse(e.at) });
   dated.sort((a, b) => b.t - a.t);
-  return [...dated, ...undated];
+  return dated.length ? dated : undated;
 }
 function decRow(e) {
   const who = e.by || "JARVIS";
@@ -1339,14 +1380,17 @@ function renderArchive() {
 }
 $("archQ").addEventListener("input", () => { if (D) renderArchive(); });
 function renderRest() {
-  const h = D.heatmap, max = Math.max(1, ...h.values.flat());
+  const h = D.heatmap, hsec = $("heat").closest("section");
+  if (!h || !Array.isArray(h.values)) { hsec.hidden = true; } else { // no live source since Nov 16 2026: section hidden rather than frozen
+  hsec.hidden = false;
+  const max = Math.max(1, ...h.values.flat());
   $("hcap").textContent = h.caption;
   let s = `<div></div>` + h.hours.map((x, i) => `<div class="hl">${i % 3 === 0 ? esc(x) : ""}</div>`).join("");
   h.days.forEach((day, r) => {
     s += `<div class="rl">${esc(day)}</div>` + h.values[r].map((v, c) =>
       `<div class="c" title="${esc(day)}, ${esc(h.hours[c])}: ${v} event${v === 1 ? "" : "s"}" style="${v ? `background:rgba(var(--heat),${(0.15 + 0.85 * v / max).toFixed(2)})` : ""}"></div>`).join("");
   });
-  $("heat").innerHTML = s;
+  $("heat").innerHTML = s; }
   $("bcap").textContent = D.brief.caption;
   $("brief").innerHTML = D.brief.items.map((x) => `<li class="mc-sensitive" data-mc-sensitive="text">${esc(x)}</li>`).join("");
   $("blinks").innerHTML = D.brief.links.map((l) => `<a class="lk" target="_blank" rel="noreferrer" href="${esc(l.href)}"><div class="t">${esc(l.title)}</div><div class="m">${esc([l.site, l.date].filter(Boolean).join(" · "))}</div></a>`).join("");
@@ -1354,8 +1398,9 @@ function renderRest() {
   $("timeline").innerHTML = timelineEntries().map((d) => d.dec ? decRow(d.dec)
     : `<div class="tl"><div class="av" style="background:color-mix(in oklab,${colorFor(d.bot)} 30%,var(--surface));border:2px solid ${colorFor(d.bot)}">${esc(initials(d.bot))}</div><div style="min-width:0"><div class="meta">${esc(d.bot)} · ${esc(d.when)}</div><div class="mc-sensitive" data-mc-sensitive="text">${esc(d.text)}</div></div></div>`).join("");
   renderArchive();
+  $("routines").closest("section").hidden = !Array.isArray(D.routines) || !D.routines.length; // omitted when the routine list is over 7 days old
   $("rcap").textContent = D.captions.routines;
-  $("routines").innerHTML = D.routines.map((r) => `<tr>${r.map((c) => `<td>${esc(c)}</td>`).join("")}</tr>`).join("");
+  $("routines").innerHTML = (D.routines || []).map((r) => `<tr>${r.map((c) => `<td>${esc(c)}</td>`).join("")}</tr>`).join("");
   const w = needsYou(), chats = w.filter((i) => !i.stale).length, held = (D.waiting || []).length - w.length;
   $("statN").textContent = w.length;
   $("statS").textContent = (w.length === 1 ? "item needs you" : "items need you") + (held ? ` · ${held} on hold or parked` : "");
@@ -1427,6 +1472,7 @@ const RT_LBL = { enabled: "On", paused: "Paused", done: "Done", unknown: "Status
 function renderRoutines(force) {
   const R = D && D.routines_all, el = $("tabRoutines");
   if (!D) { el.innerHTML = none("Loading…"); return; }
+  if (R && R.omitted) { el.innerHTML = none(R.reason || "The routine list is out of date, so it is hidden."); return; }
   if (!R || !R.week) { el.innerHTML = none("No routine list yet. JARVIS builds it on the box with node export-routines.js (runs in the hourly refresh)."); return; }
   const sig = JSON.stringify([R.generated_at, R.as_of, RT.f]);
   if (!force && sig === renderRoutines.sig) return; renderRoutines.sig = sig;
@@ -1557,7 +1603,10 @@ function renderBrain(force) {
   $("boardSec").hidden = !tk && !(bd.scorecards || []).length;
   $("boardCap").textContent = tk ? `${tk.date === (B.as_of || "").slice(0, 10) ? "Today's" : "Latest"} take (${tk.date}). The advisor whose lens fits the one move speaks; each "Do this" is logged and checked a week later.` : "No take yet.";
   const sc = (bd.scorecards || []).map((c) => `<div class="scc"><span class="gr ${c.grade || "na"}">${esc(c.grade || "–")}</span><div class="an">${esc(c.advisor)}</div><div class="ms">${esc(c.measure)}</div><div class="vv">${sens(esc(c.value || "Not graded yet"), "text")}</div><div class="nt">${sens(esc(c.note || ""), "text")}</div></div>`).join("");
-  const lg = (bd.log || []).map((e) => `<li><span class="t">${esc(e.date)}</span>${esc(e.advisor)}: ${sens(esc(e.do), "text")} <span class="tag2 ${e.status === "open" ? (e.check_on <= new Date().toISOString().slice(0, 10) ? "hot" : "warn") : "ok"}">${e.status === "open" ? "check-back " + esc(e.check_on) : esc(e.status)}</span></li>`).join("");
+  // States (Nov 16 2026): open (check-back date), due, done (linked Asana card closed), answered, expired. Repeated asks are merged.
+  const todayAst = new Date(Date.now() - 4 * 3600e3).toISOString().slice(0, 10);
+  const bst = (e) => e.status === "open" ? (e.check_on <= todayAst ? ["hot", "due " + e.check_on] : ["warn", "check-back " + e.check_on]) : e.status === "expired" ? ["", "expired" + (e.closed_on ? " " + e.closed_on : "")] : ["ok", e.status + (e.closed_on ? " " + e.closed_on : "")];
+  const lg = (bd.log || []).map((e) => { const [c, l] = bst(e); return `<li><span class="t">${esc(e.repeats > 1 ? `${e.date} – ${e.last_date}` : e.date)}</span>${esc(e.advisor)}: ${sens(esc(e.do), "text")}${e.repeats > 1 ? ` <span class="tag2">asked ${e.repeats}×</span>` : ""} <span class="tag2 ${c}">${esc(l)}</span>${e.card ? ` <a class="tag2" target="_blank" rel="noreferrer" href="${esc(D.card_base + e.card)}">card</a>` : ""}</li>`; }).join("");
   $("board").innerHTML = (tk ? `<div class="who"><div class="avb">${esc(tk.ini || "")}</div><div><div class="nm">${esc(tk.advisor)}</div><div class="ln">${esc(tk.lens || "")}</div></div></div>
     <div class="rd mc-sensitive" data-mc-sensitive="text">${esc(tk.read || "")}</div>${tk.do ? `<div class="do"><b>DO THIS</b>${sens(esc(tk.do), "text")}</div>` : ""}${tk.life ? `<div class="life">On life: ${sens(esc(tk.life), "text")}</div>` : ""}` : "")
     + `<details class="more2"><summary>Scorecards · ${esc(bd.month || "")} (A–F)</summary><div class="sc">${sc}</div></details>`
