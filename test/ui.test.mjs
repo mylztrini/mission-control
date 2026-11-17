@@ -140,7 +140,8 @@ async function metrics(page) {
       leftLeft: left.left,
       toggleRight: toggle.right,
       toggleTop: toggle.top,
-      moveBottom: move.bottom,
+      // v2 follow-up: the one-move hero only shows for a live Asana ask; the synthetic base fixture has none, so measure from the greeting
+      moveBottom: move.height ? move.bottom : document.getElementById("greet").getBoundingClientRect().bottom,
       boardTop: board.top,
       boardBottom: board.bottom,
       toggleW: toggle.width,
@@ -437,7 +438,10 @@ describe("Mission Control UI", { timeout: 120000 }, () => {
       await page.goto(base, { waitUntil: "domcontentloaded", timeout: 20000 });
       await ready(page);
 
-      assert.equal(await page.$eval("#statN", (el) => el.textContent), "2");
+      // headline = real asks (open Asana cards); the two synthetic Slack/email asks count as "other"
+      assert.equal(await page.$eval("#statN", (el) => el.textContent), "0");
+      assert.match(await page.$eval("#statS", (el) => el.textContent), /^real asks · 0 ready \(Top 10\) · 0 need a proper ask · 2 other/);
+      assert.equal(await page.$eval("#oneMove", (el) => el.hidden), true, "no live Asana ask -> no hero (the brain's one move never drives it)");
       assert.equal(await page.$eval("#warn", (el) => el.hidden), true);
       const openHref = await page.$eval("#wlist a.btn.p", (el) => el.getAttribute("href"));
       assert.match(openHref, /^grokbot:\/\/app\/v1\/agent\?id=bot-sample/);
@@ -1384,10 +1388,12 @@ describe("Mission Control UI", { timeout: 120000 }, () => {
         badges: [...document.querySelectorAll("#wlist .item")].map((el) => [el.querySelector(".num").textContent, el.querySelector(".hbadge").textContent]),
         count: document.getElementById("todayTabCount").textContent,
         statN: document.getElementById("statN").textContent,
+        statS: document.getElementById("statS").textContent,
       }));
       assert.deepEqual(today.badges.filter(([, b]) => b), [["#166", "On hold"], ["#178", "Parked"], ["#194", "Assigned to Sample Person"]]);
-      assert.equal(today.statN, "3"); // 2 plain + 1 assigned; hold and parked don't count
-      assert.equal(today.count, "3");
+      assert.equal(today.statN, "0"); // no Asana cards in this fixture: 0 real asks
+      assert.match(today.statS, /0 need a proper ask · 3 other · 2 on hold or parked/); // 2 plain + 1 assigned; hold and parked don't count
+      assert.equal(today.count, "");
       await page.click('.tabs button[data-tab="activity"]');
       const tl = await page.evaluate(() => [...document.querySelectorAll("#timeline .tl")].map((x) => x.innerText.replace(/\s+/g, " ")));
       assert.match(tl[0], /Synthetic Asana done/);
@@ -1501,6 +1507,14 @@ describe("Mission Control UI", { timeout: 120000 }, () => {
       assert.ok(v.first.pills.includes("TT$72,000 at stake")); assert.ok(v.first.pills.some((p) => /asked 3× \/ 9 days/.test(p)));
       assert.match(v.first.rec, /Recommended.*Approve.*go now.*Accept recommendation/s);
       assert.deepEqual(v.first.chips, ["Ignore for good"], "webhook Approve/Decline chips replaced by decide-in-place");
+      // counts: headline = real asks; breakdown explains every number; hero = #1 of the Top 10
+      const hc = await page.evaluate(() => ({ n: document.getElementById("statN").textContent, s: document.getElementById("statS").textContent, tab: document.getElementById("todayTabCount").textContent, wN: document.getElementById("wN").textContent,
+        heroK: document.getElementById("oneMove").dataset.k, heroHidden: document.getElementById("oneMove").hidden, heroLab: document.querySelector("#oneMove .lab").textContent, heroTxt: document.getElementById("oneMove").textContent, more: (document.getElementById("wCounts") || {}).textContent }));
+      assert.equal(hc.n, "3"); assert.equal(hc.tab, "3"); assert.equal(hc.wN, "2");
+      assert.match(hc.s, /^real asks · 2 ready \(Top 10\) · 1 needs a proper ask · 1 other$/);
+      assert.match(hc.more, /2 more open items: 1 real ask flagged "needs a proper ask" and 1 other\. Show all 4/);
+      assert.equal(hc.heroHidden, false); assert.equal(hc.heroK, "1220000000000001"); assert.match(hc.heroLab, /#1 in your Top 10/);
+      assert.match(hc.heroTxt, /TT\$72,000 at stake/); assert.ok(!/Synthetic one move|from the .* run/i.test(hc.heroTxt), "hero never uses brain text");
       assert.match(v.week, /Sample Bot 3/); assert.match(v.week, /5 days without an update/); assert.match(v.week, /asked 4× \/ 15 days/);
       // decide in place
       await page.type('#wlist .item[data-k="1220000000000002"] .dreply', "Go ahead, keep it small");
@@ -1511,8 +1525,14 @@ describe("Mission Control UI", { timeout: 120000 }, () => {
       assert.deepEqual(commands.map((c) => c.body), [
         { key: "1220000000000002", by: "web view: Approve", note: "Go ahead, keep it small" },
         { key: "1220000000000001", by: "web view: Accept rec (approve)", note: "Accepted recommendation" }]);
+      // both Top 10 asks decided -> the hero falls back to the top flagged ask, labelled as such; counts follow
+      const h2 = await page.evaluate(() => ({ k: document.getElementById("oneMove").dataset.k, lab: document.querySelector("#oneMove .lab").textContent, n: document.getElementById("statN").textContent, s: document.getElementById("statS").textContent, empty: document.getElementById("wCounts").textContent }));
+      assert.equal(h2.k, "1220000000000003"); assert.match(h2.lab, /top flagged ask \(no proper asks right now\)/); assert.equal(h2.n, "1");
+      assert.match(h2.s, /^real ask · 0 ready \(Top 10\) · 1 needs a proper ask · 1 other$/);
+      assert.match(h2.empty, /Top 10 is empty \(0 ready\)\. 1 real ask needs a proper ask.*1 other open item.*Show all 2/);
       // Show all: flagged card + board re-raise
       await page.click("#vAll");
+      assert.match(await page.$eval("#wCounts", (el) => el.textContent), /^All 2 open items: 1 real ask · 0 ready \(Top 10\) · 1 needs a proper ask · 1 other\./);
       v = await page.evaluate(() => ({ title: document.getElementById("wTitle").textContent, nums: [...document.querySelectorAll("#wlist .item .num")].map((x) => x.textContent),
         flag: [...document.querySelectorAll('#wlist .item[data-k="1220000000000003"] .pill2')].map((p) => p.textContent), noRec: (document.querySelector('#wlist .item[data-k="1220000000000003"] .rec') || {}).textContent,
         boardPill: [...document.querySelectorAll('#wlist .item[data-k="board:2026-11-01:X"] .pill2')].map((p) => p.textContent), saved: localStorage.getItem("mcView") }));
@@ -1522,6 +1542,13 @@ describe("Mission Control UI", { timeout: 120000 }, () => {
       await page.click('#wlist .item[data-k="1220000000000003"] [data-dec=snooze]');
       await page.waitForFunction(() => !document.querySelector('#wlist .item[data-k="1220000000000003"]'), { timeout: 5000 });
       assert.deepEqual(commands[2].body, { key: "1220000000000003", by: "web view: Snooze 1d" });
+      assert.equal(await page.$eval("#oneMove", (el) => el.hidden), true, "no open real ask left -> hero hidden");
+      // stale board data (> 24 h) hides the hero even when an ask exists
+      await page.evaluate((t) => { D.waiting.push({ key: "1220000000000007", bot: "Sample Bot", text: "Synthetic late ask", card: "1220000000000007", actions: [], ask: { proper: false, missing: ["a due date"], raise: { count: 1, days: 0 } } }); D.asana_board.fetched_at = t; renderRest(); }, ago(25));
+      assert.equal(await page.$eval("#oneMove", (el) => el.hidden), true, "hero hidden when the board data is over 24 hours old");
+      await page.evaluate((t) => { D.asana_board.fetched_at = t; renderRest(); }, ago(1));
+      assert.equal(await page.$eval("#oneMove", (el) => el.dataset.k), "1220000000000007");
+      await page.evaluate(() => { D.waiting = D.waiting.filter((i) => i.key !== "1220000000000007"); renderRest(); });
       // emails present + stale, and 390px layout with no sideways scroll
       await page.evaluate((g) => { D.email_top10 = { status: "ok", generated_at: g, items: [{ id: "m1", inbox: "team", from_name: "Sample Sender", subject: "Synthetic subject", received_at: g, ask: "Decide on the sample", link: "https://mail.google.com/mail/#all/m1", raise: { count: 2, days: 3 } }] }; renderEmails(); }, ago(13));
       v = await page.evaluate(() => ({ hd: document.getElementById("emailAsOf").textContent, items: [...document.querySelectorAll("#elist .em")].map((e) => e.textContent.replace(/\s+/g, " ")) }));

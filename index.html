@@ -903,6 +903,38 @@ const raiseOf = (i) => (i.ask && i.ask.raise) || i.raise || null;
 const touchedMs = (i) => { const r = raiseOf(i); const t = Math.max(Date.parse(i.touched_at || i.status_at || "") || 0, r ? Date.parse(r.last_raised_at) || 0 : 0); return t; };
 let VIEW = ST.get("mcView") === "all" ? "all" : "top"; // v2: Top 10 by default, "Show all" remembered
 const isAsanaAsk = (i) => !!(i.card && /^\d{10,20}$/.test(i.card) && i.ask);
+// One definition of the counts (same rules as mc-v2.js countsOf on the box, used by the morning push):
+// live = not on hold/parked and not just decided here; real ask = open Asana card in Waiting on Miles; ready = real asks in the Top 10.
+const liveList = () => needsYou().filter((i) => !(sent.get(i.key) || {}).ok);
+function countsNow() {
+  const live = liveList(), real = live.filter(isAsanaAsk), keys = new Set(real.map((i) => i.key));
+  const ready = Math.min(10, (D.top10 || []).filter((k) => keys.has(k)).length);
+  return { total: live.length, real_asks: real.length, ready, needs_proper_ask: real.length - ready, other: live.length - real.length };
+}
+function flaggedNow() {
+  const t = new Set(D.top10 || []);
+  return liveList().filter((i) => isAsanaAsk(i) && !t.has(i.key)).sort((a, b) => (((b.ask.raise || {}).count || 0) - ((a.ask.raise || {}).count || 0)) || ((b.ask.money_tt || 0) - (a.ask.money_tt || 0)) || (touchedMs(b) - touchedMs(a)));
+}
+const plural = (n, one, many) => `${n} ${n === 1 ? one : many}`;
+const countsLine = (c) => `${plural(c.real_asks, "real ask", "real asks")} · ${c.ready} ready (Top 10) · ${c.needs_proper_ask} need${c.needs_proper_ask === 1 ? "s" : ""} a proper ask · ${c.other} other`;
+const OTHER_HINT = "Other = Board Room check-backs, Slack/email asks and bot chats (not Asana cards).";
+// "Your one move today": the #1 Top 10 ask, else the top flagged real ask (labelled). Only from live open cards; hidden when the
+// board data is over 24 hours old or the card is decided/completed (it leaves D.waiting). Brain/brief text never drives it.
+function renderHero() {
+  const el = $("oneMove"), fetched = Date.parse((D.asana_board || {}).fetched_at || "");
+  const fresh = Number.isFinite(fetched) && Date.now() - fetched <= 24 * 3600e3;
+  const live = liveList().filter(isAsanaAsk), by = new Map(live.map((i) => [i.key, i]));
+  const first = (D.top10 || []).map((k) => by.get(k)).find(Boolean), it = fresh ? (first || flaggedNow()[0]) : null;
+  if (!it) { el.hidden = true; el.innerHTML = ""; el.dataset.k = ""; return; }
+  const a = it.ask || {}, r = a.raise || {};
+  const bits = [a.money_label ? `${a.money_label} at stake` : null, a.due ? `due ${fmtDue(a.due)}${a.overdue ? " (overdue)" : ""}` : "no due date", r.count > 1 ? `asked ${r.count}× / ${r.days} days` : null].filter(Boolean).join(" · ");
+  const lab = first ? "Your one move today · #1 in your Top 10" : "Your one move today · top flagged ask (no proper asks right now)";
+  el.dataset.k = it.key; el.dataset.kind = first ? "top10" : "flagged"; el.hidden = false;
+  el.innerHTML = `<div class="lab">${esc(lab)}</div><div class="hd mc-sensitive" data-mc-sensitive="text">${it.number ? "#" + esc(it.number) + " " : ""}${esc(it.text)}</div>`
+    + (a.question && a.question !== it.text ? `<div class="dt mc-sensitive" data-mc-sensitive="text">Ask: ${esc(a.question)}</div>` : "")
+    + `<div class="why">${esc(it.bot || "")}${it.bot ? " · " : ""}${sens(esc(bits), "money")}${first ? "" : ` · <b>needs a proper ask</b>${a.missing && a.missing.length ? ` (missing ${esc(a.missing.join(", "))})` : ""}`}</div>`
+    + `<div class="adv">From the live Asana board as of ${esc(new Date(fetched).toLocaleString("en-US", { timeZone: "America/Port_of_Spain", weekday: "short", hour: "numeric", minute: "2-digit" }))} AST · <a target="_blank" rel="noreferrer" href="${esc(/^https:\/\/app\.asana\.com\//.test(it.url || "") ? it.url : "https://app.asana.com/0/0/" + it.card)}">Open the card</a></div>`;
+}
 function topItems(list) { const by = new Map(list.map((i) => [i.key, i])); return (D.top10 || []).map((k) => by.get(k)).filter(Boolean).slice(0, 10); }
 const fmtDue = (d) => { const t = Date.parse(d + "T12:00:00-04:00"); return Number.isFinite(t) ? new Date(t).toLocaleDateString("en-US", { timeZone: "America/Port_of_Spain", weekday: "short", month: "short", day: "numeric" }) : d; };
 function askBlock(it) {
@@ -950,13 +982,15 @@ function renderWaiting() {
       <div class="row"><input class="reply" placeholder="Or type a reply for JARVIS…" maxlength="1000"><button class="btn p" data-a="Reply">Send</button><span class="st">${s ? esc(s.msg) : ""}</span></div>
     </div></div></div>`;
   };
-  const S = D.asks_summary || {};
-  const empty = top ? `<p class="cap">No proper asks right now. ${S.needs_proper_ask ? `${S.needs_proper_ask} Asana card${S.needs_proper_ask === 1 ? "" : "s"} need${S.needs_proper_ask === 1 ? "s" : ""} a proper ask (a clear question, options and a due date). ` : ""}<button type="button" class="btn" data-view="all">Show all ${all.length}</button></p>`
+  const C = countsNow();
+  const empty = top ? `<p class="cap" id="wCounts">No proper asks right now, so the Top 10 is empty (0 ready). ${C.needs_proper_ask ? `${plural(C.needs_proper_ask, "real ask needs", "real asks need")} a proper ask (a clear question, options and a due date). ` : ""}${C.other ? `${C.other} other open item${C.other === 1 ? "" : "s"} (check-backs, Slack/email asks, chats). ` : ""}<button type="button" class="btn" data-view="all">Show all ${C.total}</button></p>`
     : `<p class="cap">Everything is ignored for this view. Tick "Show ignored" to bring items back.</p>`;
   $("wlist").innerHTML = items.length ? fresh.map(card).join("")
     + (stale.length ? `<details class="oldgrp"><summary>Untouched for 7+ days (${stale.length})</summary>${stale.map(card).join("")}</details>` : "")
-    + (top && all.length > items.length ? `<p class="cap">${all.length - items.length} more open item${all.length - items.length === 1 ? "" : "s"}${S.needs_proper_ask ? ` (${S.needs_proper_ask} flagged "needs a proper ask")` : ""}. <button type="button" class="btn" data-view="all">Show all</button></p>` : "")
+    + (top && C.total > items.length ? `<p class="cap" id="wCounts">${C.total - items.length} more open item${C.total - items.length === 1 ? "" : "s"}: ${plural(C.needs_proper_ask, "real ask", "real asks")} flagged "needs a proper ask" and ${C.other} other. <button type="button" class="btn" data-view="all">Show all ${C.total}</button></p>` : "")
     : empty;
+  if (!top) $("wlist").insertAdjacentHTML("afterbegin", `<p class="cap" id="wCounts">All ${C.total} open items: ${countsLine(C)}. ${OTHER_HINT}</p>`);
+  try { renderHero(); } catch (e) { console.error(e); }
 }
 function setView(v) { VIEW = v; ST.set ? ST.set("mcView", v) : null; try { localStorage.setItem("mcView", v); } catch {} renderWaiting(); }
 $("vTop").addEventListener("click", () => setView("top"));
@@ -1518,11 +1552,14 @@ function renderRest() {
   $("rcap").textContent = D.captions.routines;
   $("routines").innerHTML = (D.routines || []).map((r) => `<tr>${r.map((c) => `<td>${esc(c)}</td>`).join("")}</tr>`).join("");
   const w = needsYou(), chats = w.filter((i) => !i.stale).length, held = (D.waiting || []).length - w.length;
-  $("statN").textContent = w.length;
-  $("statS").textContent = (w.length === 1 ? "item needs you" : "items need you") + (held ? ` · ${held} on hold or parked` : "");
+  const C = countsNow();
+  $("statN").textContent = C.real_asks;
+  $("statS").textContent = `${C.real_asks === 1 ? "real ask" : "real asks"} · ${C.ready} ready (Top 10) · ${C.needs_proper_ask} need${C.needs_proper_ask === 1 ? "s" : ""} a proper ask · ${C.other} other` + (held ? ` · ${held} on hold or parked` : "");
+  $("stat").title = `Waiting on Miles: ${countsLine(C)}. Real asks = open Asana cards in Waiting on Miles. Ready = proper asks in the Top 10. ${OTHER_HINT}`;
+  try { renderHero(); } catch (e) { console.error(e); }
   $("summary").textContent = ""; $("summary").hidden = true;
   if (WSHOWN == null) { $("wN").textContent = w.length; $("wN").hidden = !w.length; }
-  $("todayTabCount").textContent = w.length || ""; $("todayTabCount").hidden = !w.length;
+  $("todayTabCount").textContent = C.real_asks || ""; $("todayTabCount").hidden = !C.real_asks;
   try { renderBrain(); } catch (e) { console.error(e); }
   try { renderCash(); } catch (e) { console.error(e); }
   try { renderSheetsNav(); } catch (e) { console.error(e); }
@@ -1698,9 +1735,7 @@ function renderBrain(force) {
   if (!force && sig === renderBrain.sig) return; renderBrain.sig = sig;
   const noData = "Waiting for the first Operational Brain run (weekdays 7:35 AM AST).";
   if (!B) { for (const id of ["tabVillas", "tabMoney", "tabGrowth"]) $(id).innerHTML = none(noData); return; }
-  const om = B.onemove || {};
-  $("oneMove").hidden = !om.head;
-  $("oneMove").innerHTML = `<div class="lab">Your one move today · from the ${esc(fmtRun(B.as_of))} run</div><div class="hd mc-sensitive" data-mc-sensitive="text">${esc(om.head)}</div>${om.detail ? `<div class="dt mc-sensitive" data-mc-sensitive="text">${esc(om.detail)}</div>` : ""}${om.why ? `<div class="why">Why: ${sens(esc(om.why), "text")}</div>` : ""}${om.advisor_line ? `<div class="adv">🎩 ${sens(esc(om.advisor_line), "text")}</div>` : ""}`;
+  // v2 follow-up (Nov 17): the hero comes from the live Top 10 (renderHero), never from the brain run.
   const vitals = B.vitals || [];
   const agencyBook = (B.money && B.money.agency) || {};
   $("vitals").innerHTML = vitals.map((v) => { const pnlBtn = /^Villa profit/.test(v.k || ""), tag = pnlBtn ? "div" : "button";
