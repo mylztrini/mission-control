@@ -1730,6 +1730,13 @@ function agencySection(ag) {
     + (excl.length ? `<h3 style="margin:16px 0 8px;font:700 16px var(--font-display)">Not counted as open</h3><p class="cap">${esc(ag.excluded_note || "Drafts, credits and intercompany are not counted as open.")}</p>` + ttab(["Kind", "Company", "Amount", ""], excl) : "");
   return sec("Agency receivables", cap, body);
 }
+// Board Room "Do this" follows the hero rule (box sets take.do_state): hidden once its linked decision is made, or when it can't be
+// linked to a card and the take is over 24 h old. A small note says why; the advice text is never shown stale.
+function takeDo(tk) {
+  const ds = tk.do_state || null;
+  if (ds && ds.hidden) return `<p class="cap takenote" id="takeNote">"Do this" hidden: ${ds.why === "decided" ? `decision made (${esc(ds.reason)})` : "stale (no linked Asana card and the take is over 24 hours old)"}.</p>`;
+  return `${tk.do ? `<div class="do"><b>DO THIS</b>${sens(esc(tk.do), "text")}</div>` : ""}${tk.life ? `<div class="life">On life: ${sens(esc(tk.life), "text")}</div>` : ""}`;
+}
 function renderBrain(force) {
   const B = D.brain, sig = JSON.stringify(B || null) + NW.show;
   if (!force && sig === renderBrain.sig) return; renderBrain.sig = sig;
@@ -1759,7 +1766,7 @@ function renderBrain(force) {
   const bst = (e) => e.status === "re-raised" ? ["hot", `re-raised · asked ${(e.raise || {}).count || 2}× / ${(e.raise || {}).days || "?"} days`] : e.status === "open" ? (e.check_on <= todayAst ? ["hot", "due " + e.check_on] : ["warn", "check-back " + e.check_on]) : ["ok", e.status + (e.closed_on ? " " + e.closed_on : "")];
   const lg = (bd.log || []).map((e) => { const [c, l] = bst(e); return `<li><span class="t">${esc(e.repeats > 1 ? `${e.date} – ${e.last_date}` : e.date)}</span>${esc(e.advisor)}: ${sens(esc(e.do), "text")}${e.repeats > 1 ? ` <span class="tag2">asked ${e.repeats}×</span>` : ""} <span class="tag2 ${c}">${esc(l)}</span>${e.card ? ` <a class="tag2" target="_blank" rel="noreferrer" href="${esc(D.card_base + e.card)}">card</a>` : ""}</li>`; }).join("");
   $("board").innerHTML = (tk ? `<div class="who"><div class="avb">${esc(tk.ini || "")}</div><div><div class="nm">${esc(tk.advisor)}</div><div class="ln">${esc(tk.lens || "")}</div></div></div>
-    <div class="rd mc-sensitive" data-mc-sensitive="text">${esc(tk.read || "")}</div>${tk.do ? `<div class="do"><b>DO THIS</b>${sens(esc(tk.do), "text")}</div>` : ""}${tk.life ? `<div class="life">On life: ${sens(esc(tk.life), "text")}</div>` : ""}` : "")
+    <div class="rd mc-sensitive" data-mc-sensitive="text">${esc(tk.read || "")}</div>${takeDo(tk)}` : "")
     + `<details class="more2"><summary>Scorecards · ${esc(bd.month || "")} (A–F)</summary><div class="sc">${sc}</div></details>`
     + `<details class="more2"><summary>Follow-through log${(bd.due || []).length ? ` · ${(bd.due || []).length} due` : ""}</summary><ul class="lst">${lg || "<li>Nothing logged yet.</li>"}</ul></details>`;
   // Today: calendar, team, Asana

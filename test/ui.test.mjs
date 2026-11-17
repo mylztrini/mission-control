@@ -1515,6 +1515,15 @@ describe("Mission Control UI", { timeout: 120000 }, () => {
       assert.match(hc.more, /2 more open items: 1 real ask flagged "needs a proper ask" and 1 other\. Show all 4/);
       assert.equal(hc.heroHidden, false); assert.equal(hc.heroK, "1220000000000001"); assert.match(hc.heroLab, /#1 in your Top 10/);
       assert.match(hc.heroTxt, /TT\$72,000 at stake/); assert.ok(!/Synthetic one move|from the .* run/i.test(hc.heroTxt), "hero never uses brain text");
+      // Board Room take: "Do this" shows while open; hidden with a note once decided or stale (box sets do_state)
+      const takeView = () => page.evaluate(() => ({ doBox: !!document.querySelector("#boardSec .do"), life: !!document.querySelector("#boardSec .life"), note: (document.getElementById("takeNote") || {}).textContent || "" }));
+      assert.equal((await takeView()).doBox, true, "open take shows Do this");
+      await page.evaluate(() => { D.brain = JSON.parse(JSON.stringify(D.brain)); D.brain.board.take.do_state = { hidden: true, why: "decided", reason: "card completed", card: "1220000000000009" }; renderBrain(true); });
+      let tv = await takeView(); assert.equal(tv.doBox, false); assert.equal(tv.life, false); assert.match(tv.note, /hidden: decision made \(card completed\)/);
+      await page.evaluate(() => { D.brain.board.take.do_state = { hidden: true, why: "stale", reason: "x", card: null }; renderBrain(true); });
+      tv = await takeView(); assert.equal(tv.doBox, false); assert.match(tv.note, /hidden: stale \(no linked Asana card and the take is over 24 hours old\)/);
+      await page.evaluate(() => { D.brain.board.take.do_state = { hidden: false }; renderBrain(true); });
+      assert.equal((await takeView()).doBox, true);
       assert.match(v.week, /Sample Bot 3/); assert.match(v.week, /5 days without an update/); assert.match(v.week, /asked 4× \/ 15 days/);
       // decide in place
       await page.type('#wlist .item[data-k="1220000000000002"] .dreply', "Go ahead, keep it small");
