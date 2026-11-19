@@ -84,7 +84,7 @@ h2{font-size:19px;margin:0;font-weight:700;letter-spacing:-.02em}.cap{color:var(
 .tog input{accent-color:var(--accent)}
 .item{border-top:1px solid var(--bd2);padding:12px 0}.item:first-child{border-top:none}
 .meta{color:var(--muted);font-size:13px;font-family:var(--font-mono);letter-spacing:.02em}.txt{margin-top:2px}.stale .txt{color:var(--fg2)}
-.blur .meta,.blur .txt{filter:blur(6px);user-select:none}.ign{opacity:.5}.sent{opacity:.55}.item.gone{opacity:0;transform:translateY(-8px);max-height:0!important;padding-top:0;padding-bottom:0;border-top-color:transparent;overflow:hidden}.item.fading{transition:opacity .35s ease,transform .35s ease,max-height .4s ease .3s,padding .4s ease .3s;overflow:hidden}
+.blur .meta,.blur .txt{filter:blur(6px);user-select:none}.ign{opacity:.5}.sent{opacity:.55}.item.gone,.elist .em.gone{opacity:0;transform:translateY(-8px);max-height:0!important;padding-top:0;padding-bottom:0;border-top-color:transparent;overflow:hidden}.item.fading,.elist .em.fading{transition:opacity .35s ease,transform .35s ease,max-height .4s ease .3s,padding .4s ease .3s;overflow:hidden}
 .nrow{display:flex;gap:12px;align-items:flex-start}.nbody{flex:1 1 auto;min-width:0}
 .num{flex:0 0 auto;min-width:40px;font-size:20px;font-weight:700;line-height:1.2;font-variant-numeric:tabular-nums;color:var(--accent-ink)}.num:empty{display:none}
 .badge{display:inline-block;margin-left:6px;padding:0 8px;border-radius:999px;font-size:11.5px;background:var(--accent-bg);border:1px solid var(--accent);color:var(--accent-ink)}.badge:empty{display:none}
@@ -851,7 +851,7 @@ const css = (v) => getComputedStyle(document.documentElement).getPropertyValue(v
 const colorFor = (name) => { let h = 0; for (const ch of name) h = (h * 31 + ch.charCodeAt(0)) >>> 0; return `var(${PALETTE[h % PALETTE.length]})`; };
 const initials = (n) => n.replace(/[^A-Za-z0-9 &.]/g, " ").split(/[\s.&]+/).filter(Boolean).slice(0, 2).map((w) => w[0].toUpperCase()).join("");
 let D = null;
-const ignored = new Set(), hidden = new Set(), sent = new Map();
+const ignored = new Set(), hidden = new Set(), sent = new Map(), emailGone = new Set();
 
 // Clock
 function tick() {
@@ -1513,11 +1513,70 @@ function renderEmails() {
   hd.className = "boardasof" + (old ? " stale" : "");
   hd.textContent = old ? `⚠ Email list as of ${when} AST, over 12 hours old.` : `Email list as of ${when} AST.`;
   const age = (iso) => { const h = (Date.now() - Date.parse(iso)) / 3600e3; return !Number.isFinite(h) ? "" : h < 24 ? `${Math.max(1, Math.round(h))}h` : `${Math.round(h / 24)}d`; };
-  el.innerHTML = (E.items || []).length ? E.items.map((m) => `<div class="em"><div class="meta">${esc(m.inbox === "team" ? "team@" : "miles@")} · <span class="mc-sensitive" data-mc-sensitive="name">${esc(m.from_name || m.from_email || "")}</span> · ${esc(age(m.received_at))} old${m.raise && m.raise.count > 1 ? ` <span class="pill2 raise">asked ${m.raise.count}× / ${m.raise.days} days</span>` : ""}${m.due ? ` <span class="pill2 due">Due ${esc(fmtDue(m.due))}</span>` : ""}${m.money_at_stake ? ` <span class="pill2 money mc-sensitive" data-mc-sensitive="money">${esc(String(m.money_at_stake))} at stake</span>` : ""}</div>
+  const items = visibleEmails(E);
+  el.innerHTML = items.length ? items.map((m) => `<div class="em" data-k="${esc(m.id)}"><div class="meta">${esc(m.inbox === "team" ? "team@" : "miles@")} · <span class="mc-sensitive" data-mc-sensitive="name">${esc(m.from_name || m.from_email || "")}</span> · ${esc(age(m.received_at))} old${m.raise && m.raise.count > 1 ? ` <span class="pill2 raise">asked ${m.raise.count}× / ${m.raise.days} days</span>` : ""}${m.due ? ` <span class="pill2 due">Due ${esc(fmtDue(m.due))}</span>` : ""}${m.money_at_stake ? ` <span class="pill2 money mc-sensitive" data-mc-sensitive="money">${esc(String(m.money_at_stake))} at stake</span>` : ""}</div>
       <div class="hd mc-sensitive" data-mc-sensitive="text">${esc(m.subject || "(no subject)")}</div><div class="ask mc-sensitive" data-mc-sensitive="text">${esc(m.ask || "")}</div>
-      ${m.link ? `<a class="btn l" target="_blank" rel="noreferrer" href="${esc(m.link)}">Open in Gmail</a>` : ""}</div>`).join("")
+      <div class="decide">
+        <button class="btn appr" data-dec="approve" title="Record Approve on the board only. Does not reply, label, file or archive in Gmail.">Approve</button>
+        <button class="btn decl" data-dec="decline" title="Record Decline on the board only. Does not reply, label, file or archive in Gmail.">Decline</button>
+        <button class="btn done" data-dec="done" title="Take this email off the board. Does not change Gmail.">✓ Done</button>
+        <button class="btn" data-dec="remove" title="Take this email off the board. Does not change Gmail.">Remove</button>
+        ${m.link ? `<a class="btn l" target="_blank" rel="noreferrer" href="${esc(m.link)}">Open in Gmail</a>` : ""}
+        <span class="st"></span>
+      </div></div>`).join("")
     : `<p class="cap">No emails waiting on you in the latest list.</p>`;
 }
+// Emails taken off the board (Remove / Done / Approve / Decline) stay hidden even if a later payload lists them again.
+// Sources: this session (emailGone), the file's dismissed list, and removal keys the always-on /remove path already persisted (email:<gmail id>).
+function emailIdOfDismissed(x) { return x == null ? "" : String(typeof x === "string" ? x : x.id || "").trim(); }
+function emailIdOfRemovalKey(k) { const s = String(k || ""); return s.startsWith("email:") ? s.slice(6) : ""; }
+function goneEmailIds(E) {
+  const ids = new Set(emailGone);
+  for (const x of ((E || D.email_top10 || {}).dismissed || [])) { const id = emailIdOfDismissed(x); if (id) ids.add(id); }
+  for (const k of D.removed || []) { const id = emailIdOfRemovalKey(k); if (id) ids.add(id); }
+  return ids;
+}
+function visibleEmails(E) {
+  const gone = goneEmailIds(E);
+  return ((E && E.items) || []).filter((m) => m && m.id && m.status !== "handled" && !gone.has(String(m.id)));
+}
+function markEmailGone(id, entry) {
+  const E = D.email_top10 || (D.email_top10 = { items: [], dismissed: [] });
+  emailGone.add(id);
+  E.items = (E.items || []).filter((m) => String(m.id) !== id);
+  const have = (E.dismissed || []).some((x) => emailIdOfDismissed(x) === id);
+  if (!have) E.dismissed = [...(E.dismissed || []), entry];
+  if (Array.isArray(D.removed) && !D.removed.includes("email:" + id)) D.removed = [...D.removed, "email:" + id];
+}
+// Board-only email actions. Same /remove path as the other cards' Approve / Decline / Done. Never posts to /command and never writes to Gmail.
+const EMAIL_DEC = {
+  approve: { by: "web view: Approve", msg: "Approved on the board. Gmail was not changed." },
+  decline: { by: "web view: Decline", msg: "Declined on the board. Gmail was not changed." },
+  done: { by: "web view: Done", note: "Done: take this email off the board", msg: "Done. Taken off the board. Gmail was not changed." },
+  remove: { by: "web view: Remove", note: "Remove: take this email off the board", msg: "Removed from the board. Gmail was not changed." }
+};
+async function emailPress(el, id, kind) {
+  const dec = EMAIL_DEC[kind]; if (!dec) return;
+  const st = el.querySelector(".st");
+  el.querySelectorAll("[data-dec]").forEach((x) => (x.disabled = true)); if (st) st.textContent = "Saving…";
+  try {
+    const body = { key: "email:" + id, by: dec.by }; if (dec.note) body.note = dec.note;
+    const r = await api("remove", { method: "POST", headers: { "Content-Type": "application/json", "X-Mission-Control": "1" }, body: JSON.stringify(body) });
+    const j = await r.json().catch(() => ({}));
+    if (!r.ok || !j.ok) throw new Error(j.error || "not saved");
+    const item = ((D.email_top10 || {}).items || []).find((m) => String(m.id) === id);
+    markEmailGone(id, { id, subject: item ? item.subject : null, by: dec.by, at: new Date().toISOString(), reason: kind });
+    if (st) st.textContent = dec.msg;
+    fadeOut(el);
+  } catch (err) { el.querySelectorAll("[data-dec]").forEach((x) => (x.disabled = false)); if (st) st.textContent = "Couldn't save: " + (err.message || "error"); }
+}
+
+$("elist").addEventListener("click", (e) => {
+  const b = e.target.closest("button[data-dec]"); if (!b) return;
+  const el = b.closest(".em"); if (!el) return;
+  const id = el.dataset.k; if (!id) return;
+  emailPress(el, id, b.dataset.dec);
+});
 function renderWeekly() {
   const W = D.weekly, sec = $("weekSec"); if (!sec) return;
   if (!W) { sec.hidden = true; return; }

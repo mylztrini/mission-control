@@ -1574,4 +1574,70 @@ describe("Mission Control UI", { timeout: 120000 }, () => {
       await context.close();
     }
   });
+
+  it("v2 emails: Approve/Decline/Done/Remove buttons, dismissed filter, triage rewrite stays hidden", async () => {
+    const commands = [], leaked = [];
+    const { context, page, errors } = await openPage(browser, commands, leaked);
+    try {
+      await page.goto(base, { waitUntil: "domcontentloaded" });
+      await ready(page);
+      const now = new Date().toISOString();
+      const keep = { id: "mail-keep", inbox: "miles", from_name: "Sample Keep", subject: "Please keep this one", received_at: now, ask: "Stay on the board", link: "https://mail.google.com/mail/#all/mail-keep" };
+      const drop = { id: "1a1edcc05b2f0a35", inbox: "miles", from_name: "Sample Drop", subject: "You need a different passport photo", received_at: now, ask: "Already taken off by hand", link: "https://mail.google.com/mail/#all/1a1edcc05b2f0a35" };
+      const act = { id: "mail-act", inbox: "team", from_name: "Sample Sender", subject: "Synthetic action subject", received_at: now, ask: "Needs a decision", money_at_stake: 50, link: "https://mail.google.com/mail/#all/mail-act" };
+      // dismissed list (string or object) and a removal key both hide an email even if items still list it
+      let v = await page.evaluate((g, keep, drop, act) => {
+        D.removed = ["email:already-gone"];
+        D.email_top10 = { status: "ok", generated_at: g, items: [keep, drop, act, { id: "already-gone", inbox: "miles", from_name: "Old", subject: "Already removed via /remove", received_at: g, ask: "Should stay off" }],
+          dismissed: [{ id: "1a1edcc05b2f0a35", subject: "You need a different passport photo", by: "Miles (voice call)", at: "2026-11-19T01:07:00Z", reason: "Miles: remove from board" }, "also-string-id"] };
+        renderEmails();
+        return {
+          ids: [...document.querySelectorAll("#elist .em")].map((e) => e.dataset.k),
+          btns: [...document.querySelectorAll('#elist .em[data-k="mail-act"] [data-dec]')].map((b) => [b.dataset.dec, b.textContent.trim()]),
+          gmail: !!document.querySelector('#elist .em[data-k="mail-act"] a[href^="https://mail.google.com/"]'),
+          src: /gmail\.googleapis|users\/messages|messages\/modify/.test(document.documentElement.innerHTML)
+        };
+      }, now, keep, drop, act);
+      assert.deepEqual(v.ids, ["mail-keep", "mail-act"], "dismissed and already-removed ids are filtered out");
+      assert.deepEqual(v.btns, [["approve", "Approve"], ["decline", "Decline"], ["done", "✓ Done"], ["remove", "Remove"]]);
+      assert.equal(v.gmail, true);
+      assert.equal(v.src, false, "page source has no Gmail write calls");
+      // Remove persists through the same /remove path, never /command, and the card leaves the board
+      const before = commands.length;
+      await page.click('#elist .em[data-k="mail-act"] [data-dec=remove]');
+      await page.waitForFunction(() => !document.querySelector('#elist .em[data-k="mail-act"]'), { timeout: 5000 });
+      const posted = commands.slice(before);
+      assert.equal(posted.length, 1);
+      assert.match(posted[0].url, /\/remove$/);
+      assert.equal(posted[0].url.endsWith("/command"), false);
+      assert.deepEqual(posted[0].body, { key: "email:mail-act", by: "web view: Remove", note: "Remove: take this email off the board" });
+      v = await page.evaluate(() => [...document.querySelectorAll("#elist .em")].map((e) => e.dataset.k));
+      assert.deepEqual(v, ["mail-keep"]);
+      // Approve / Decline record the same `by` as the other cards
+      await page.evaluate((g, keep, act2) => {
+        D.email_top10.items = [keep, act2];
+        renderEmails();
+      }, now, keep, { ...act, id: "mail-approve", subject: "Approve me", link: "https://mail.google.com/mail/#all/mail-approve" });
+      const mid = commands.length;
+      await page.click('#elist .em[data-k="mail-approve"] [data-dec=approve]');
+      await page.waitForFunction(() => !document.querySelector('#elist .em[data-k="mail-approve"]'), { timeout: 5000 });
+      assert.deepEqual(commands[mid].body, { key: "email:mail-approve", by: "web view: Approve" });
+      // Simulated triage rewrite puts the removed email back in items; dismissed / emailGone / removed keys keep it off
+      v = await page.evaluate((g, keep, act) => {
+        D.email_top10 = { status: "ok", generated_at: g, source: "simulated triage rewrite", items: [act, keep], dismissed: [{ id: "mail-act", reason: "removed on the board" }] };
+        renderEmails();
+        const withFile = [...document.querySelectorAll("#elist .em")].map((e) => e.dataset.k);
+        D.email_top10.dismissed = [];
+        renderEmails();
+        const withoutFile = [...document.querySelectorAll("#elist .em")].map((e) => e.dataset.k);
+        return { withFile, withoutFile };
+      }, now, keep, act);
+      assert.deepEqual(v.withFile, ["mail-keep"], "dismissed in the rewritten file keeps the email off");
+      assert.deepEqual(v.withoutFile, ["mail-keep"], "session emailGone plus removed keys still hide it if triage omitted dismissed");
+      assert.equal(leaked.length, 0);
+      assert.deepEqual(errors, []);
+    } finally {
+      await context.close();
+    }
+  });
 });
